@@ -10,7 +10,7 @@
 
 **fm01** is a Discord bot built to replace and improve upon its predecessor, *FightMan01 bot*. It's a versatile bot
 featuring moderation, utility, and fun commands.
-
+ 
 ## Running the Bot
 
 ### Prerequisites
