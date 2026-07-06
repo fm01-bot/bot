@@ -6,6 +6,8 @@ from core.bot import Bot
 from core.log import logger
 from dotenv import load_dotenv
 
+import logging
+
 try:
 	import uvloop  # type: ignore
 
@@ -28,14 +30,16 @@ async def main(debug) -> None:
 
 	global client
 	client = Bot()
-	client.debug = debug
+	client.debug = debug or bool(int(os.getenv("DEBUG", False)))
 
 	if client.debug:
 		token = os.getenv("DEBUG_TOKEN")
 		logger.info("Running in debug mode")
+		logger.setLevel(logging.DEBUG)
 	else:
 		token = os.getenv("TOKEN")
 		logger.info("Running in production mode")
+		logger.setLevel(logging.INFO)
 
 	if token:
 		await client.start(token)

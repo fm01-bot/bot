@@ -30,7 +30,7 @@ jobs:
           echo "Pulled successfully"
           tmux has-session -t beta 2>/dev/null && tmux kill-session -t beta
           echo "Killed beta"
-          tmux new -d -s beta 'uv run python -OO main.py'
+          tmux new -d -s beta 'uv run main.py'
           tmux set-option -t beta remain-on-exit on
           echo "Bot is running"
           EOF
