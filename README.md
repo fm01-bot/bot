@@ -89,7 +89,7 @@ Version numbers follow **MAJOR.MINOR.PATCH**:
 - **MAJOR** → Breaking changes (e.g., full module overhauls)
     - Resets MINOR and PATCH to `0`
 - **MINOR** → New features or updated command sets
-    - Resets PATCH to `0` 
+    - Resets PATCH to `0`
 - **PATCH** → Bugfixes, internal tweaks, or localization updates
 
 > ⚠️ Version suffixes (e.g., `-beta`, `-dev`) will **not** be present in the live bot.
