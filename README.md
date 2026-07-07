@@ -1,4 +1,4 @@
-# fm01 
+# fm01
 
 [![Crowdin](https://badges.crowdin.net/project-lumin/localized.svg)](https://crowdin.com/project/project-lumin)
 [![GitHub Release](https://img.shields.io/github/v/release/project-lumin/closed-beta)](https://github.com/project-lumin/closed-beta/releases/latest)
