@@ -17,6 +17,7 @@ class Setup(commands.Cog, name="Setup"):
 		await self.client.db.execute(
 			"UPDATE guilds SET prefix = $1, mention = $2 WHERE guild_id = $3", prefix, mention, ctx.guild.id
 		)
+		self.client.prefix_cache[ctx.guild.id] = (prefix, mention)
 		return await ctx.send("setup.prefix.set", prefix=prefix)
 
 

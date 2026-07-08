@@ -52,6 +52,7 @@ class Bot(commands.AutoShardedBot):
 			allowed_installs=app_commands.AppInstallationType(guild=True, user=True),
 			allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
 		)
+		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
 
 	async def request(self, url: str):
@@ -66,8 +67,15 @@ class Bot(commands.AutoShardedBot):
 			return "?"
 		if not message.guild:
 			return "?!"
-		row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
-		prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
+		if message.guild.id in self.prefix_cache:
+			prefix, mention = self.prefix_cache[message.guild.id]
+		else:
+			row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
+			if row:
+				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
+			else:
+				prefix, mention = "?!", True
+			self.prefix_cache[message.guild.id] = (prefix, mention)
 		if mention:
 			return commands.when_mentioned_or(prefix)(self, message)
 		else:
@@ -77,6 +85,13 @@ class Bot(commands.AutoShardedBot):
 		row = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", guild.id)
 		if not row:
 			await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", guild.id)
+			self.prefix_cache[guild.id] = ("?!", True)
+		else:
+			self.prefix_cache[guild.id] = (row.get("prefix", "?!"), row.get("mention", True))
+
+	async def on_guild_remove(self, guild: discord.Guild):
+		if guild.id in self.prefix_cache:
+			del self.prefix_cache[guild.id]
 
 	async def get_context(self, origin: Union[discord.Message, discord.Interaction], /, *, cls=None) -> Any:
 		return await super().get_context(origin, cls=Context)
@@ -87,11 +102,12 @@ class Bot(commands.AutoShardedBot):
 
 		try:
 			await self.database_initialization()
-		except asyncpg.InvalidAuthorizationSpecificationError as e:
-			self.logger.error("Failed to connect to database", exc_info=e)
+		except asyncpg.InvalidAuthorizationSpecificationError:
+			self.logger.error("Failed to connect to database", exc_info=True)
 			exit(-1)
 		await self.first_time_database()
 		await self.load_cogs()
+		await self.cache_prefixes()
 		await self.tree.set_translator(SlashCommandLocalizer())
 		self.session = aiohttp.ClientSession(
 			connector=aiohttp.TCPConnector(resolver=aiohttp.AsyncResolver(), family=socket.AF_INET)
@@ -178,6 +194,12 @@ class Bot(commands.AutoShardedBot):
 				self.logger.info(f"Loaded extension {cog.name}")
 		end = perf_counter() - benchmark
 		self.logger.info(f"Loaded cogs in {end:.2f}s")
+
+	async def cache_prefixes(self):
+		self.logger.info("Caching prefixes...")
+		result = await self.db.fetch("SELECT guild_id, prefix, mention FROM guilds")
+		for row in result:
+			self.prefix_cache[row["guild_id"]] = (row["prefix"], row["mention"])
 
 	async def on_ready(self):
 		if not hasattr(self, "uptime"):
