@@ -270,11 +270,8 @@ class HybridGroup(commands.HybridGroup):
 			perms_dict = {perm: True for perm in permissions}
 			self.checks.append(commands.has_permissions(**perms_dict).predicate)
 
-		# Ensure fallback uses our HybridAppCommand
 		if self.fallback:
-			# Remove the one created by super().__init__
 			self.app_command.remove_command(self.fallback)
-			# Create our own
 			fallback_command = HybridAppCommand(self, name=getattr(self, "fallback_locale", None) or self.fallback)
 			self.app_command.add_command(fallback_command)
 
