@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
 import discord
+
 from args.guild import Guild
 from args.partial_emoji import PartialEmoji
 
 
-@dataclass
+@dataclass(slots=True)
 class Emoji(PartialEmoji):
 	managed: bool
 	_roles: list[discord.Role]

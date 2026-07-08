@@ -2,12 +2,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
+
 from args.guild import Guild
 from args.member import Member
 from args.rule_action import RuleAction
 
 
-@dataclass
+@dataclass(slots=True)
 class AutoModAction:
 	_action: discord.AutoModRuleAction = field(repr=False)
 	rule_trigger_type: str = field(repr=False)

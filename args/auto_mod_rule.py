@@ -2,12 +2,13 @@ import datetime
 from dataclasses import dataclass, field
 
 import discord
+
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 from args.member import Member
 
 
-@dataclass
+@dataclass(slots=True)
 class AutoModRule:
 	name: str
 	"""Returns the rule's name."""

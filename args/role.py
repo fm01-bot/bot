@@ -3,11 +3,12 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
+
 from args.color import Color
 from args.format_date_time import FormatDateTime
 
 
-@dataclass
+@dataclass(slots=True)
 class Role:
 	name: str
 	"""Returns the role's name."""

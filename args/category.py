@@ -2,11 +2,12 @@ import datetime
 from dataclasses import dataclass
 
 import discord
+
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 
 
-@dataclass
+@dataclass(slots=True)
 class Category:
 	name: str
 	"""Returns the category's name."""

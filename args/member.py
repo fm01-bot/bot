@@ -3,12 +3,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
+
 from args.color import Color
 from args.format_date_time import FormatDateTime
 from args.user import User
 
 
-@dataclass
+@dataclass(slots=True)
 class Member(User):
 	_nickname: Optional[str] = field(repr=False)
 	_color: Optional[Color] = field(repr=False)

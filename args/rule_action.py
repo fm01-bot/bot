@@ -3,11 +3,12 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
-from args.channel import Channel, convert_to_custom_channel
 from helpers.convert import seconds_to_text
 
+from args.channel import Channel, convert_to_custom_channel
 
-@dataclass
+
+@dataclass(slots=True)
 class RuleAction:
 	type: str
 	"""Returns the action's type."""

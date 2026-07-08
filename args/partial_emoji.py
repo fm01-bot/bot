@@ -3,11 +3,12 @@ from dataclasses import dataclass
 from typing import Optional
 
 import discord
-from args.format_date_time import FormatDateTime
 from emoji import demojize
 
+from args.format_date_time import FormatDateTime
 
-@dataclass
+
+@dataclass(slots=True)
 class PartialEmoji:
 	_name: Optional[str]
 	animated: bool
