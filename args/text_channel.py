@@ -3,13 +3,14 @@ from dataclasses import dataclass
 from typing import Optional
 
 import discord
+from helpers import seconds_to_text
+
 from args.category import Category
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
-from helpers import seconds_to_text
 
 
-@dataclass
+@dataclass(slots=True)
 class TextChannel:
 	name: str
 	"""Returns the channel's name."""

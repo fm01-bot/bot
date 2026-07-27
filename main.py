@@ -1,12 +1,11 @@
 import argparse
 import asyncio
+import logging
 import os
 
 from core.bot import Bot
 from core.log import logger
 from dotenv import load_dotenv
-
-import logging
 
 try:
 	import uvloop  # type: ignore
@@ -35,11 +34,11 @@ async def main(debug) -> None:
 	if client.debug:
 		token = os.getenv("DEBUG_TOKEN")
 		logger.info("Running in debug mode")
-		logger.setLevel(logging.DEBUG)
+		client.logger.setLevel(logging.DEBUG)
 	else:
 		token = os.getenv("TOKEN")
 		logger.info("Running in production mode")
-		logger.setLevel(logging.INFO)
+		client.logger.setLevel(logging.INFO)
 
 	if token:
 		await client.start(token)
@@ -51,8 +50,8 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	try:
 		asyncio.run(main(args.debug))
-	except Exception as e:
+	except:
 		if client.db:
 			asyncio.run(client.db.close())
 		asyncio.run(client.close())
-		logger.error(e)
+		client.logger.error("An error occurred while running the bot", exc_info=True)

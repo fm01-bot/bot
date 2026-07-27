@@ -3,12 +3,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
+
 from args.channel import Channel, convert_to_custom_channel
 from args.format_date_time import FormatDateTime
 from args.user import User
 
 
-@dataclass
+@dataclass(slots=True)
 class Invite:
 	code: str
 	"""Returns the invite's code."""

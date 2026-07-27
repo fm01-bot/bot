@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 import discord
+
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 from args.user import User
 
 
-@dataclass
+@dataclass(slots=True)
 class Template:
 	name: str
 	_guild: discord.Guild

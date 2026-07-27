@@ -4,6 +4,8 @@ import re
 
 import discord
 
+from .regex import TIME
+
 
 def text_to_seconds(time: str, base: int = 0) -> int:
 	"""
@@ -52,9 +54,6 @@ def text_to_seconds(time: str, base: int = 0) -> int:
 	ValueError
 	    If the string doesn't contain time units.
 	"""
-	pattern = re.compile(
-		r"(\d+)(y|yr|yrs|year|years|mo|mos|month|months|w|wk|wks|week|weeks|d|dy|dys|day|days|h|hr|hrs|hour|hours|m|mn|mns|min|mins|minutes|s|sc|scs|sec|secs|seconds)"
-	)
 	time_units = {
 		"y": 60 * 60 * 24 * 365,
 		"yr": 60 * 60 * 24 * 365,
@@ -93,7 +92,7 @@ def text_to_seconds(time: str, base: int = 0) -> int:
 	}
 
 	total_seconds = 0
-	matches = pattern.findall(time)
+	matches = TIME.findall(time)
 
 	if not matches:
 		try:

@@ -3,13 +3,14 @@ from dataclasses import dataclass
 from typing import Optional, Sequence
 
 import discord
+
 from args.category import Category
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 from args.partial_emoji import PartialEmoji
 
 
-@dataclass
+@dataclass(slots=True)
 class ForumChannel:
 	name: str
 	"""Returns the forum channel's name."""

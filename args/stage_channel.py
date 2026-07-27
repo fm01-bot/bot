@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 import discord
+
 from args.category import Category
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 
 
-@dataclass
+@dataclass(slots=True)
 class StageChannel:
 	name: str
 	"""Returns the stage channel's name."""

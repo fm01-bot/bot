@@ -3,11 +3,12 @@ from dataclasses import dataclass, field
 from typing import Optional, Sequence, Union
 
 import discord
+
 from args.format_date_time import FormatDateTime
 from args.member import Member
 
 
-@dataclass
+@dataclass(slots=True)
 class Guild:
 	name: str
 	"""Returns the guild's name."""

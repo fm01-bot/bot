@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import discord
+
 from args.channel import Channel, convert_to_custom_channel
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
@@ -10,7 +11,7 @@ from args.member import Member
 from args.user import User
 
 
-@dataclass
+@dataclass(slots=True)
 class Message:
 	"""A class that represents a Discord message with useful formatting properties.
 
