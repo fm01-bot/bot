@@ -179,25 +179,22 @@ class CustomResponse:
 			"now": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
 		}
 
+		kwag_mapping = {
+			discord.Guild: Guild.from_guild,
+			discord.Member: Member.from_member,
+			discord.User: User.from_user,
+			discord.Role: Role.from_role,
+			discord.Emoji: Emoji.from_emoji,
+			discord.PartialEmoji: PartialEmoji.from_emoji,
+		}
+
 		# these are kwargs that are passed in but they're converted into custom args
 		for key, value in kwargs.items():
-			match value:
-				case discord.Guild():
-					kwargs[key] = Guild.from_guild(value)
-				case discord.Member():
-					kwargs[key] = Member.from_member(value)
-				case discord.User():
-					kwargs[key] = User.from_user(value)
-				case discord.Role():
-					kwargs[key] = Role.from_role(value)
-				case discord.Emoji():
-					kwargs[key] = Emoji.from_emoji(value)
-				case discord.PartialEmoji():
-					kwargs[key] = PartialEmoji.from_emoji(value)
-				case datetime.datetime():
-					kwargs[key] = FormatDateTime(value, "F")
-				case _:
-					continue
+			for _type, converter in kwag_mapping.items():
+				if isinstance(value, _type):
+					kwargs[key] = converter(value)
+				elif isinstance(value, datetime.datetime):
+					kwargs[key] = FormatDateTime(value, format="F")
 
 		if self.client.debug:
 			now = time.time()
