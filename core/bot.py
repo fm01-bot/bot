@@ -32,12 +32,7 @@ class Bot(commands.AutoShardedBot):
 		self.db: asyncpg.Pool = None  # type: ignore
 		self.session: aiohttp.ClientSession | None = None
 		self.ready_event = asyncio.Event()
-		self.owner_ids = {
-			648168353453572117,  # pearoo
-			657350415511322647,  # liba
-			452133888047972352,  # aki26
-			1051181672508444683,  # sarky
-		}
+		self.owner_ids: set[int] = {int(owner_id.strip()) for owner_id in os.getenv("OWNER_IDS", "").split(",")}
 		super().__init__(
 			command_prefix=self.get_prefix,  # type: ignore
 			heartbeat_timeout=150.0,
