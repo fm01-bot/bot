@@ -53,7 +53,7 @@ class Role:
 			icon = Emoji.from_emoji(role.display_icon).display
 		else:
 			icon = None
-			
+
 		return cls(
 			name=role.name,
 			id=role.id,
