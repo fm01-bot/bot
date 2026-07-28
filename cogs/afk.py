@@ -74,12 +74,13 @@ class AFK(commands.Cog):
 		final_message = "\n".join(afk_lines)
 		await ctx.reply(final_message)
 
-	@command()
+	@command(user=False)
 	async def afk(self, ctx: Context, reason: Optional[str] = None):
+		reason_text = reason
 		if not reason:
-			reason = await self.custom_response("afk.dnd", ctx)
+			reason_text = await self.custom_response("afk.dnd", ctx)
 
-		if regex.DISCORD_INVITE.search(reason):
+		if isinstance(reason_text, str) and regex.DISCORD_INVITE.search(reason_text):
 			return await ctx.send("afk.link")
 
 		row = await self.client.db.fetchrow(

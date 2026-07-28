@@ -71,7 +71,7 @@ class Context(commands.Context):
 
 		merged_args = {k: v for k, v in base_args.items() if v is not None}
 
-		msg = await super().send(**merged_args)
+		msg = await super().send(**merged_args)  # type: ignore
 		if delete_after is not None:
 			await msg.delete(delay=delete_after)
 		return msg

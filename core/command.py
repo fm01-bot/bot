@@ -22,8 +22,10 @@ class Command:
 		l10n = slash_localization.slash_command_localization
 		if ctx.command and l10n:
 			usage_attr = getattr(ctx.command, "usage", None)
-			usage = l10n(usage_attr, ctx) if usage_attr else ctx.command.qualified_name
-			description = l10n(ctx.command.description, ctx)
+			desc_attr = getattr(ctx.command, "description", None)
+			logger.info(f"{usage_attr=} {desc_attr=}")
+			usage = l10n(usage_attr, ctx) if usage_attr and ctx.guild else l10n(usage_attr, "en")
+			description = l10n(desc_attr, ctx) if ctx.guild else l10n(desc_attr, "en")
 			return cls(
 				name=ctx.command.qualified_name,
 				description=description if isinstance(description, str) and description else "-",
@@ -38,9 +40,10 @@ class Command:
 		l10n = slash_localization.slash_command_localization
 		if l10n:
 			usage_attr = getattr(command, "usage", None)
-			usage = l10n(usage_attr, ctx) if usage_attr else command.qualified_name
+			desc_attr = getattr(command, "description", None)
+			usage = l10n(usage_attr, ctx) if usage_attr and ctx.guild else l10n(usage_attr, "en")
+			description = l10n(desc_attr, ctx) if ctx.guild else l10n(desc_attr, "en")
 			usage_text = f"{ctx.clean_prefix}{command.qualified_name}" if usage == usage_attr else usage
-			description = l10n(command.description, ctx)
 			return cls(
 				name=command.qualified_name,
 				description=description if isinstance(description, str) and description else "-",

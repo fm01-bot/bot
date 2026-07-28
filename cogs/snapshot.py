@@ -312,17 +312,13 @@ class Snapshot(commands.Cog, name="Snapshots"):
 				except (discord.Forbidden, discord.HTTPException):
 					continue
 
-	@group()
-	@app_commands.checks.has_permissions(administrator=True)
-	@commands.has_permissions(administrator=True)
+	@group(permissions=["administrator"])
 	async def snapshot(self, ctx: Context):
 		code = await self.create_snapshot(ctx)
 
 		await ctx.send("snapshot.create", code=code)
 
-	@snapshot.command(l10n_key="ss_load")
-	@app_commands.checks.has_permissions(administrator=True)
-	@commands.has_permissions(administrator=True)
+	@snapshot.command(l10n_key="ss_load", permissions=["administrator"])
 	async def load(self, ctx: Context, code: str):
 		payload = await self.get_snapshot(code)
 		if not payload:
@@ -337,10 +333,10 @@ class Snapshot(commands.Cog, name="Snapshots"):
 
 		if not ctx.guild.owner_id == ctx.author.id:  # prevent griefs by sending the code to the owner
 			alert = await self.custom_response("snapshot.owner_alert", ctx, code=old)
-			alert.pop("reply", None)
-			alert.pop("ephemeral", None)
-			alert.pop("delete_after", None)
-			await ctx.guild.owner.send(**alert)
+			alert.pop("reply", None)  # type: ignore
+			alert.pop("ephemeral", None)  # type: ignore
+			alert.pop("delete_after", None)  # type: ignore
+			await ctx.guild.owner.send(**alert)  # type: ignore
 
 		await ctx.send("snapshot.load")
 

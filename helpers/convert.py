@@ -101,7 +101,7 @@ def text_to_seconds(time: str, base: int = 0) -> int:
 			raise ValueError(f"String doesn't contain time units ('{time}')")
 
 	for value, unit in matches:
-		total_seconds += int(value) * time_units.get(unit)
+		total_seconds += int(value) * time_units.get(unit)  # type: ignore
 
 	if time.startswith("-"):
 		total_seconds = base - total_seconds

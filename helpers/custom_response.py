@@ -96,7 +96,7 @@ class CustomResponse:
 	def update_localizations(self, data: dict): ...
 
 	@overload
-	def update_localizations(self, path: str): ...
+	def update_localizations(self, path: str): ...  # type: ignore
 
 	def update_localizations(self, data: Union[dict, str]):
 		if isinstance(data, dict):
@@ -156,9 +156,9 @@ class CustomResponse:
 
 		match original:
 			case discord.Guild():
-				guild_id = original.id  # type: ignore
+				guild_id = original.id
 			case discord.Interaction() | commands.Context():
-				guild_id = original.guild.id  # type: ignore
+				guild_id = original.guild.id if original.guild else None
 			case _:
 				guild_id = None
 
@@ -166,14 +166,22 @@ class CustomResponse:
 
 		# these are variables that are always inserted into commands IF there is a context
 		context_formatting = {
-			"author": Member.from_member(original.author)
+			"author": (
+				Member.from_member(original.author)
+				if original.guild and isinstance(original.author, discord.Member)
+				else User.from_user(original.author)
+			)
 			if isinstance(original, commands.Context)
-			else Member.from_member(original.user)  # type: ignore
+			else (
+				Member.from_member(original.user)
+				if original.guild and isinstance(original.user, discord.Member)
+				else User.from_user(original.user)
+			)
 			if isinstance(original, discord.Interaction)
 			else None,
 			"guild": (
-				Guild.from_guild(original.guild)  # type: ignore
-				if isinstance(original, (discord.Interaction, commands.Context)) and hasattr(original, "guild")
+				Guild.from_guild(original.guild)
+				if isinstance(original, (discord.Interaction, commands.Context)) and original.guild
 				else Guild.from_guild(original)
 				if isinstance(original, discord.Guild)
 				else None
@@ -196,13 +204,16 @@ class CustomResponse:
 				if isinstance(value, _type):
 					kwargs[key] = converter(value)
 				elif isinstance(value, datetime.datetime):
-					kwargs[key] = FormatDateTime(value, format="F")
+					kwargs[key] = FormatDateTime(value, default_style="F")
 
 		if self.client.debug:
 			now = time.time()
 			if now - self._last_debug_reload > 5:
 				self.load_localizations("../localization")
 				self._last_debug_reload = now
+
+		if not self._localizer:
+			return "localizer not initialized!"
 
 		payload = self._localizer.localize(name, locale, **kwargs, random=r"{random}", **context_formatting)
 

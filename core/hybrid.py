@@ -228,18 +228,31 @@ class HybridCommand(commands.HybridCommand):
 		description: Any,
 		permissions: list[Permission] | None = None,
 		l10n_key: str | None = None,
+		user: bool = True,
+		guild: bool = True,
 		**kwargs: Any,
 	):
 		super().__init__(func, name=name, description=description, **kwargs)
 		self.permissions = permissions
 		self.l10n_key = l10n_key
+		self.user = user
+		self.guild = guild
 
 		if permissions:
 			perms_dict = {perm: True for perm in permissions}
 			self.checks.append(commands.has_permissions(**perms_dict).predicate)
 
+		if not user:
+			self.checks.append(commands.dm_only().predicate)
+		if not guild:
+			self.checks.append(commands.guild_only().predicate)
+
 		if self.with_app_command:
 			self.app_command = HybridAppCommand(self)
+			self.app_command.allowed_installs = app_commands.AppInstallationType(guild=guild, user=user)
+			self.app_command.allowed_contexts = app_commands.AppCommandContext(
+				guild=guild, dm_channel=user, private_channel=user
+			)
 
 
 class HybridGroup(commands.HybridGroup):
@@ -252,9 +265,11 @@ class HybridGroup(commands.HybridGroup):
 		permissions: list[Permission] | None = None,
 		fallback: bool | str | None = True,
 		l10n_key: str | None = None,
+		user: bool = True,
+		guild: bool = True,
 		**kwargs: Any,
 	):
-		base = l10n_key or name or func.__name__
+		base = l10n_key or name or func.__name__  # type: ignore
 		if isinstance(fallback, str):
 			resolved_fallback = fallback
 		elif fallback:
@@ -265,10 +280,23 @@ class HybridGroup(commands.HybridGroup):
 		super().__init__(func, name=name, description=description, fallback=resolved_fallback, **kwargs)
 		self.permissions = permissions
 		self.l10n_key = l10n_key
+		self.user = user
+		self.guild = guild
 
 		if permissions:
 			perms_dict = {perm: True for perm in permissions}
 			self.checks.append(commands.has_permissions(**perms_dict).predicate)
+
+		if not user:
+			self.checks.append(commands.dm_only().predicate)
+		if not guild:
+			self.checks.append(commands.guild_only().predicate)
+
+		if self.app_command:
+			self.app_command.allowed_installs = app_commands.AppInstallationType(guild=guild, user=user)
+			self.app_command.allowed_contexts = app_commands.AppCommandContext(
+				guild=guild, dm_channel=user, private_channel=user
+			)
 
 		if self.fallback:
 			self.app_command.remove_command(self.fallback)
@@ -281,11 +309,20 @@ class HybridGroup(commands.HybridGroup):
 		*args: Any,
 		l10n_key: str | None = None,
 		with_app_command: bool = True,
-		**kwargs: Unpack[_HybridCommandDecoratorKwargs],
+		user: bool = True,
+		guild: bool = True,
+		**kwargs: Unpack[_HybridCommandDecoratorKwargs],  # type: ignore
 	) -> Callable[[CommandCallback], HybridCommand]:
 		def decorator(func: CommandCallback):
-			kwargs.setdefault("parent", self)
-			result = command(name=name, l10n_key=l10n_key, **kwargs, with_app_command=with_app_command)(func)
+			kwargs.setdefault("parent", self)  # type: ignore
+			result = command(
+				name=name if isinstance(name, str) else name.message,
+				l10n_key=l10n_key,
+				user=user,
+				guild=guild,
+				**kwargs,  # type: ignore
+				with_app_command=with_app_command,
+			)(func)
 			self.add_command(result)
 			return result
 
@@ -296,11 +333,20 @@ class HybridGroup(commands.HybridGroup):
 		name: Union[str, app_commands.locale_str] = MISSING,
 		*args: Any,
 		with_app_command: bool = True,
-		**kwargs: Unpack[_HybridGroupDecoratorKwargs],
+		user: bool = True,
+		guild: bool = True,
+		**kwargs: Unpack[_HybridGroupDecoratorKwargs],  # type: ignore
 	) -> Callable[[CommandCallback], HybridGroup]:
 		def decorator(func: CommandCallback):
-			kwargs.setdefault("parent", self)
-			result = group(name=name, *args, with_app_command=with_app_command, **kwargs)(func)
+			kwargs.setdefault("parent", self)  # type: ignore
+			result = group(
+				name=name if isinstance(name, str) else name.message,
+				*args,
+				user=user,
+				guild=guild,
+				**kwargs,  # type: ignore
+				with_app_command=with_app_command,
+			)(func)
 			self.add_command(result)
 			return result
 
@@ -317,12 +363,14 @@ def command(
 	hidden: bool = False,
 	l10n_key: str | None = None,
 	parent: HybridGroup | HybridCommand | None = None,
+	user: bool = True,
+	guild: bool = True,
 ) -> Callable[[CommandCallback], HybridCommand]:
 	def decorator(func: CommandCallback) -> HybridCommand:
 		if isinstance(func, commands.Command):
 			raise TypeError("Callback is already a command")
 
-		base = l10n_key or name or func.__name__
+		base = l10n_key or name or func.__name__  # type: ignore
 
 		text_description = description or f"{base}-desc"
 
@@ -340,6 +388,8 @@ def command(
 			hidden=hidden,
 			parent=parent,
 			l10n_key=base,
+			user=user,
+			guild=guild,
 		)
 
 		return cmd
@@ -357,12 +407,14 @@ def group(
 	hidden: bool = False,
 	fallback: bool | str | None = True,
 	l10n_key: str | None = None,
+	user: bool = True,
+	guild: bool = True,
 ) -> Callable[[Callable[..., Any]], HybridGroup]:
 	def decorator(func: Callable[..., Any]) -> HybridGroup:
 		if isinstance(func, commands.Command):
 			raise TypeError("Callback is already a command")
 
-		base = l10n_key or name or func.__name__
+		base = l10n_key or name or func.__name__  # type: ignore
 
 		text_description = description or f"{base}-desc"
 
@@ -377,9 +429,11 @@ def group(
 			hidden=hidden,
 			fallback=fallback,
 			l10n_key=base,
+			user=user,
+			guild=guild,
 		)
 
-		result.app_command = _localize_app_command_attributes(result.app_command, base)
+		result.app_command = _localize_app_command_attributes(result.app_command, base)  # type: ignore
 
 		return result
 

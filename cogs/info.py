@@ -2,11 +2,11 @@ import asyncio
 import re
 from typing import Optional
 
+import args.bot
 import discord
 import pypokedex
 import requests
 from args import (
-	Bot,
 	Category,
 	Emoji,
 	ForumChannel,
@@ -39,13 +39,13 @@ class Info(commands.Cog, name="Information"):
 		argument: discord.User | discord.abc.GuildChannel | discord.Role | discord.Emoji | discord.PartialEmoji,
 	):
 		if isinstance(argument, discord.User):
-			await ctx.invoke(self.info.get_command("user"), argument)  # type: ignore
+			await ctx.invoke(self.info.get_command("user"), argument)
 		elif isinstance(argument, discord.abc.GuildChannel):
-			await ctx.invoke(self.info.get_command("channel"), argument)  # type: ignore
+			await ctx.invoke(self.info.get_command("channel"), argument)
 		elif isinstance(argument, discord.Role):
-			await ctx.invoke(self.info.get_command("role"), argument)  # type: ignore
+			await ctx.invoke(self.info.get_command("role"), argument)
 		elif isinstance(argument, (discord.Emoji, discord.PartialEmoji)):
-			await ctx.invoke(self.info.get_command("emoji"), argument)  # type: ignore
+			await ctx.invoke(self.info.get_command("emoji"), argument)
 		else:
 			raise commands.BadArgument
 
@@ -67,20 +67,18 @@ class Info(commands.Cog, name="Information"):
 		except discord.NotFound:
 			await ctx.send("info.user.not_member", member=User.from_user(user))
 
-	@info.command()
-	@commands.guild_only()
+	@info.command(user=False)
 	async def server(self, ctx: Context):
 		await ctx.send("info.server", server=Guild.from_guild(ctx.guild))
 
-	@info.command()
-	@commands.guild_only()
+	@info.command(user=False)
 	async def role(self, ctx: Context, role: Optional[discord.Role] = None):
 		role = role or ctx.author.top_role
 		if not role:
 			raise commands.BadArgument("role")
 		await ctx.send("info.role", role=Role.from_role(role))
 
-	@info.command()
+	@info.command(user=False)
 	async def ip(self, ctx: Context, ip_addr: str):
 		try:
 			ip_json = await self.client.request(f"https://ipinfo.io/{ip_addr}/json")
@@ -91,7 +89,7 @@ class Info(commands.Cog, name="Information"):
 
 	@info.command()
 	async def bot(self, ctx: Context):
-		await ctx.send("info.bot", bot=Bot(self.client))
+		await ctx.send("info.bot", bot=args.bot.Bot(self.client))
 
 	@info.command()
 	async def emoji(self, ctx: Context, emoji_name: str):
@@ -106,8 +104,7 @@ class Info(commands.Cog, name="Information"):
 		else:
 			raise commands.BadArgument("emoji")
 
-	@info.command()
-	@commands.guild_only()
+	@info.command(user=False)
 	async def channel(self, ctx: Context, channel: discord.abc.GuildChannel):
 		if isinstance(channel, discord.TextChannel):
 			await ctx.send("info.channel.text", channel=TextChannel.from_channel(channel))
@@ -127,11 +124,11 @@ class Info(commands.Cog, name="Information"):
 	@app_commands.describe(pokemon_name="pokeinfo-args-pokemon-desc")
 	async def pokemon(self, ctx: Context, pokemon_name: str):
 		try:
-			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))  # type: ignore
+			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
 		except requests.HTTPError:
 			raise commands.BadArgument("pokemon")
-		pokemon.type = "\n".join(pokemon.types)
-		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"
+		pokemon.type = "\n".join(pokemon.types)  # type: ignore
+		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"  # type: ignore
 
 		await ctx.send("info.pokemon", pokemon=pokemon)
 

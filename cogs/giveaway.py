@@ -6,10 +6,10 @@ from typing import Optional
 
 import discord
 import helpers
+from args import FormatDateTime
 from core import Bot, Context, command
 from discord import app_commands
 from discord.ext import commands
-from args import FormatDateTime
 
 logger = getLogger(__name__)
 
@@ -52,13 +52,13 @@ class Giveaway(commands.Cog, name="Giveaway"):
 			return
 
 		try:
-			message = await channel.fetch_message(message_id)
+			message = await channel.fetch_message(message_id)  # type: ignore
 
 			reaction: Optional[discord.Reaction] = discord.utils.get(message.reactions, emoji=self.GIVEAWAY_EMOJI)
 			if not reaction:
 				participants = []
 			else:
-				participants = [user.id async for user in reaction.users() if user.id != self.client.user.id]
+				participants = [user.id async for user in reaction.users() if user.id != self.client.user.id]  # type: ignore
 
 			winners = []
 			winner_ids = []
@@ -71,10 +71,10 @@ class Giveaway(commands.Cog, name="Giveaway"):
 				response = await self.custom_response(
 					"giveaway.end.success", ctx or message, winners=", ".join(winners)
 				)
-				await message.reply(**response)
+				await message.reply(**response)  # type: ignore
 			else:
 				response = await self.custom_response("giveaway.end.no_winners", ctx or message)
-				await message.reply(**response)
+				await message.reply(**response)  # type: ignore
 
 			await self.client.db.execute(
 				"UPDATE giveaway SET ended = TRUE, won_by = $1 WHERE message_id = $2", winner_ids, message_id
@@ -91,7 +91,7 @@ class Giveaway(commands.Cog, name="Giveaway"):
 			logger.error(f"Error ending giveaway: {e}")
 			raise e
 
-	@command()
+	@command(user=False)
 	async def giveaway(self, ctx: Context, duration: str, winners: str | None = None, *, prize: str | None = None):
 		try:
 			end_time = datetime.now() + timedelta(seconds=helpers.text_to_seconds(duration))
@@ -137,7 +137,7 @@ class Giveaway(commands.Cog, name="Giveaway"):
 
 		self.client.loop.create_task(self.end_giveaway(ctx, message.id, ctx.channel.id))
 
-	@command()
+	@command(user=False)
 	@commands.has_permissions(manage_guild=True)
 	async def endgiveaway(self, ctx, message: str):
 		try:

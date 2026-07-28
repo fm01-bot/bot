@@ -148,7 +148,7 @@ class Bot(commands.AutoShardedBot):
 			"economy",
 			"giveaway",
 			"help",
-			"imagesinfo",
+			"info",
 			"log",
 			"mod",
 			"say",
