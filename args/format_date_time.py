@@ -26,7 +26,7 @@ class FormatDateTime:
 		22:57
 		"""
 		return Formattable(self, style="t")
-	
+
 	t = time
 
 	@property
@@ -91,7 +91,7 @@ class FormatDateTime:
 		Thursday, 17 February 2022 at 22:57
 		"""
 		return Formattable(self, style="F")
-	
+
 	F = longer
 
 	@property
@@ -104,7 +104,7 @@ class FormatDateTime:
 		1 minute ago
 		"""
 		return Formattable(self, style="R")
-	
+
 	R = relative
 
 	def __repr__(self) -> str:

@@ -52,4 +52,8 @@ class PartialEmoji:
 	def url(self) -> str | None:
 		"""The URL of the emoji, if it is a default (unicode) emoji."""
 		codepoints = "-".join(f"{ord(code):x}" for code in self._name)
-		return None if self._url is None else f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepoints}.png"
+		return (
+			None
+			if self._url is None
+			else f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepoints}.png"
+		)

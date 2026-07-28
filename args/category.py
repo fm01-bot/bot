@@ -18,7 +18,13 @@ class Category:
 	"""The category's position."""
 	nsfw: bool
 	"""The category's nsfw status."""
-	_channels: list[discord.VoiceChannel | discord.StageChannel | discord.ForumChannel | discord.TextChannel | discord.CategoryChannel]
+	_channels: list[
+		discord.VoiceChannel
+		| discord.StageChannel
+		| discord.ForumChannel
+		| discord.TextChannel
+		| discord.CategoryChannel
+	]
 	_text_channels: list[discord.TextChannel]
 	_voice_channels: list[discord.VoiceChannel]
 	_stage_channels: list[discord.StageChannel]
