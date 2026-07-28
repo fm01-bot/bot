@@ -11,13 +11,13 @@ import time
 from typing import TYPE_CHECKING, Any, Optional, Union, overload
 
 import discord
-from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, User
 from core.context import Context
 from discord.ext import commands, localization
 
 from helpers import emojis
 
 if TYPE_CHECKING:
+	from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, User
 	from core.bot import Bot
 
 logger = logging.getLogger(__name__)
@@ -161,6 +161,8 @@ class CustomResponse:
 				guild_id = original.guild.id  # type: ignore
 			case _:
 				guild_id = None
+
+		from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, User
 
 		# these are variables that are always inserted into commands IF there is a context
 		context_formatting = {

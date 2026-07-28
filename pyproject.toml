@@ -2,11 +2,9 @@
 name = "fm01"
 version = "0.6.1"
 description = "All-in-one Discord bot for general purposes"
-authors = [
-    { name = "Pearoo", email = "contact@pearoo.dev" }
-]
+authors = [{ name = "Pearoo", email = "contact@pearoo.dev" }]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 license = "MIT"
 
 dependencies = [
@@ -31,9 +29,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "ruff>=0.14.8",
-]
+dev = ["ruff>=0.14.8"]
 
 [tool.setuptools]
 packages = ["helpers"]
@@ -59,3 +55,6 @@ ignore = ["D100", "D101", "D102", "D103", "D105", "D206", "D401"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ty.rules]
+#invalid-method-override = "ignore"

@@ -10,15 +10,15 @@ from args.guild import Guild
 @dataclass(slots=True)
 class Category:
 	name: str
-	"""Returns the category's name."""
+	"""The category's name."""
 	_guild: discord.Guild
 	id: int
-	"""Returns the category's ID."""
+	"""The category's ID."""
 	position: int
-	"""Returns the category's position."""
+	"""The category's position."""
 	nsfw: bool
-	"""Returns the category's nsfw status."""
-	_channels: list[discord.abc.GuildChannel]
+	"""The category's nsfw status."""
+	_channels: list[discord.VoiceChannel | discord.StageChannel | discord.ForumChannel | discord.TextChannel | discord.CategoryChannel]
 	_text_channels: list[discord.TextChannel]
 	_voice_channels: list[discord.VoiceChannel]
 	_stage_channels: list[discord.StageChannel]
@@ -26,10 +26,10 @@ class Category:
 	_created_at: datetime.datetime
 	_jump_url: str
 	mention: str
-	"""Returns the category's mention string."""
+	"""The category's mention string."""
 	_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
 	permissions_synced: bool
-	"""Returns whether or not the permissions are synced to the parent category."""
+	"""Whether or not the permissions are synced to the parent category."""
 
 	@classmethod
 	def from_category(cls, category: discord.CategoryChannel):
@@ -53,51 +53,51 @@ class Category:
 
 	@property
 	def guild(self) -> Guild:
-		"""Returns the category's guild."""
+		"""The category's guild."""
 		return Guild.from_guild(self._guild)
 
 	@property
 	def channels(self) -> int:
-		"""Returns the number of channels in the category."""
+		"""The number of channels in the category."""
 		return len(self._channels)
 
 	@property
 	def text_channels(self) -> int:
-		"""Returns the number of text channels in the category."""
+		"""The number of text channels in the category."""
 		return len(self._text_channels)
 
 	@property
 	def voice_channels(self) -> int:
-		"""Returns the number of voice channels in the category."""
+		"""The number of voice channels in the category."""
 		return len(self._voice_channels)
 
 	@property
 	def stage_channels(self) -> int:
-		"""Returns the number of stage channels in the category."""
+		"""The number of stage channels in the category."""
 		return len(self._stage_channels)
 
 	@property
 	def forums(self) -> int:
-		"""Returns the number of forums in the category."""
+		"""The number of forums in the category."""
 		return len(self._forums)
 
 	@property
 	def created_at(self) -> FormatDateTime:
-		"""Returns the category's creation date."""
+		"""The category's creation date."""
 		return FormatDateTime(self._created_at, "f")
 
 	created = created_at
 
 	@property
 	def jump_url(self) -> str:
-		"""Returns the category's jump URL."""
+		"""The category's jump URL."""
 		return self._jump_url
 
 	url = jump_url
 
 	@property
 	def overwrites(self) -> int:
-		"""Returns the number of overwrites in the category."""
+		"""The number of overwrites in the category."""
 		return len(self._overwrites)
 
 	def __str__(self) -> str:

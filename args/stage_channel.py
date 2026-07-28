@@ -12,20 +12,20 @@ from args.guild import Guild
 @dataclass(slots=True)
 class StageChannel:
 	name: str
-	"""Returns the stage channel's name."""
+	"""The stage channel's name."""
 	_guild: discord.Guild
 	id: int
 	nsfw: bool
-	"""Returns the stage channel's nsfw status."""
+	"""The stage channel's nsfw status."""
 	topic: Optional[str]
-	"""Returns the stage channel's topic."""
+	"""The stage channel's topic."""
 	position: int
-	"""Returns the stage channel's position."""
+	"""The stage channel's position."""
 	_bitrate: int
 	user_limit: int
-	"""Returns the stage channel's user limit."""
-	_rtc_region: str
-	"""Returns the stage channel's RTC region."""
+	"""The stage channel's user limit."""
+	_rtc_region: str | None
+	"""The stage channel's RTC region. None when automatically determined."""
 	_slowmode_delay: int
 	_requesting_to_speak: list[discord.Member]
 	_speakers: list[discord.Member]
@@ -36,10 +36,10 @@ class StageChannel:
 	_jump_url: str
 	_members: list[discord.Member]
 	mention: str
-	"""Returns the stage channel's mention string."""
+	"""The stage channel's mention string."""
 	_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
 	permissions_synced: bool
-	"""Returns whether or not the permissions are synced to the parent category."""
+	"""Whether or not the permissions are synced to the parent category."""
 	_scheduled_events: list[discord.ScheduledEvent]
 
 	@classmethod
@@ -71,36 +71,36 @@ class StageChannel:
 
 	@property
 	def guild(self) -> Guild:
-		"""Returns the stage channel's guild."""
+		"""The stage channel's guild."""
 		return Guild.from_guild(self._guild)
 
 	@property
 	def bitrate(self) -> int:
-		"""Returns the stage channel's bitrate in kbps."""
+		"""The stage channel's bitrate in kbps."""
 		return int(self._bitrate / 1000)
 
 	@property
-	def rtc_region(self) -> str:
-		"""Returns the stage channel's RTC region."""
+	def rtc_region(self) -> str | None:
+		"""The stage channel's RTC region."""
 		return self._rtc_region
 
 	region = rtc_region
 
 	@property
 	def slowmode_delay(self) -> int:
-		"""Returns the channel's slowmode delay in seconds."""
+		"""The channel's slowmode delay in seconds."""
 		return self._slowmode_delay
 
 	slowmode = slowmode_delay
 
 	@property
 	def requesting_to_speak(self) -> int:
-		"""Returns the number of requesting speakers."""
+		"""The number of requesting speakers."""
 		return len(self._requesting_to_speak)
 
 	@property
 	def speakers(self) -> int:
-		"""Returns the number of speakers."""
+		"""The number of speakers."""
 		return len(self._speakers)
 
 	@property
@@ -109,41 +109,41 @@ class StageChannel:
 
 	@property
 	def moderators(self) -> int:
-		"""Returns the number of moderators."""
+		"""The number of moderators."""
 		return len(self._moderators)
 
 	@property
 	def category(self) -> Optional[Category]:
-		"""Returns the channel's category."""
+		"""The channel's category."""
 		return Category.from_category(self._category) if self._category else None
 
 	@property
 	def created_at(self) -> FormatDateTime:
-		"""Returns the channel's creation date."""
+		"""The channel's creation date."""
 		return FormatDateTime(self._created_at, "f")
 
 	created = created_at
 
 	@property
 	def jump_url(self) -> str:
-		"""Returns the channel's jump URL."""
+		"""The channel's jump URL."""
 		return self._jump_url
 
 	url = jump_url
 
 	@property
 	def members(self) -> int:
-		"""Returns the number of members that can see this channel."""
+		"""The number of members that can see this channel."""
 		return len(self._members)
 
 	@property
 	def overwrites(self) -> int:
-		"""Returns the number of channel overwrites."""
+		"""The number of channel overwrites."""
 		return len(self._overwrites)
 
 	@property
 	def scheduled_events(self) -> int:
-		"""Returns the number of scheduled events in the channel."""
+		"""The number of scheduled events in the channel."""
 		return len(self._scheduled_events)
 
 	events = scheduled_events

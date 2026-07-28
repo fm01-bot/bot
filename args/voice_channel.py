@@ -12,28 +12,28 @@ from args.guild import Guild
 @dataclass(slots=True)
 class VoiceChannel:
 	name: str
-	"""Returns the channel's name."""
+	"""The channel's name."""
 	_guild: discord.Guild
 	id: int
-	"""Returns the channel's id."""
+	"""The channel's id."""
 	nsfw: bool
-	"""Returns the channel's nsfw status."""
+	"""The channel's nsfw status."""
 	position: int
-	"""Returns the channel's position."""
+	"""The channel's position."""
 	bitrate: int
-	"""Returns the channel's bitrate."""
+	"""The channel's bitrate."""
 	user_limit: int
-	"""Returns the channel's user limit."""
+	"""The channel's user limit."""
 	_rtc_region: Optional[str]
 	_slowmode_delay: int
 	_category: Optional[discord.CategoryChannel]
 	_created_at: datetime.datetime
 	_jump_url: str
 	mention: str
-	"""Returns the channel's mention string."""
+	"""The channel's mention string."""
 	_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
 	permissions_synced: bool
-	"""Returns whether or not the permissions are synced to the parent category."""
+	"""Whether or not the permissions are synced to the parent category."""
 	_scheduled_events: list[discord.ScheduledEvent]
 
 	@classmethod
@@ -59,50 +59,50 @@ class VoiceChannel:
 
 	@property
 	def guild(self):
-		"""Returns the channel's guild."""
+		"""The channel's guild."""
 		return Guild.from_guild(self._guild)
 
 	@property
 	def rtc_region(self):
-		"""Returns the channel's RTC region."""
+		"""The channel's RTC region."""
 		return self._rtc_region
 
 	region = rtc_region
 
 	@property
 	def slowmode_delay(self) -> int:
-		"""Returns the channel's slowmode delay in seconds."""
+		"""The channel's slowmode delay in seconds."""
 		return self._slowmode_delay
 
 	slowmode = slowmode_delay
 
 	@property
 	def category(self) -> Optional[Category]:
-		"""Returns the channel's category."""
+		"""The channel's category."""
 		return Category.from_category(self._category) if self._category else None
 
 	@property
 	def created_at(self) -> FormatDateTime:
-		"""Returns the channel's creation date."""
+		"""The channel's creation date."""
 		return FormatDateTime(self._created_at, "f")
 
 	created = created_at
 
 	@property
 	def jump_url(self) -> str:
-		"""Returns the channel's jump URL."""
+		"""The channel's jump URL."""
 		return self._jump_url
 
 	url = jump_url
 
 	@property
 	def overwrites(self) -> int:
-		"""Returns the number of channel overwrites."""
+		"""The number of channel overwrites."""
 		return len(self._overwrites)
 
 	@property
 	def scheduled_events(self) -> int:
-		"""Returns the number of scheduled events in the channel."""
+		"""The number of scheduled events in the channel."""
 		return len(self._scheduled_events)
 
 	def __str__(self) -> str:

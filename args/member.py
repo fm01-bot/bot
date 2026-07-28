@@ -14,7 +14,7 @@ class Member(User):
 	_nickname: Optional[str] = field(repr=False)
 	_color: Optional[Color] = field(repr=False)
 	_accent_color: Optional[Color] = field(repr=False)
-	_joined_at: datetime.datetime = field(repr=False)
+	_joined_at: datetime.datetime | None = field(repr=False)
 	_roles: list[discord.Role] = field(repr=False)
 
 	@classmethod
@@ -23,7 +23,7 @@ class Member(User):
 			_name=f"{member.name}#{member.discriminator}" if member.discriminator != "0" else member.name,
 			id=member.id,
 			_discriminator=member.discriminator if member.discriminator != "0" else None,
-			global_name=member.global_name,
+			global_name=member.global_name or member.name,
 			display_name=member.display_name,
 			_nickname=member.nick,
 			bot=member.bot,
@@ -31,7 +31,7 @@ class Member(User):
 			_accent_color=Color(member.accent_color),
 			_avatar=member.display_avatar.url,
 			_decoration=member.avatar_decoration.url if member.avatar_decoration else None,
-			_banner=member.avatar_decoration.url if member.banner else None,
+			_banner=member.banner.url if member.banner else None,
 			_created_at=member.created_at,
 			_joined_at=member.joined_at,
 			_roles=member.roles,
@@ -39,27 +39,27 @@ class Member(User):
 		)
 
 	@property
-	def nickname(self) -> str:
-		"""Returns the nickname of the member."""
+	def nickname(self) -> str | None:
+		"""The nickname of the member."""
 		return self._nickname
 
 	nick = nickname
 
 	@property
-	def color(self) -> Color:
-		"""Returns the member's chat display color, aka. the color of their top role."""
+	def color(self) -> Color | None:
+		"""The member's chat display color, aka. the color of their top role."""
 		return self._color
 
 	@property
-	def joined_at(self):
-		"""Returns the date the member joined the server as a Discord timestamp."""
-		return FormatDateTime(self._joined_at, "F")
+	def joined_at(self) -> FormatDateTime | None:
+		"""The date the member joined the server as a Discord timestamp."""
+		return FormatDateTime(self._joined_at, "F") if self._joined_at else None
 
 	joined = joined_at
 
 	@property
 	def roles(self) -> Optional[str]:
-		"""Returns the roles the user has (excluding @everyone)."""
+		"""The roles the user has (excluding @everyone)."""
 		self._roles.pop(0)
 		roles_string = ", ".join([role.mention for role in self._roles])
 		if len(roles_string) > 512:

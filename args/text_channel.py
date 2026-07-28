@@ -13,31 +13,31 @@ from args.guild import Guild
 @dataclass(slots=True)
 class TextChannel:
 	name: str
-	"""Returns the channel's name."""
+	"""The channel's name."""
 	_guild: discord.Guild
 	id: int
-	"""Returns the channel's id."""
+	"""The channel's id."""
 	topic: Optional[str]
-	"""Returns the channel's topic."""
+	"""The channel's topic."""
 	position: int
-	"""Returns the channel's position."""
+	"""The channel's position."""
 	_slowmode_delay: int
 	nsfw: bool
-	"""Returns the channel's nsfw status."""
+	"""The channel's nsfw status."""
 	_default_auto_archive_duration: int
 	_default_thread_slowmode_delay: int
 	_members: list[discord.Member]
 	_threads: list[discord.Thread]
 	news: bool
-	"""Returns the channel's news status."""
-	_category: discord.CategoryChannel
+	"""The channel's news status."""
+	_category: discord.CategoryChannel | None
 	_created_at: datetime.datetime
 	_jump_url: str
 	mention: str
-	"""Returns the channel's mention string."""
+	"""The channel's mention string."""
 	_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
 	permissions_synced: bool
-	"""Returns whether or not the permissions are synced to the parent category."""
+	"""Whether or not the permissions are synced to the parent category."""
 
 	@classmethod
 	def from_channel(cls, channel: discord.TextChannel):
@@ -64,60 +64,60 @@ class TextChannel:
 
 	@property
 	def guild(self) -> Guild:
-		"""Returns the channel's guild."""
+		"""The channel's guild."""
 		return Guild.from_guild(self._guild)
 
 	@property
 	def slowmode(self) -> str:
-		"""Returns the slowmode delay."""
+		"""The slowmode delay."""
 		return seconds_to_text(self._slowmode_delay)
 
 	slowmode_delay = slowmode
 
 	@property
 	def auto_archive(self) -> int:
-		"""Returns how long threads have to be inactive to be archived in minutes."""
+		"""How long threads have to be inactive to be archived in minutes."""
 		return self._default_auto_archive_duration
 
 	@property
 	def thread_slowmode(self) -> int:
-		"""Returns the channel's thread slowmode delay in minutes."""
+		"""The channel's thread slowmode delay in minutes."""
 		return self._slowmode_delay
 
 	thread_slowmode_delay = thread_slowmode
 
 	@property
 	def members(self):
-		"""Returns how many members can see the channel."""
+		"""How many members can see the channel."""
 		return len(self._members)
 
 	@property
 	def threads(self):
-		"""Returns how many threads are in the channel."""
+		"""How many threads are in the channel."""
 		return len(self._threads)
 
 	@property
 	def category(self) -> Optional[Category]:
-		"""Returns the channel's category."""
+		"""The channel's category."""
 		return Category.from_category(self._category) if self._category else None
 
 	@property
 	def created_at(self) -> FormatDateTime:
-		"""Returns the channel's creation date."""
+		"""The channel's creation date."""
 		return FormatDateTime(self._created_at, "f")
 
 	created = created_at
 
 	@property
 	def url(self) -> str:
-		"""Returns the channel's jump URL."""
+		"""The channel's jump URL."""
 		return self._jump_url
 
 	jump_url = url
 
 	@property
 	def overwrites(self) -> int:
-		"""Returns the number of channel overwrites."""
+		"""The number of channel overwrites."""
 		return len(self._overwrites)
 
 	def __str__(self) -> str:

@@ -11,7 +11,7 @@ from args.channel import Channel, convert_to_custom_channel
 @dataclass(slots=True)
 class RuleAction:
 	type: str
-	"""Returns the action's type."""
+	"""The action's type."""
 	_channel: Optional[discord.TextChannel] = field(repr=False)
 	_duration: Optional[datetime.timedelta] = field(repr=False)
 
@@ -22,10 +22,10 @@ class RuleAction:
 
 	@property
 	def channel(self) -> Optional[Channel]:
-		"""Returns the channel the action is sent to."""
+		"""The channel the action is sent to."""
 		return convert_to_custom_channel(self._channel)
 
 	@property
 	def duration(self) -> Optional[str]:
-		"""Returns the duration of the timeout."""
+		"""The duration of the timeout."""
 		return seconds_to_text(int(self._duration.total_seconds())) if self._duration else None

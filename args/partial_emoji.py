@@ -10,7 +10,7 @@ from args.format_date_time import FormatDateTime
 
 @dataclass(slots=True)
 class PartialEmoji:
-	_name: Optional[str]
+	_name: str
 	animated: bool
 	id: Optional[int]
 	_created_at: Optional[datetime.datetime]
@@ -32,6 +32,7 @@ class PartialEmoji:
 
 	@property
 	def name(self) -> str:
+		"""The name of the emoji."""
 		if self._is_unicode:
 			name = demojize(self._name)
 			return name.strip(":")
@@ -41,16 +42,14 @@ class PartialEmoji:
 		return self.display
 
 	@property
-	def created_at(self) -> FormatDateTime:
+	def created_at(self):
+		"""The creation date of the emoji."""
 		return FormatDateTime(self._created_at, "f") if self._created_at else None
 
 	created = created_at
 
 	@property
-	def url(self) -> Optional[str]:
+	def url(self) -> str | None:
+		"""The URL of the emoji, if it is a default (unicode) emoji."""
 		codepoints = "-".join(f"{ord(code):x}" for code in self._name)
-		return (
-			self._url
-			if self._url != ""
-			else f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepoints}.png"
-		)
+		return None if self._url is None else f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepoints}.png"

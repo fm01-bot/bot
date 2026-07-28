@@ -16,21 +16,21 @@ class AutoModAction:
 	rule_id: int = field(repr=False)
 	"""The ID of the rule that was executed."""
 	_guild: discord.Guild = field(repr=False)
-	_member: discord.Member = field(repr=False)
-	channel: Optional[str] = field(repr=False)
+	_member: discord.Member | None = field(repr=False)
+	channel: str | None = field(repr=False)
 	"""The channel where the action was executed."""
-	message_id: Optional[int] = field(repr=False)
+	message_id: int | None = field(repr=False)
 	"""The ID of the message that triggered the action."""
-	matched_keyword: Optional[str] = field(repr=False)
+	matched_keyword: str | None = field(repr=False)
 	"""The keyword that was matched."""
-	matched_content: Optional[str] = field(repr=False)
+	matched_content: str | None = field(repr=False)
 	"""The content that was matched."""
 
 	@classmethod
 	def from_action(cls, execution: discord.AutoModAction):
 		return cls(
 			_action=execution.action,
-			rule_trigger_type=execution.rule_trigger_type.name,  # type: ignore
+			rule_trigger_type=execution.rule_trigger_type.name,
 			rule_id=execution.rule_id,
 			_guild=execution.guild,
 			_member=execution.member,
@@ -42,15 +42,17 @@ class AutoModAction:
 
 	@property
 	def action(self) -> RuleAction:
-		"""Returns the action that was taken."""
+		"""The action that was taken."""
 		return RuleAction.from_action(self._action, self._guild)
 
 	@property
 	def guild(self) -> Guild:
-		"""Returns the guild where the action was executed."""
+		"""The guild where the action was executed."""
 		return Guild.from_guild(self._guild)
 
 	@property
-	def member(self) -> Member:
-		"""Returns the member who triggered the action."""
+	def member(self) -> Member | None:
+		"""The member who triggered the action."""
+		if self._member is None:
+			return None
 		return Member.from_member(self._member)

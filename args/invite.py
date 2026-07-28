@@ -12,19 +12,19 @@ from args.user import User
 @dataclass(slots=True)
 class Invite:
 	code: str
-	"""Returns the invite's code."""
+	"""The invite's code."""
 	url: str
-	"""Returns the invite's URL."""
+	"""The invite's URL."""
 	_inviter: Optional[discord.User] = field(repr=False)
 	_created_at: Optional[datetime.datetime] = field(repr=False)
 	_max_age: Optional[int] = field(repr=False)
 	max_uses: Optional[int]
-	"""Returns the maximum number of uses for the invite."""
+	"""The maximum number of uses for the invite."""
 	temporary: Optional[bool]
-	"""Returns whether the invite is temporary."""
+	"""Whether the invite is temporary."""
 	_channel: Optional[discord.abc.GuildChannel]
 	uses: Optional[int]
-	"""Returns the number of times the invite has been used."""
+	"""The number of times the invite has been used."""
 
 	@classmethod
 	def from_invite(cls, invite: discord.Invite):
@@ -36,7 +36,7 @@ class Invite:
 			_max_age=invite.max_age,
 			max_uses=invite.max_uses,
 			temporary=invite.temporary,
-			_channel=invite.channel,
+			_channel=invite.channel,  # type: ignore
 			uses=invite.uses,
 		)
 
@@ -56,8 +56,8 @@ class Invite:
 
 	@property
 	def max_age(self) -> Optional[FormatDateTime]:
-		"""Returns the invite's max age as a relative timestamp or a human-readable duration."""
-		if self._max_age == 0:
+		"""The invite's max age as a relative timestamp or a human-readable duration."""
+		if not self._max_age or self._max_age == 0:
 			return None
 
 		if self._created_at:
@@ -70,21 +70,21 @@ class Invite:
 
 	@property
 	def inviter(self) -> Optional[User]:
-		"""Returns the user who created the invite."""
+		"""The user who created the invite."""
 		return User.from_user(self._inviter) if self._inviter else None
 
 	author = inviter
 
 	@property
 	def created_at(self) -> Optional[FormatDateTime]:
-		"""Returns the date the invite was created as a Discord timestamp. This is not available in ``on_invite_delete`` events."""
+		"""The date the invite was created as a Discord timestamp. This is not available in ``on_invite_delete`` events."""
 		return FormatDateTime(self._created_at, "f") if self._created_at else None
 
 	created = created_at
 
 	@property
 	def channel(self) -> Optional[Channel]:
-		"""Returns the channel the invite is for."""
+		"""The channel the invite is for."""
 		return convert_to_custom_channel(self._channel)
 
 	def __str__(self) -> str:

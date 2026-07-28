@@ -8,7 +8,7 @@ from io import StringIO
 from logging import getLogger
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 import aiohttp
 import asyncpg
@@ -34,12 +34,12 @@ class Bot(commands.AutoShardedBot):
 		self.ready_event = asyncio.Event()
 		self.owner_ids: set[int] = {int(owner_id.strip()) for owner_id in os.getenv("OWNER_IDS", "").split(",")}
 		super().__init__(
-			command_prefix=self.get_prefix,  # type: ignore
+			command_prefix=Bot.fetch_prefix,
 			heartbeat_timeout=150.0,
 			intents=intents,
 			case_insensitive=False,
 			activity=discord.CustomActivity(name="Bot starting...", emoji="🟡"),
-			status=discord.Status.idle,  # type: ignore
+			status=discord.Status.idle,
 			chunk_guilds_at_startup=False,
 			member_cache_flags=discord.MemberCacheFlags.from_intents(intents),
 			max_messages=20000,
@@ -50,31 +50,35 @@ class Bot(commands.AutoShardedBot):
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
 
-	async def request(self, url: str):
+	@staticmethod
+	async def fetch_prefix(bot: "Bot", message: discord.Message) -> str | list[str]:
+		if bot.debug:
+			return "?"
+		if not message.guild:
+			return "?!"
+		if message.guild.id in bot.prefix_cache:
+			prefix, mention = bot.prefix_cache[message.guild.id]
+		else:
+			row = await bot.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
+			if row:
+				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
+			else:
+				prefix, mention = "?!", True
+			bot.prefix_cache[message.guild.id] = (prefix, mention)
+		if mention:
+			if isinstance(prefix, str):
+				return commands.when_mentioned_or(prefix)(bot, message)
+			else:
+				return commands.when_mentioned_or(*prefix)(bot, message)
+		else:
+			return prefix
+
+	async def request(self, url: str) -> dict:
 		if self.session:
 			async with self.session.get(url) as response:
 				return await response.json()
 		else:
 			return {"error": 400}
-
-	async def get_prefix(self, message: discord.Message) -> Union[str, list[str]]:
-		if self.debug:
-			return "?"
-		if not message.guild:
-			return "?!"
-		if message.guild.id in self.prefix_cache:
-			prefix, mention = self.prefix_cache[message.guild.id]
-		else:
-			row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
-			if row:
-				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
-			else:
-				prefix, mention = "?!", True
-			self.prefix_cache[message.guild.id] = (prefix, mention)
-		if mention:
-			return commands.when_mentioned_or(prefix)(self, message)
-		else:
-			return prefix
 
 	async def on_guild_join(self, guild: discord.Guild):
 		row = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", guild.id)
@@ -100,7 +104,6 @@ class Bot(commands.AutoShardedBot):
 		except asyncpg.InvalidAuthorizationSpecificationError:
 			self.logger.error("Failed to connect to database", exc_info=True)
 			exit(-1)
-		await self.first_time_database()
 		await self.load_cogs()
 		await self.cache_prefixes()
 		await self.tree.set_translator(SlashCommandLocalizer())
@@ -108,7 +111,7 @@ class Bot(commands.AutoShardedBot):
 			connector=aiohttp.TCPConnector(resolver=aiohttp.AsyncResolver(), family=socket.AF_INET)
 		)
 		end = perf_counter() - benchmark
-		self.logger.info(f"Initial setup hook complete in {end:.2f}s")
+		self.logger.debug(f"Initial setup hook complete in {end:.2f}s")
 
 	@staticmethod
 	async def db_connection_init(connection: asyncpg.connection.Connection):
@@ -119,7 +122,7 @@ class Bot(commands.AutoShardedBot):
 		self.logger.info("Connecting to database...")
 		benchmark = perf_counter()
 		# Connects to database
-		self.db = await asyncpg.create_pool(  # type: ignore
+		self.db = await asyncpg.create_pool(
 			host=os.getenv("DB_HOST"),
 			database="lumin_beta",
 			# ! Replace with default database name when ran for the first time
@@ -132,40 +135,12 @@ class Bot(commands.AutoShardedBot):
 			max_inactive_connection_lifetime=120,  # timeout is 2 mins
 		)
 		end = perf_counter() - benchmark
-		self.logger.info(f"Connected to database in {end:.2f}s")
-
-	async def first_time_database(self):
-		self.logger.info("Running first time database setup...")
-		benchmark = perf_counter()
-		database_exists = await self.db.fetchval(
-			"SELECT 1 FROM information_schema.schemata WHERE schema_name = 'public'"
-		)
-		if not database_exists:
-			await self.db.execute("CREATE DATABASE lumin_beta OWNER lumin")
-			self.logger.info("Created database 'lumin'!")
-
-		with open("first_time.sql", encoding="utf-8") as f:
-			# "ok ok but pearoo how do i update this if i
-			# feel like updating the db structure for no
-			# particular reason"
-
-			# please just use pycharm its actually goated,
-			# if you add the db to the project and select
-			# lumin.public.tables then press Ctrl + Alt + G
-			# it will generate the SQL for you which is crazy
-			# tbh like wtf
-			await self.db.execute(f.read())
-
-		end = perf_counter() - benchmark
-		self.logger.info(
-			f"First time database setup complete in {end:.2f}s, you may now comment out the execution of this method in setup_hook"
-		)
+		self.logger.debug(f"Connected to database in {end:.2f}s")
 
 	async def load_cogs(self):
 		self.logger.info("Loading cogs...")
 		benchmark = perf_counter()
 
-		# Load all cogs within the cogs folder
 		allowed: list[str] = [
 			"admin",
 			"afk",
@@ -186,9 +161,9 @@ class Bot(commands.AutoShardedBot):
 		for cog in cogs:
 			if cog.stem in allowed:  # if you're having issues with cogs not loading, check this list
 				await self.load_extension(f"cogs.{cog.stem}")
-				self.logger.info(f"Loaded extension {cog.name}")
+				self.logger.debug(f"Loaded extension {cog.name}")
 		end = perf_counter() - benchmark
-		self.logger.info(f"Loaded cogs in {end:.2f}s")
+		self.logger.debug(f"Loaded cogs in {end:.2f}s")
 
 	async def cache_prefixes(self):
 		self.logger.info("Caching prefixes...")
@@ -202,11 +177,9 @@ class Bot(commands.AutoShardedBot):
 		self.logger.info("Bot is ready!")
 		self.logger.info(f"Servers: {len(self.guilds)}, Commands: {len(self.commands)}, Shards: {self.shard_count}")
 		self.logger.info(f"Loaded cogs: {', '.join([cog for cog in self.cogs])}")
-		self.logger.info(f"discord-localization v{localization.__version__}")
+		self.logger.debug(f"discord-localization v{localization.__version__}")
 
-	async def handle_error(
-		self, ctx: Context, error: Union[discord.errors.DiscordException, app_commands.AppCommandError]
-	):
+	async def handle_error(self, ctx: Context, error: Union[commands.CommandError, app_commands.AppCommandError]):
 		command = None
 		if isinstance(ctx, (Context, commands.Context)):
 			command = Command.from_ctx(ctx)
@@ -214,7 +187,7 @@ class Bot(commands.AutoShardedBot):
 			command = Command.from_ctx(ctx)
 
 		if isinstance(error, commands.HybridCommandError):
-			error = error.original  # type: ignore
+			error = error.original
 
 		match error:
 			case commands.MissingRequiredArgument():
@@ -232,9 +205,6 @@ class Bot(commands.AutoShardedBot):
 				]  # type: ignore
 
 				await ctx.send("errors.bot_missing_permissions", command=command, permissions=", ".join(permissions))
-			case commands.BadArgument():
-				await ctx.send("errors.bad_argument", command=command)
-				raise error
 			case commands.MissingPermissions() | app_commands.MissingPermissions():
 				permissions: list[str] = [
 					(await self.custom_response(f"permissions.{permission}", ctx))
@@ -255,6 +225,9 @@ class Bot(commands.AutoShardedBot):
 				await ctx.send("errors.user_not_found", command=command)
 			case commands.RoleNotFound():
 				await ctx.send("errors.role_not_found", command=command)
+			case commands.BadArgument():
+				await ctx.send("errors.bad_argument", command=command)
+				raise error
 			case discord.Forbidden():
 				await ctx.send("errors.forbidden", command=command)
 			case commands.NotOwner():
@@ -262,7 +235,9 @@ class Bot(commands.AutoShardedBot):
 			case commands.CommandNotFound() | app_commands.CommandNotFound():
 				return
 			case app_commands.CommandSignatureMismatch():
-				await ctx.send(content=f"The signature for {command.name} is mismatched.\n```{error.command}```")
+				await ctx.send(
+					content=f"The signature for {error.command.qualified_name} is mismatched.\n```{error.command}```"
+				)
 			case _:
 				# if the error is unknown, log it
 				channel = (
@@ -320,13 +295,13 @@ class Bot(commands.AutoShardedBot):
 					)
 				raise error
 
-	async def on_command_error(self, ctx: Context, error: discord.errors.DiscordException):
+	async def on_command_error(self, ctx: Context, error: commands.CommandError):
 		await self.handle_error(ctx, error)
 
 	async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
 		await self.handle_error(await Context.from_interaction(interaction), error)
 
-	async def before_invoke(self, ctx: Context):
+	async def before_invoke(self, ctx: Context):  # type: ignore
 		if ctx.guild:
 			is_set_up: bool = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", ctx.guild.id)
 			if not is_set_up:
@@ -334,13 +309,13 @@ class Bot(commands.AutoShardedBot):
 		try:
 			# Signals that the bot is still thinking / performing a task
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
-				await ctx.interaction.response.defer(thinking=True)  # type: ignore
+				await ctx.interaction.response.defer(thinking=True)
 			else:
 				await ctx.message.add_reaction(LOADING)
 		except discord.HTTPException:
 			pass
 
-	async def after_invoke(self, ctx: Context):
+	async def after_invoke(self, ctx: Context):  # type: ignore
 		try:
 			await ctx.message.remove_reaction(LOADING, ctx.me)
 		except discord.HTTPException:

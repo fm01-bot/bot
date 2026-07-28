@@ -50,13 +50,13 @@ featuring moderation, utility, and fun commands.
 
 ## Using Docker
 
-We've provided a Dockerfile and a compose file in the Github repo. You can simply run `docker compuse up --build`
+We've provided a Dockerfile and a compose file in the Github repo. You can simply run `docker compose up --build`
 to start the bot in a Docker container. Make sure to follow until step 2, because the bot still needs
 the `.env` file to function properly.
 
 ## Contributor Notice
 
-1. You're welcome to contribute via PRs — we’ll review and respond!
+1. You're welcome to contribute via PRs - we’ll review and respond!
 
 2. We're subclassing `commands.Context`. You’ll find this in `main.py`:
     - Import with `import main`, and use `main.Context`
@@ -75,9 +75,9 @@ the `.env` file to function properly.
 
 6. **Helpers** are used for shared, reusable logic (e.g., `EconomyHelper` in `economy.py`)
 
-7. For formatting, we use **custom argument classes** (e.g., `CustomUser`):
-    - If you're adding a new argument class, please include a `from_X` classmethod (e.g., `CustomUser.from_user()`)
-    - These help ensure editable messages are safe and intuitive (e.g., `CustomUser.avatar` returns the URL, not the raw
+7. For formatting, we use **custom argument classes** (e.g., `args.User`):
+    - If you're adding a new argument class, please include a `from_X` classmethod (e.g., `User.from_user()`)
+    - These help ensure editable messages are safe and intuitive (e.g., `User.avatar` returns the URL, not the raw
       asset)
 
 8. Questions? DM **@pearoo** on Discord.

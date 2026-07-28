@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 try:
 	import uvloop  # type: ignore
 
-	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())  # type: ignore
 except ImportError:
 	if os.name == "nt":
-		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore
 	else:
 		asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
@@ -33,7 +33,7 @@ async def main(debug) -> None:
 
 	if client.debug:
 		token = os.getenv("DEBUG_TOKEN")
-		logger.info("Running in debug mode")
+		logger.debug("Running in debug mode")
 		client.logger.setLevel(logging.DEBUG)
 	else:
 		token = os.getenv("TOKEN")

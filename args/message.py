@@ -20,9 +20,9 @@ class Message:
 	"""
 
 	id: int
-	"""Returns the message's ID."""
+	"""The message's ID."""
 	content: str
-	"""Returns the message's content."""
+	"""The message's content."""
 	_embeds: list[discord.Embed] = field(repr=False)
 	_attachments: list[discord.Attachment] = field(repr=False)
 	_stickers: list[discord.StickerItem] = field(repr=False)
@@ -64,7 +64,7 @@ class Message:
 			_mention_everyone=message.mention_everyone,
 			_mentions=message.mentions,
 			_role_mentions=message.role_mentions,
-			_channel_mentions=message.channel_mentions,  # type: ignore
+			_channel_mentions=message.channel_mentions,
 			_reference=message.reference,
 			_flags=message.flags,
 			_components=message.components,
@@ -74,29 +74,29 @@ class Message:
 
 	@property
 	def jump_url(self) -> str:
-		"""Returns the message's jump URL."""
+		"""The message's jump URL."""
 		return self._jump_url
 
 	url = jump_url
 
 	@property
 	def embeds(self) -> int:
-		"""Returns the number of embeds in the message."""
+		"""The number of embeds in the message."""
 		return len(self._embeds)
 
 	@property
 	def attachments(self) -> int:
-		"""Returns the number of attachments in the message."""
+		"""The number of attachments in the message."""
 		return len(self._attachments)
 
 	@property
 	def stickers(self) -> int:
-		"""Returns the number of stickers in the message."""
+		"""The number of stickers in the message."""
 		return len(self._stickers)
 
 	@property
 	def author(self) -> Member:
-		"""Returns the message's author."""
+		"""The message's author."""
 		return (
 			Member.from_member(self._author)
 			if isinstance(self._author, discord.Member)
@@ -105,76 +105,76 @@ class Message:
 
 	@property
 	def channel(self) -> Optional[Channel]:
-		"""Returns the message's channel mention."""
+		"""The message's channel mention."""
 		return convert_to_custom_channel(self._channel)
 
 	@property
-	def guild(self) -> Guild:
-		"""Returns the message's guild."""
+	def guild(self) -> Guild | None:
+		"""The message's guild."""
 		return Guild.from_guild(self._guild) if self._guild else None
 
 	@property
 	def created_at(self):
-		"""Returns the date the message was created as a Discord timestamp."""
+		"""The date the message was created as a Discord timestamp."""
 		return FormatDateTime(self._created_at, "F")
 
 	created = created_at
 
 	@property
 	def edited_at(self):
-		"""Returns the date the message was edited as a Discord timestamp."""
+		"""The date the message was edited as a Discord timestamp."""
 		return FormatDateTime(self._edited_at, "F") if self._edited_at else None
 
 	edited = edited_at
 
 	@property
 	def pinned(self) -> bool:
-		"""Returns whether the message is pinned."""
+		"""Whether the message is pinned."""
 		return self._pinned
 
 	@property
 	def tts(self) -> bool:
-		"""Returns whether the message is TTS."""
+		"""Whether the message is TTS."""
 		return self._tts
 
 	@property
 	def mention_everyone(self) -> bool:
-		"""Returns whether the message mentions everyone."""
+		"""Whether the message mentions everyone."""
 		return self._mention_everyone
 
 	@property
 	def mentions(self) -> int:
-		"""Returns the number of user mentions in the message."""
+		"""The number of user mentions in the message."""
 		return len(self._mentions)
 
 	@property
 	def role_mentions(self) -> int:
-		"""Returns the number of role mentions in the message."""
+		"""The number of role mentions in the message."""
 		return len(self._role_mentions)
 
 	@property
 	def channel_mentions(self) -> int:
-		"""Returns the number of channel mentions in the message."""
+		"""The number of channel mentions in the message."""
 		return len(self._channel_mentions)
 
 	@property
 	def reference(self) -> Optional[str]:
-		"""Returns the message's reference if it exists."""
+		"""The message's reference if it exists."""
 		return self._reference.jump_url if self._reference else None
 
 	@property
 	def flags(self) -> int:
-		"""Returns the message's flags as an integer."""
+		"""The message's flags as an integer."""
 		return self._flags.value
 
 	@property
 	def components(self) -> int:
-		"""Returns the number of components in the message."""
+		"""The number of components in the message."""
 		return len(self._components)
 
 	@property
 	def poll(self) -> bool:
-		"""Returns whether the message has a poll."""
+		"""Whether the message has a poll."""
 		return bool(self._poll)
 
 	def __str__(self):

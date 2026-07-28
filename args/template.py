@@ -13,8 +13,8 @@ from args.user import User
 class Template:
 	name: str
 	_guild: discord.Guild
-	_author: discord.User
-	_created_at: datetime.datetime
+	_author: discord.User | None
+	_created_at: datetime.datetime | None
 	code: str
 	roles: int
 	channels: int
@@ -59,16 +59,16 @@ class Template:
 		)
 
 	@property
-	def guild(self) -> Guild:
+	def guild(self) -> Guild | None:
 		return Guild.from_guild(self._guild) if self._guild else None
 
 	@property
-	def author(self) -> User:
+	def author(self) -> User | None:
 		return User.from_user(self._author) if self._author else None
 
 	@property
-	def created_at(self) -> FormatDateTime:
-		return FormatDateTime(self._created_at, "f")
+	def created_at(self) -> FormatDateTime | None:
+		return FormatDateTime(self._created_at, "f") if self._created_at else None
 
 	created = created_at
 
@@ -80,6 +80,6 @@ class Template:
 
 	@property
 	def is_dirty(self) -> bool:
-		return self._is_dirty
+		return self._is_dirty if self._is_dirty else False
 
 	unsynced = dirty = is_dirty
