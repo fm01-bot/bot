@@ -1,0 +1,51 @@
+# Debug mode enables verbose error logging
+debug: true
+
+# This is a list of Discord user IDs, these people can execute administrative commands
+# to get your user ID:
+# https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID
+owner_ids:
+  # - your_id_here
+  - 648168353453572117
+  - 329250127703441410
+
+# This is the list of modules (cogs) that will be loaded
+modules:
+  # to load all modules in the cogs/ folder, uncomment the line below
+  # - "*"
+  # then feel free to remove the items below
+  - admin
+  - afk
+  - basic
+  - economy
+  - giveaway
+  - help
+  - info
+  - log
+  - mod
+  - say
+  - setup
+  - snapshot
+  - status
+
+# Channel ID where runtime errors will be sent to
+# make sure this channel isn't visible to the public as error messages
+# might contain sensitive information
+log_channel_id: 1268260404677574697
+
+# Allowed contexts: in which contexts can users execute slash commands
+allowed_contexts:
+  guild: True
+  dm_channel: True
+  private_channel: True
+
+# Allowed installs: where can users install the app?
+allowed_installs:
+  guild: True
+  user: True
+
+# Allowed mentions: what can the bot mention by default?
+allowed_mentions:
+  everyone: False # this one is scary, I don't recommend changing it
+  roles: False
+  users: False

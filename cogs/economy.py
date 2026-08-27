@@ -254,7 +254,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 	async def leaderboard(self, ctx: commands.Context):
 		rows = await self.client.db.fetch(
 			"SELECT * FROM economy WHERE guild_id = $1 ORDER BY cash+bank DESC LIMIT 10",
-			ctx.guild.id,  # type: ignore # user = False on this command, so ctx.guild is always available
+			ctx.guild.id,  # user = False on this command, so ctx.guild is always available
 		)
 		message = await self.custom_response("leaderboard", ctx)
 

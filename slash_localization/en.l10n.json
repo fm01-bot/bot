@@ -547,7 +547,7 @@
 	},
 	"slowmode": "slowmode",
 	"ss_load": {
-		"name": "ss_load",
+		"name": "load",
 		"desc": "Load a snapshot of the server",
 		"usage": "snapshot load [snapshot]",
 		"args": {

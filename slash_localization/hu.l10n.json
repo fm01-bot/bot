@@ -467,9 +467,8 @@
       }
     }
   },
-  "slowmode": "slowmode",
   "ss_load": {
-    "name": "ss_load",
+    "name": "load",
     "desc": "Tölts be egy snapshotot a szerverre",
     "usage": "snapshot load [snapshot]",
     "args": {

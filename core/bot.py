@@ -22,17 +22,17 @@ from core import Command, Context, SlashCommandLocalizer, slash_command_localiza
 
 
 class Bot(commands.AutoShardedBot):
-	def __init__(self):
+	def __init__(self, config: dict | None = None):
+		self.__config = config or {}
 		update_slash_localizations()
-		self.debug: bool = True
+		self.debug: bool = self.__config.get("debug", None)
 		self.logger = getLogger(__name__)
 		self.uptime: Optional[datetime.datetime] = None
 		self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 		intents: discord.Intents = discord.Intents.all()
-		self.db: asyncpg.Pool = None  # type: ignore
+		self.db: asyncpg.Pool = None
 		self.session: aiohttp.ClientSession | None = None
-		self.ready_event = asyncio.Event()
-		self.owner_ids: set[int] = {int(owner_id.strip()) for owner_id in os.getenv("OWNER_IDS", "").split(",")}
+		self.owner_ids: set[int] = set(self.__config.get("owner_ids", []))
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
 			heartbeat_timeout=150.0,
@@ -43,33 +43,32 @@ class Bot(commands.AutoShardedBot):
 			chunk_guilds_at_startup=False,
 			member_cache_flags=discord.MemberCacheFlags.from_intents(intents),
 			max_messages=20000,
-			allowed_contexts=app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True),
-			allowed_installs=app_commands.AppInstallationType(guild=True, user=True),
-			allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
+			allowed_contexts=app_commands.AppCommandContext(**self.__config.get("allowed_contexts", {})),
+			allowed_installs=app_commands.AppInstallationType(**self.__config.get("allowed_installs", {})),
+			allowed_mentions=discord.AllowedMentions(**self.__config.get("allowed_mentions", {})),
 		)
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
 
-	@staticmethod
-	async def fetch_prefix(bot: "Bot", message: discord.Message) -> str | list[str]:
-		if bot.debug:
+	async def fetch_prefix(self, message: discord.Message) -> str | list[str]:
+		if self.debug:
 			return "?"
 		if not message.guild:
 			return "?!"
-		if message.guild.id in bot.prefix_cache:
-			prefix, mention = bot.prefix_cache[message.guild.id]
+		if message.guild.id in self.prefix_cache:
+			prefix, mention = self.prefix_cache[message.guild.id]
 		else:
-			row = await bot.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
+			row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
 			if row:
 				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
 			else:
 				prefix, mention = "?!", True
-			bot.prefix_cache[message.guild.id] = (prefix, mention)
+			self.prefix_cache[message.guild.id] = (prefix, mention)
 		if mention:
 			if isinstance(prefix, str):
-				return commands.when_mentioned_or(prefix)(bot, message)
+				return commands.when_mentioned_or(prefix)(self, message)
 			else:
-				return commands.when_mentioned_or(*prefix)(bot, message)
+				return commands.when_mentioned_or(*prefix)(self, message)
 		else:
 			return prefix
 

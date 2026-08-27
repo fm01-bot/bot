@@ -23,10 +23,10 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Cog, FlagConverter
 from discord.ext.commands.hybrid import _CallableDefault, maybe_coroutine, replace_parameters
+from discord.utils import MISSING
 
 if TYPE_CHECKING:
 	from discord.ext.commands.hybrid import _HybridCommandDecoratorKwargs, _HybridGroupDecoratorKwargs
-from discord.utils import MISSING
 
 import core.slash_localization as slash_localization
 
@@ -150,7 +150,7 @@ def _resolve_fallback_name(base: str) -> str | None:
 		if value is None:
 			return None
 
-	return value if isinstance(value, str) and value else None
+	return value
 
 
 class HybridAppCommand(commands.hybrid.HybridAppCommand):
@@ -260,8 +260,8 @@ class HybridGroup(commands.HybridGroup):
 		self,
 		func: CommandCallback | Callable[..., Any],
 		/,
-		name: Any,
-		description: Any = MISSING,
+		name: str | app_commands.locale_str = MISSING,
+		description: str | app_commands.locale_str = MISSING,
 		permissions: list[Permission] | None = None,
 		fallback: bool | str | None = True,
 		l10n_key: str | None = None,
@@ -273,7 +273,7 @@ class HybridGroup(commands.HybridGroup):
 		if isinstance(fallback, str):
 			resolved_fallback = fallback
 		elif fallback:
-			resolved_fallback = _resolve_fallback_name(base)
+			resolved_fallback = _resolve_fallback_name(base)  # type: ignore
 		else:
 			resolved_fallback = None
 
@@ -305,22 +305,24 @@ class HybridGroup(commands.HybridGroup):
 
 	def command(
 		self,
-		name: Union[str, app_commands.locale_str] = MISSING,
+		name: str | app_commands.locale_str | None = None,
 		*args: Any,
 		l10n_key: str | None = None,
 		with_app_command: bool = True,
 		user: bool = True,
 		guild: bool = True,
-		**kwargs: Unpack[_HybridCommandDecoratorKwargs],  # type: ignore
+		**kwargs: Unpack[_HybridCommandDecoratorKwargs],
 	) -> Callable[[CommandCallback], HybridCommand]:
 		def decorator(func: CommandCallback):
-			kwargs.setdefault("parent", self)  # type: ignore
+			kwargs.setdefault("parent", self)
 			result = command(
-				name=name if isinstance(name, str) else name.message,
+				name=name.message
+				if isinstance(name, app_commands.locale_str)
+				else name or getattr(func, "__name__", None),  # ugly but it works
 				l10n_key=l10n_key,
 				user=user,
 				guild=guild,
-				**kwargs,  # type: ignore
+				**kwargs,
 				with_app_command=with_app_command,
 			)(func)
 			self.add_command(result)
@@ -328,29 +330,33 @@ class HybridGroup(commands.HybridGroup):
 
 		return decorator
 
-	def group(
-		self,
-		name: Union[str, app_commands.locale_str] = MISSING,
-		*args: Any,
-		with_app_command: bool = True,
-		user: bool = True,
-		guild: bool = True,
-		**kwargs: Unpack[_HybridGroupDecoratorKwargs],  # type: ignore
-	) -> Callable[[CommandCallback], HybridGroup]:
-		def decorator(func: CommandCallback):
-			kwargs.setdefault("parent", self)  # type: ignore
-			result = group(
-				name=name if isinstance(name, str) else name.message,
-				*args,
-				user=user,
-				guild=guild,
-				**kwargs,  # type: ignore
-				with_app_command=with_app_command,
-			)(func)
-			self.add_command(result)
-			return result
+	# def group(
+	# 	self,
+	# 	name: str | app_commands.locale_str = MISSING,
+	# 	*args: Any,
+	# 	with_app_command: bool = True,
+	# 	user: bool = True,
+	# 	guild: bool = True,
+	# 	**kwargs: Unpack[_HybridGroupDecoratorKwargs],
+	# ) -> Callable[[CommandCallback], HybridGroup]:
+	# 	def decorator(func: CommandCallback):
+	# 		kwargs.setdefault("parent", self)
+	# 		result = group(
+	# 			name=(
+	# 				name.message
+	# 				if isinstance(name, app_commands.locale_str)
+	# 				else name or getattr(func, "__name__", None)
+	# 			),
+	# 			*args,
+	# 			user=user,
+	# 			guild=guild,
+	# 			**kwargs,
+	# 			with_app_command=with_app_command,
+	# 		)(func)
+	# 		self.add_command(result)
+	# 		return result
 
-		return decorator
+	# 	return decorator
 
 
 def command(

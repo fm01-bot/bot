@@ -49,7 +49,7 @@ class Info(commands.Cog, name="Information"):
 		else:
 			raise commands.BadArgument
 
-	@info.command()
+	@info.command(l10n_key="userinfo")
 	async def user(self, ctx: Context, user: discord.Member | discord.User | None = None):
 		user = user or ctx.author
 
@@ -67,18 +67,18 @@ class Info(commands.Cog, name="Information"):
 		except discord.NotFound:
 			await ctx.send("info.user.not_member", member=User.from_user(user))
 
-	@info.command(user=False)
+	@info.command(user=False, l10n_key="serverinfo")
 	async def server(self, ctx: Context):
 		await ctx.send("info.server", server=Guild.from_guild(ctx.guild))
 
-	@info.command(user=False)
+	@info.command(user=False, l10n_key="roleinfo")
 	async def role(self, ctx: Context, role: Optional[discord.Role] = None):
 		role = role or ctx.author.top_role
 		if not role:
 			raise commands.BadArgument("role")
 		await ctx.send("info.role", role=Role.from_role(role))
 
-	@info.command(user=False)
+	@info.command(user=False, l10n_key="ipinfo")
 	async def ip(self, ctx: Context, ip_addr: str):
 		try:
 			ip_json = await self.client.request(f"https://ipinfo.io/{ip_addr}/json")
@@ -87,11 +87,11 @@ class Info(commands.Cog, name="Information"):
 		ip = IPAddress(ip_json)
 		await ctx.send("info.ip", ip=ip)
 
-	@info.command()
+	@info.command(l10n_key="botinfo")
 	async def bot(self, ctx: Context):
 		await ctx.send("info.bot", bot=args.bot.Bot(self.client))
 
-	@info.command()
+	@info.command(l10n_key="emojiinfo")
 	async def emoji(self, ctx: Context, emoji_name: str):
 		try:
 			emoji = await commands.EmojiConverter().convert(ctx, emoji_name)
@@ -104,7 +104,7 @@ class Info(commands.Cog, name="Information"):
 		else:
 			raise commands.BadArgument("emoji")
 
-	@info.command(user=False)
+	@info.command(user=False, l10n_key="chinfo")
 	async def channel(self, ctx: Context, channel: discord.abc.GuildChannel):
 		if isinstance(channel, discord.TextChannel):
 			await ctx.send("info.channel.text", channel=TextChannel.from_channel(channel))
@@ -119,9 +119,7 @@ class Info(commands.Cog, name="Information"):
 		else:
 			raise commands.BadArgument("channel")
 
-	@info.command(name="pokemon", description="pokeinfo-desc")
-	@app_commands.rename(pokemon_name="pokeinfo-args-pokemon-name")
-	@app_commands.describe(pokemon_name="pokeinfo-args-pokemon-desc")
+	@info.command(l10n_key="pokeinfo")
 	async def pokemon(self, ctx: Context, pokemon_name: str):
 		try:
 			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
@@ -132,7 +130,7 @@ class Info(commands.Cog, name="Information"):
 
 		await ctx.send("info.pokemon", pokemon=pokemon)
 
-	@info.command()
+	@info.command(l10n_key="tmplteinfo")
 	async def template(self, ctx: Context, template: str):
 		regex = DISCORD_TEMPLATE.search(template)
 		if regex:

@@ -733,7 +733,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 		await ctx.send("mod.unban.response", user=user)
 
-	@command(user=False, permissions=["manage_channels"])
+	@command(user=False, permissions=["manage_channels"], l10n_key="sm")
 	async def slowmode(self, ctx: Context, duration: str = None, channel: discord.TextChannel = None):
 		if not duration:
 			await ctx.send("mod.slowmode.current_slowmode", channel=TextChannel.from_channel(ctx.channel))
@@ -765,7 +765,7 @@ class Cases(commands.Cog, name="Cases"):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
 
-	@command(user=False)
+	@group(user=False)
 	async def case(self, ctx: Context, case_id: str):
 		try:
 			case_id = int(case_id)
@@ -784,7 +784,7 @@ class Cases(commands.Cog, name="Cases"):
 
 		await ctx.send("mod.info.response", case=case)
 
-	@command(user=False, permissions=["moderate_members"])
+	@case.command(user=False, permissions=["moderate_members"])
 	async def delete(self, ctx: Context, case_id: str):
 		try:
 			# because discord's app commands only support int up to 2^54, but discord snowflakes are 2^64,
@@ -811,7 +811,7 @@ class Cases(commands.Cog, name="Cases"):
 
 		await ctx.send("mod.delete.response", case=case)
 
-	@command(user=False, permissions=["moderate_members"], l10n_key="caseedit")
+	@case.command(user=False, permissions=["moderate_members"], l10n_key="caseedit")
 	async def edit(self, ctx: Context, case_id: str, value: Literal["expires", "reason", "message"], *, new_value: str):
 		try:
 			case_id = int(case_id)
@@ -835,7 +835,7 @@ class Cases(commands.Cog, name="Cases"):
 
 		await ctx.send("mod.edit.response", case=case)
 
-	@command(user=False, l10n_key="caselist")
+	@case.command(user=False, l10n_key="caselist")
 	async def list(self, ctx: Context, user: discord.Member = None):
 		user = user or ctx.author
 

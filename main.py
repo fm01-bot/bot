@@ -3,17 +3,20 @@ import asyncio
 import logging
 import os
 
+import yaml
 from core.bot import Bot
-from core.log import logger
+from discord.utils import setup_logging
 from dotenv import load_dotenv
+
+setup_logging(level=logging.INFO, root=True)
 
 try:
 	import uvloop  # type: ignore
 
-	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())  # type: ignore
+	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
 	if os.name == "nt":
-		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore
+		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 	else:
 		asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
@@ -23,22 +26,32 @@ parser.add_argument("--debug", action="store_true")
 client: Bot = None  # type: ignore
 
 
+def load_config() -> dict:
+	try:
+		with open("config.yml", "r", encoding="utf-8") as f:
+			return yaml.safe_load(f)
+	except FileNotFoundError:
+		logging.warning("No config.yml file found, defaults are applied")
+		return {"debug": None, "owner_ids": [], "modules": ["*"], "log_channel_id": None}
+
+
 async def main(debug) -> None:
-	logger.info("Starting the bot...")
+	logging.info("Starting the bot...")
 	load_dotenv()
 
 	global client
-	client = Bot()
-	client.debug = debug or bool(int(os.getenv("DEBUG", False)))
+	config = load_config()
+	client = Bot(config=config)
+	client.debug = client.debug if client.debug is not None else debug
 
 	if client.debug:
 		token = os.getenv("DEBUG_TOKEN")
-		logger.debug("Running in debug mode")
 		client.logger.setLevel(logging.DEBUG)
+		client.logger.info("Running in debug mode")
 	else:
 		token = os.getenv("TOKEN")
-		logger.info("Running in production mode")
 		client.logger.setLevel(logging.INFO)
+		client.logger.info("Running in production mode")
 
 	if token:
 		await client.start(token)

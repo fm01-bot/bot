@@ -96,7 +96,7 @@ class CustomResponse:
 	def update_localizations(self, data: dict): ...
 
 	@overload
-	def update_localizations(self, path: str): ...  # type: ignore
+	def update_localizations(self, path: str): ...
 
 	def update_localizations(self, data: Union[dict, str]):
 		if isinstance(data, dict):

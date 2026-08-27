@@ -1,3 +1,6 @@
+# Configuration file
+config.yml
+
 # For beta purposes
 cogs/fun.py
 cogs/images.py
