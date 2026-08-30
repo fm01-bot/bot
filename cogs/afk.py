@@ -91,7 +91,7 @@ class AFK(commands.Cog):
 				"INSERT INTO afk (user_id, guild_id, message, state, previous_nick) VALUES($1, $2, $3, $4, $5)",
 				ctx.author.id,
 				ctx.guild.id,
-				reason,
+				reason_text,
 				True,
 				ctx.author.display_name,
 			)
@@ -118,7 +118,7 @@ class AFK(commands.Cog):
 			await self.client.db.execute(
 				"UPDATE afk SET state = $1, message = $2, previous_nick = $3 WHERE user_id = $4 AND guild_id = $5",
 				True,
-				reason,
+				reason_text,
 				ctx.author.display_name,
 				ctx.author.id,
 				ctx.guild.id,
