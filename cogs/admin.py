@@ -1,3 +1,4 @@
+from discord.utils import MISSING
 import os
 from logging import getLogger
 from time import perf_counter
@@ -71,10 +72,10 @@ class Admin(commands.GroupCog, name="admin"):
 	async def sync(
 		self,
 		ctx: Context,
-		guilds: commands.Greedy[discord.Object] = None,
+		guilds: commands.Greedy[discord.Object] = MISSING,
 		scope: Optional[Literal["~", "*", "^", "/"]] = None,
 	) -> None:
-		tree: discord.app_commands.CommandTree[ctx.bot] = ctx.bot.tree  # type: ignore
+		tree: discord.app_commands.CommandTree[ctx.bot] = ctx.bot.tree
 		benchmark = perf_counter()
 
 		if not guilds:
