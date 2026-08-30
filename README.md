@@ -15,7 +15,7 @@ featuring moderation, utility, and fun commands.
 
 ### Prerequisites
 
-- Python **3.12+**
+- Python **3.12 or 3.13**
 - **PostgreSQL**
 - Recommended OS: **Linux** or **macOS** (for optimal compatibility with `uvloop`)
 - The `uv` package manager
@@ -30,23 +30,21 @@ featuring moderation, utility, and fun commands.
 
 2. **Create a `.env` file** in the project root (follow the `.env.example` template)
 
-3. **Install PostgreSQL**, then:
+3. **Create a `config.yml` file** following the structure of `config.yml.example`
+
+4. **Install PostgreSQL**, then:
     - Create a user named `lumin` with the password you defined above
     - Create a database named `lumin`, preferably owned by the `lumin` user
     - Optionally initialize tables by running the contents of `first_time.sql`
 
-4. **Run the bot**
+5. **Run the bot**
    ```bash
    uv run main.py
    ```
    `uv run` will automatically set up the virtual environment for you and download required dependencies from
    pyproject.toml.
 
-   If you want to run the bot in **debug mode**, run:
-
-   ```bash
-   uv run main.py --debug
-   ```
+   If you want to run the bot in **debug mode**, change the `debug` value in `config.yml` to `true`.
 
 ## Using Docker
 

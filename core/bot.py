@@ -22,17 +22,17 @@ from core import Command, Context, SlashCommandLocalizer, slash_command_localiza
 
 
 class Bot(commands.AutoShardedBot):
-	def __init__(self, config: dict | None = None):
-		self.__config = config or {}
+	def __init__(self, config: Config):
+		self.config = config
 		update_slash_localizations()
-		self.debug: bool = self.__config.get("debug", None)
+		self.debug: bool = self.config.get("debug")
 		self.logger = getLogger(__name__)
 		self.uptime: Optional[datetime.datetime] = None
 		self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 		intents: discord.Intents = discord.Intents.all()
 		self.db: asyncpg.Pool = None
 		self.session: aiohttp.ClientSession | None = None
-		self.owner_ids: set[int] = set(self.__config.get("owner_ids", []))
+		self.owner_ids: set[int] = set(self.config.get("owner_ids"))
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
 			heartbeat_timeout=150.0,
@@ -43,9 +43,9 @@ class Bot(commands.AutoShardedBot):
 			chunk_guilds_at_startup=False,
 			member_cache_flags=discord.MemberCacheFlags.from_intents(intents),
 			max_messages=20000,
-			allowed_contexts=app_commands.AppCommandContext(**self.__config.get("allowed_contexts", {})),
-			allowed_installs=app_commands.AppInstallationType(**self.__config.get("allowed_installs", {})),
-			allowed_mentions=discord.AllowedMentions(**self.__config.get("allowed_mentions", {})),
+			allowed_contexts=app_commands.AppCommandContext(**self.config.get("allowed_contexts")),
+			allowed_installs=app_commands.AppInstallationType(**self.config.get("allowed_installs")),
+			allowed_mentions=discord.AllowedMentions(**self.config.get("allowed_mentions")),
 		)
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
@@ -140,25 +140,12 @@ class Bot(commands.AutoShardedBot):
 		self.logger.info("Loading cogs...")
 		benchmark = perf_counter()
 
-		allowed: list[str] = [
-			"admin",
-			"afk",
-			"basic",
-			"economy",
-			"giveaway",
-			"help",
-			"info",
-			"log",
-			"mod",
-			"say",
-			"setup",
-			"snapshot",
-			"status",
-		]
+		allowed: list[str] = self.config.get("modules")
+		self.logger.debug(f"Allowed cogs: {', '.join(allowed)}")
 
 		cogs = Path("cogs").glob("*.py")
 		for cog in cogs:
-			if cog.stem in allowed:  # if you're having issues with cogs not loading, check this list
+			if cog.stem in allowed or "*" in allowed:  # if you're having issues with cogs not loading, check this list
 				await self.load_extension(f"cogs.{cog.stem}")
 				self.logger.debug(f"Loaded extension {cog.name}")
 		end = perf_counter() - benchmark
