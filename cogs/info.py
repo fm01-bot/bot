@@ -125,8 +125,8 @@ class Info(commands.Cog, name="Information"):
 			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
 		except requests.HTTPError:
 			raise commands.BadArgument("pokemon")
-		pokemon.type = "\n".join(pokemon.types)  # type: ignore
-		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"  # type: ignore
+		pokemon.type = "\n".join(pokemon.types)
+		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"
 
 		await ctx.send("info.pokemon", pokemon=pokemon)
 
