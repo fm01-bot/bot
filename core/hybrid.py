@@ -120,7 +120,12 @@ def _localize_app_command_attributes(
 	if not command_or_group:
 		return None
 
-	command_or_group._locale_name = _l10n_str(command_or_group.name, f"{base}-name")
+	name_key = f"{base}-name"
+	if isinstance(command_or_group, commands.hybrid.HybridAppCommand):
+		if getattr(command_or_group.wrapped, "parent", None) is not None:
+			name_key = command_or_group.name
+
+	command_or_group._locale_name = _l10n_str(command_or_group.name, name_key)
 	command_or_group._locale_description = _l10n_desc(command_or_group.description, f"{base}-desc")
 
 	if not isinstance(command_or_group, app_commands.Group):
@@ -243,9 +248,9 @@ class HybridCommand(commands.HybridCommand):
 			self.checks.append(commands.has_permissions(**perms_dict).predicate)
 
 		if not user:
-			self.checks.append(commands.dm_only().predicate)
-		if not guild:
 			self.checks.append(commands.guild_only().predicate)
+		if not guild:
+			self.checks.append(commands.dm_only().predicate)
 
 		if self.with_app_command:
 			self.app_command = HybridAppCommand(self)
@@ -288,9 +293,9 @@ class HybridGroup(commands.HybridGroup):
 			self.checks.append(commands.has_permissions(**perms_dict).predicate)
 
 		if not user:
-			self.checks.append(commands.dm_only().predicate)
-		if not guild:
 			self.checks.append(commands.guild_only().predicate)
+		if not guild:
+			self.checks.append(commands.dm_only().predicate)
 
 		if self.app_command:
 			self.app_command.allowed_installs = app_commands.AppInstallationType(guild=guild, user=user)
@@ -302,6 +307,11 @@ class HybridGroup(commands.HybridGroup):
 			self.app_command.remove_command(self.fallback)
 			fallback_command = HybridAppCommand(self, name=getattr(self, "fallback_locale", None) or self.fallback)
 			self.app_command.add_command(fallback_command)
+
+	def add_command(self, command: HybridGroup[CogT, ..., Any] | HybridCommand[CogT, ..., Any], /) -> None:
+		super().add_command(command)
+		if isinstance(command, commands.hybrid.HybridCommand) and command.app_command:
+			command.app_command._locale_name = _l10n_str(command.name, command.name)
 
 	def command(
 		self,

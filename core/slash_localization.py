@@ -47,6 +47,9 @@ class SlashCommandLocalizer(app_commands.Translator):
 				# between american and british english
 				locale = "en"
 			key = string.extras.get("key") or string.extras.get("l10n_key") or string.message
+			if key == "…" or key == "...":
+				return None
+
 			localized = slash_command_localization.translate(key, str(locale))
 			if not isinstance(localized, str):
 				return None

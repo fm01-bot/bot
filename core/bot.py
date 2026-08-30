@@ -1,3 +1,4 @@
+from core.config import Config
 import asyncio
 import datetime
 import json
@@ -112,6 +113,18 @@ class Bot(commands.AutoShardedBot):
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Initial setup hook complete in {end:.2f}s")
 
+	async def close(self) -> None:
+		self.logger.debug("Running bot shutdown hook...")
+		if self.session and not self.session.closed:
+			self.logger.debug("Closing aiohttp session...")
+			await self.session.close()
+		if self.db:
+			self.logger.debug("Closing database connection...")
+			await self.db.close()
+		self.logger.debug("Closing bot superclass...")
+		await super().close()
+		self.logger.info("Bot closed.")
+
 	@staticmethod
 	async def db_connection_init(connection: asyncpg.connection.Connection):
 		await connection.set_type_codec("jsonb", encoder=json.dumps, decoder=json.loads, schema="pg_catalog")
@@ -211,23 +224,32 @@ class Bot(commands.AutoShardedBot):
 				await ctx.send("errors.user_not_found", command=command)
 			case commands.RoleNotFound():
 				await ctx.send("errors.role_not_found", command=command)
-			case commands.BadArgument():
+			case commands.BadArgument() | commands.BadUnionArgument():
 				await ctx.send("errors.bad_argument", command=command)
 				raise error
 			case discord.Forbidden():
 				await ctx.send("errors.forbidden", command=command)
 			case commands.NotOwner():
 				await ctx.send("errors.not_owner", command=command)
-			case commands.CommandNotFound() | app_commands.CommandNotFound():
+			case (
+				commands.CommandNotFound()
+				| app_commands.CommandNotFound()
+				| commands.PrivateMessageOnly()
+				| commands.NoPrivateMessage()
+			):
 				return
 			case app_commands.CommandSignatureMismatch():
 				await ctx.send(
 					content=f"The signature for {error.command.qualified_name} is mismatched.\n```{error.command}```"
 				)
 			case _:
+				self.logger.error("An unknown error has occured", exc_info=error)
+
 				# if the error is unknown, log it
 				channel = (
-					ctx.channel if self.debug and ctx and ctx.channel else await self.fetch_channel(1268260404677574697)
+					ctx.channel
+					if self.debug and ctx and ctx.channel
+					else await self.fetch_channel(self.config.get("log_channel_id"))
 				)
 
 				if channel and isinstance(channel, discord.TextChannel):
@@ -241,13 +263,6 @@ class Bot(commands.AutoShardedBot):
 						stack = "".join(traceback.format_exception(type(root_exc), root_exc, root_exc.__traceback__))
 					else:
 						stack = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-					for marker in (
-						"The above exception was the direct cause of the following exception:",
-						"During handling of the above exception, another exception occurred:",
-					):
-						if marker in stack:
-							stack = stack.split(marker)[0].rstrip()
-							break
 
 					# if stack is more than 1700 characters, make it a file
 					too_long = len(stack) > 1700
@@ -279,7 +294,6 @@ class Bot(commands.AutoShardedBot):
 						content=f"An error has occured and has been reported to the developers. Report ID: `{ctx.message.id}`",
 						mention_author=False,
 					)
-				raise error
 
 	async def on_command_error(self, ctx: Context, error: commands.CommandError):
 		await self.handle_error(ctx, error)

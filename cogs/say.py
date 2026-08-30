@@ -21,13 +21,11 @@ class Say(commands.Cog, name="Says"):
 	async def say(self, ctx: Context, *, message: commands.Range[str, 1, 2000]):
 		await ctx.send("say.message", message=message)
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="chsay")
 	async def channel_say(self, ctx: Context, channel: discord.TextChannel, *, message: commands.Range[str, 1, 2000]):
 		await channel.send(message, allowed_mentions=discord.AllowedMentions.none())
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="editmsg")
 	async def edit_message(self, ctx: Context, message_link: str, *, content: commands.Range[str, 1, 2000]):
 		match = DISCORD_MESSAGE_URL.search(message_link)
 		try:
@@ -46,18 +44,15 @@ class Say(commands.Cog, name="Says"):
 			raise commands.BadArgument("message_link")
 		await ctx.send("say.edit")
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="asciisay")
 	async def ascii_say(self, ctx: Context, *, message: commands.Range[str, 1, 20]):
 		await ctx.send("say.ascii", ascii=text2art(message))
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="emojisay")
 	async def emoji_say(self, ctx: Context, *, message: commands.Range[str, 1, 20]):
 		await ctx.send("say.emoji", emoji=" ".join(text_to_emoji(message)))
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="mcsay")
 	async def achievement_say(self, ctx: Context, *, message: commands.Range[str, 1, 50]):
 		icon = random.randint(1, 29)
 		localized_title = await self.custom_response("say.achievement.title", ctx)
@@ -66,20 +61,17 @@ class Say(commands.Cog, name="Says"):
 		url = f"https://skinmc.net/achievement/{icon}/{achievement_title}/{achievement_text}"
 		await ctx.send("say.achievement.response", achievement=url)
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"])
 	async def qr_code(self, ctx: Context, *, data: commands.Range[str, 1, 500]):
 		data = quote_plus(data)
 		qr = f"https://api.qrserver.com/v1/create-qr-code/?data={data}&size=1000x1000&qzone=2"
 		await ctx.send("say.qr", qr=qr)
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="reversesay")
 	async def reverse_say(self, ctx: Context, *, message: commands.Range[str, 1, 2000]):
 		await ctx.send("say.reverse", message=message[::-1])
 
-	@say.command()
-	@commands.has_permissions(manage_messages=True)
+	@say.command(permissions=["manage_messages"], l10n_key="clapsay")
 	async def clap_say(self, ctx: Context, *, message: commands.Range[str, 1, 500]):
 		await ctx.send("say.clap", message=message.replace(" ", "👏"))
 

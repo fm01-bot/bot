@@ -29,7 +29,7 @@ class Status(commands.Cog, command_attrs=dict(hidden=True)):
 
 		await self.client.change_presence(
 			activity=discord.CustomActivity(name=f"{len(self.client.guilds)} servers | {random_command}"),
-			status=discord.Status.online,  # type: ignore
+			status=discord.Status.online,
 		)
 
 	async def cog_unload(self) -> None:
