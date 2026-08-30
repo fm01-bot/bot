@@ -1,6 +1,6 @@
 [project]
 name = "fm01"
-version = "0.6.1"
+version = "0.7.0"
 description = "All-in-one Discord bot for general purposes"
 authors = [{ name = "Pearoo", email = "contact@pearoo.dev" }]
 readme = "README.md"
