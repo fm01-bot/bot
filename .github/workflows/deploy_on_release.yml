@@ -2,7 +2,7 @@ name: 📦 Deploy on release
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   deploy:
@@ -30,7 +30,7 @@ jobs:
           echo "Pulled successfully"
           tmux has-session -t beta 2>/dev/null && tmux kill-session -t beta
           echo "Killed beta"
-          tmux new -d -s beta 'source ./.venv/bin/activate && uv pip install -r pyproject.toml && python3.12 -OO main.py'
+          tmux new -d -s beta 'uv run main.py'
           tmux set-option -t beta remain-on-exit on
           echo "Bot is running"
           EOF

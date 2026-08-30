@@ -1,4 +1,4 @@
-.env.example
+.env
 .gitignore
 CODE_OF_CONDUCT.md
 compose.yml

@@ -1,23 +1,21 @@
-from typing import Any, Literal, Optional, get_args, get_origin
+from typing import Any, Literal, Optional, get_args, get_origin, Mapping
 
 import discord
+from core import Bot, Command, Context
 from discord.ext import commands
-from discord.ext.commands._types import BotT
 from discord.ext.localization import Localization
-
-from core import Command, Context, MyClient
 from helpers import CustomResponse
 
 
 class HelpCommand(commands.HelpCommand):
 	context: Context
+	custom_response: CustomResponse
 
 	def __init__(self):
 		super().__init__()
-		self.custom_response = None
 		self.name = "help"
 
-	async def prepare_help_command(self, ctx: commands.Context[BotT], command: Optional[str] = None, /) -> None:
+	async def prepare_help_command(self, ctx: Context, command: Optional[str] = None, /) -> None:
 		if self.custom_response is None:
 			self.custom_response = ctx.bot.custom_response
 
@@ -54,14 +52,14 @@ class HelpCommand(commands.HelpCommand):
 			signature.append(param_str)
 		return f"{command.qualified_name} {' '.join(signature)}"
 
-	async def send_bot_help(self, mapping: dict[commands.Cog, list[commands.Command]]):
+	async def send_bot_help(self, mapping: Mapping[commands.Cog | None, list[commands.Command]]):
 		message = await self.custom_response("help.bot", self.context, prefix=self.context.clean_prefix)
-		embeds: list[discord.Embed] = message.get("embeds")
+		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore # it's gonna be a list i promise
 
 		if embeds:
 			template = embeds[0].to_dict().get("fields", [None])[0]
 			if not template:
-				await self.get_destination().send(**message)
+				await self.get_destination().send(**message)  # type: ignore
 				return
 			embeds[0].clear_fields()
 			for cog, cog_commands in mapping.items():
@@ -69,16 +67,16 @@ class HelpCommand(commands.HelpCommand):
 					break
 				filtered = await self.filter_commands(cog_commands, sort=True)
 				command_signatures = [self.get_command_signature(command) for command in filtered]
-				if not command_signatures:
+				if not command_signatures or cog is None:
 					continue
 
 				formatted = Localization.format_strings(
 					template, module=cog.qualified_name or "-", commands=len(filtered)
 				)
 				embeds[0].add_field(**formatted)
-			message["embeds"] = CustomResponse.convert_embeds(embeds)
+			message["embeds"] = CustomResponse.convert_embeds(embeds)  # type: ignore
 
-		await self.get_destination().send(**message)
+		await self.get_destination().send(**message)  # type: ignore
 
 	async def send_command_help(self, command: commands.Command[Any, ..., Any], /) -> None:
 		await self.context.send("help.command", command=Command.from_command(command, self.context))
@@ -101,12 +99,12 @@ class HelpCommand(commands.HelpCommand):
 			)
 		else:
 			raise commands.BadArgument
-		embeds: list[discord.Embed] = message.get("embeds")
+		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore
 
 		if embeds:
 			template = embeds[0].to_dict().get("fields", [None])[0]
 			if not template:
-				await self.get_destination().send(**message)
+				await self.get_destination().send(**message)  # type: ignore
 				return
 
 			embeds[0].clear_fields()
@@ -121,9 +119,9 @@ class HelpCommand(commands.HelpCommand):
 					break
 				formatted = Localization.format_strings(template, command=Command.from_command(command, self.context))
 				embeds[0].add_field(**formatted)
-			message["embeds"] = CustomResponse.convert_embeds(embeds)
+			message["embeds"] = CustomResponse.convert_embeds(embeds)  # type: ignore
 
-		await self.get_destination().send(**message)
+		await self.get_destination().send(**message)  # type: ignore
 
 	async def send_cog_help(self, cog: commands.Cog):
 		await self.send_group_or_cog_help(cog)
@@ -136,7 +134,7 @@ class HelpCommand(commands.HelpCommand):
 
 
 class Help(commands.Cog, command_attrs=dict(hidden=True)):
-	def __init__(self, client: MyClient):
+	def __init__(self, client: Bot):
 		self.client = client
 		help_command = HelpCommand()
 		help_command.custom_response = client.custom_response
@@ -144,5 +142,5 @@ class Help(commands.Cog, command_attrs=dict(hidden=True)):
 		self.client.help_command = help_command
 
 
-async def setup(client: MyClient):
+async def setup(client: Bot):
 	await client.add_cog(Help(client))

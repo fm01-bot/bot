@@ -28,16 +28,15 @@ class Context(commands.Context):
 		poll: Optional[discord.Poll] = None,
 		**format_kwargs: object,
 	) -> discord.Message:
-		"""
-		Sends a localized or raw message by merging the arguments passed to send with a
+		"""Sends a localized message.
+
+		This is done by merging the arguments passed to send with a
 		localized payload (if a localization key is provided) and then delegating to
 		super().send.
 
 		Exactly one of the following must be provided:
 		  - A localization key as the first positional argument (key)
 		  - A raw message string via the keyword-only argument `content`
-
-		No errors will be raised if both or neither are provided.
 		"""
 		base_args = {
 			"content": content,
@@ -72,14 +71,12 @@ class Context(commands.Context):
 
 		merged_args = {k: v for k, v in base_args.items() if v is not None}
 
-		msg = await super().send(**merged_args)
+		msg = await super().send(**merged_args)  # type: ignore
 		if delete_after is not None:
 			await msg.delete(delay=delete_after)
 		return msg
 
 	async def reply(self, *args, **kwargs) -> discord.Message:
-		"""
-		Behaves like send, but automatically sets reference to self.message. Don't use this unless it's necessary.
-		"""
+		"""Behaves like send, but automatically sets reference to self.message. Don't use this unless it's necessary."""
 		kwargs.setdefault("reference", self.message)
 		return await self.send(*args, **kwargs)

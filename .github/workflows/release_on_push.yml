@@ -1,4 +1,4 @@
-name: release_on_push.yml
+name: 📰 Release on push
 on:
   push:
     branches:

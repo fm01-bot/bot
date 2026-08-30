@@ -1,17 +1,17 @@
 from typing import Optional
 
 import discord
+from args import Member, User
+from core import Bot, Context, command
 from discord import app_commands
 from discord.ext import commands
-
-from core import Context, MyClient
-from helpers import CustomMember, CustomUser, regex
+from helpers import regex
 
 
 @app_commands.guild_only()
 @commands.guild_only()
 class AFK(commands.Cog):
-	def __init__(self, client: MyClient):
+	def __init__(self, client: Bot):
 		self.client = client
 		self.custom_response = client.custom_response
 
@@ -35,10 +35,7 @@ class AFK(commands.Cog):
 			return
 
 		await self.client.db.execute(
-			"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3",
-			False,
-			ctx.author.id,
-			ctx.guild.id,
+			"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3", False, ctx.author.id, ctx.guild.id
 		)
 		try:
 			await ctx.author.edit(nick=row["previous_nick"])
@@ -58,9 +55,7 @@ class AFK(commands.Cog):
 
 		for user in message.mentions:
 			row = await self.client.db.fetchrow(
-				"SELECT * FROM afk WHERE guild_id = $1 AND user_id = $2 AND state = TRUE",
-				message.guild.id,
-				user.id,
+				"SELECT * FROM afk WHERE guild_id = $1 AND user_id = $2 AND state = TRUE", message.guild.id, user.id
 			)
 
 			if row and row["user_id"] != message.author.id:
@@ -68,9 +63,7 @@ class AFK(commands.Cog):
 				text = await self.custom_response(
 					"afk.reason",
 					ctx,
-					user=CustomUser.from_user(user)
-					if isinstance(user, discord.User)
-					else CustomMember.from_member(user),
+					user=User.from_user(user) if isinstance(user, discord.User) else Member.from_member(user),
 					reason=row["message"],
 				)
 				if isinstance(text, dict):
@@ -81,27 +74,24 @@ class AFK(commands.Cog):
 		final_message = "\n".join(afk_lines)
 		await ctx.reply(final_message)
 
-	@commands.hybrid_command(name="afk", description="afk_specs-description", usage="afk_specs-usage")
-	@app_commands.rename(reason="afk_specs-args-reason-name")
-	@app_commands.describe(reason="afk_specs-args-reason-description")
+	@command(user=False)
 	async def afk(self, ctx: Context, reason: Optional[str] = None):
+		reason_text = reason
 		if not reason:
-			reason = await self.custom_response("afk.dnd", ctx)
+			reason_text = await self.custom_response("afk.dnd", ctx)
 
-		if regex.DISCORD_INVITE.search(reason):
+		if isinstance(reason_text, str) and regex.DISCORD_INVITE.search(reason_text):
 			return await ctx.send("afk.link")
 
 		row = await self.client.db.fetchrow(
-			"SELECT * FROM afk WHERE user_id = $1 AND guild_id = $2",
-			ctx.author.id,
-			ctx.guild.id,
+			"SELECT * FROM afk WHERE user_id = $1 AND guild_id = $2", ctx.author.id, ctx.guild.id
 		)
 		if not row:
 			await self.client.db.execute(
 				"INSERT INTO afk (user_id, guild_id, message, state, previous_nick) VALUES($1, $2, $3, $4, $5)",
 				ctx.author.id,
 				ctx.guild.id,
-				reason,
+				reason_text,
 				True,
 				ctx.author.display_name,
 			)
@@ -116,10 +106,7 @@ class AFK(commands.Cog):
 		if row["state"]:
 			# Turn off AFK
 			await self.client.db.execute(
-				"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3",
-				False,
-				ctx.author.id,
-				ctx.guild.id,
+				"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3", False, ctx.author.id, ctx.guild.id
 			)
 			try:
 				await ctx.author.edit(nick=row["previous_nick"])
@@ -131,7 +118,7 @@ class AFK(commands.Cog):
 			await self.client.db.execute(
 				"UPDATE afk SET state = $1, message = $2, previous_nick = $3 WHERE user_id = $4 AND guild_id = $5",
 				True,
-				reason,
+				reason_text,
 				ctx.author.display_name,
 				ctx.author.id,
 				ctx.guild.id,
@@ -145,5 +132,5 @@ class AFK(commands.Cog):
 			return await ctx.send("afk.on")
 
 
-async def setup(client: MyClient):
+async def setup(client: Bot):
 	await client.add_cog(AFK(client))

@@ -1,12 +1,11 @@
 [project]
-name = "lumin"
+name = "fm01"
 version = "0.6.1"
-description = "fm01 v2.0 - closed beta"
-authors = [
-    { name = "Pearoo", email = "contact@pearoo.dev" }
-]
+description = "All-in-one Discord bot for general purposes"
+authors = [{ name = "Pearoo", email = "contact@pearoo.dev" }]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
+license = "MIT"
 
 dependencies = [
     "discord-localization>=1.1.4",
@@ -22,11 +21,15 @@ dependencies = [
     "emoji>=2.14.1",
     "pypokedex>=1.6.0",
     "art>=6.5",
-    "ruff>=0.13.1",
+    "ruff>=0.14.8",
     "pillow>=11.3.0",
     "asyncpraw>=7.8.1",
     "pytemperature>=1.1",
+    "ty>=0.0.1a33",
 ]
+
+[dependency-groups]
+dev = ["ruff>=0.14.8"]
 
 [tool.setuptools]
 packages = ["helpers"]
@@ -34,8 +37,24 @@ packages = ["helpers"]
 [tool.uv]
 
 [tool.ruff]
-target-version = "py312"
 line-length = 120
+src = ["core", "helpers", "cogs"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F403"]
 
 [tool.ruff.format]
+docstring-code-format = true
 indent-style = "tab"
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+logger-objects = ["core.logging"]
+select = ["D"]
+ignore = ["D100", "D101", "D102", "D103", "D105", "D206", "D401"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ty.rules]
+#invalid-method-override = "ignore"

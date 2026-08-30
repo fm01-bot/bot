@@ -1,725 +1,745 @@
 {
-	"member": "tag",
-	"amount": "mennyiség",
-	"bet": "tét",
-	"ip_addr": "ip_cím",
-	"on": "be",
-	"off": "ki",
-	"mod": "mod",
-	"delete": "törlés",
-	"economy": "economy",
-	"account": "fiók",
-	"cash": "készpénz",
-	"bank": "bank",
-	"…": "...",
-	"global": {
-		"member": "tag",
-		"amount": "mennyiség",
-		"account": "fiók",
-		"cash": "készpénz",
-		"bank": "bank",
-		"user": "felhasználó",
-		"role": "rang",
-		"price": "ár",
-		"description": "leírás",
-		"item": "item"
-	},
-	"ping": "ping",
-	"ping_specs": {
-		"description": "Bot és adatbázis válaszidő megtekintése"
-	},
-	"afk": "afk",
-	"afk_specs": {
-		"description": "AFK státusz beállítása",
-		"usage": "afk (indok)",
-		"args": {
-			"reason": {
-				"name": "indok",
-				"description": "Az AFK indoklása"
-			}
-		}
-	},
-	"work": "work",
-	"work_specs": {
-		"description": "Szerezz pénzt munkával (300 Ft-1500 Ft)"
-	},
-	"crime": "crime",
-	"crime_specs": {
-		"description": "Szerezz pénzt virtuális bűncselekménnyel (500 Ft-2000 Ft)"
-	},
-	"daily": "daily",
-	"daily_specs": {
-		"description": "Napi juttatás (5000 Ft)"
-	},
-	"addmoney": "addmoney",
-	"addmoney_specs": {
-		"description": "Pénz hozzáadása egy felhasználó egyenlegéhez",
-		"usage": "addmoney [tag] [mennyiség] (fiók)",
-		"args": {
-			"member": {
-				"description": "A tag, akinek szeretnél pénzt adni"
-			},
-			"amount": {
-				"description": "Mennyi pénzt szeretnél adni neki?"
-			},
-			"account": {
-				"description": "A fiók, amihez hozzáadod a pénzt"
-			}
-		}
-	},
-	"removemoney": "removemoney",
-	"removemoney_specs": {
-		"description": "Vegyél el pénzt egy felhasználótól",
-		"usage": "removemoney [tag] [mennyiség] (fiók)",
-		"args": {
-			"member": {
-				"description": "A tag, akitől szeretnél pénzt elvenni"
-			},
-			"amount": {
-				"description": "Mennyi pénzt szeretnél elvenni a tagtól?"
-			},
-			"account": {
-				"description": "A fiók, ahonnan elveszed a pénzt"
-			}
-		}
-	},
-	"luck": "szerencse",
-	"luck_specs": {
-		"description": "Próbálj szerencsét (nyer/veszít 200 Ft-1000 Ft)"
-	},
-	"pay": "pay",
-	"pay_specs": {
-		"description": "Adj pénzt egy másik tagnak",
-		"usage": "pay [tag] [mennyiség]",
-		"args": {
-			"member": {
-				"description": "A tag, akinek pénzt szeretnél adni"
-			},
-			"amount": {
-				"description": "A pénz mennyisége"
-			}
-		}
-	},
-	"leaderboard": "leaderboard",
-	"leaderboard_specs": {
-		"description": "Egy ranglista a leggazdagabb felhasználókról"
-	},
-	"balance": "balance",
-	"balance_specs": {
-		"description": "Egyenleg megtekintése",
-		"usage": "balance (tag)",
-		"args": {
-			"member": {
-				"description": "A felhasználó, akinek szeretnéd az egyenlegét megtekinteni"
-			}
-		}
-	},
-	"slots": "slots",
-	"slots_specs": {
-		"description": "Slots játék (nyerd [4%] vagy veszítsd [96%] 2x a tétet)",
-		"usage": "slots [mennyiség]",
-		"args": {
-			"bet": {
-				"name": "tét",
-				"description": "A pénz, amit tétre raksz"
-			}
-		}
-	},
-	"deposit": "deposit",
-	"deposit_specs": {
-		"description": "Pénz letétele a bankba",
-		"usage": "deposit [mennyiség]",
-		"args": {
-			"amount": {
-				"description": "A mennyiség, amit szeretnél letenni"
-			}
-		}
-	},
-	"withdraw": "withdraw",
-	"withdraw_specs": {
-		"description": "Pénz jóváírása a bankodból",
-		"usage": "withdraw [mennyiség]",
-		"args": {
-			"amount": {
-				"description": "A mennyiség, amit szeretnél jóváírni"
-			}
-		}
-	},
-	"shop": "bolt",
-	"shop_specs": {
-		"description": "Szerver bolt megtekintése",
-		"fallback": "lista"
-	},
-	"buy": "vásárlás",
-	"buy_specs": {
-		"name": "vásárlás",
-		"description": "Item vásárlása a boltból",
-		"usage": "shop buy [item]",
-		"args": {
-			"item": {
-				"name": "item",
-				"description": "Az item, amit szeretnél megvenni"
-			}
-		}
-	},
-	"set_item": "set_item",
-	"set_item_specs": {
-		"description": "Item hozzáadása a bolthoz",
-		"usage": "shop set_item [név] [ár] [leírás] [rang]",
-		"args": {
-			"item": {
-				"description": "Az item neve"
-			},
-			"price": {
-				"description": "Az item ára"
-			},
-			"description": {
-				"description": "Az item leírása"
-			},
-			"role": {
-				"description": "A rang, amit kap a vásárló"
-			}
-		}
-	},
-	"remove_item": "remove_item",
-	"remove_item_specs": {
-		"description": "Item eltávolítása a boltból",
-		"usage": "shop remove_item [név]",
-		"args": {
-			"item": {
-				"description": "Az item neve, amit el szeretnél távolítani"
-			}
-		}
-	},
-	"reload": "reload",
-	"reload_specs": {
-		"description": "Cog újratöltése (fejlesztői parancs)",
-		"usage": "reload [cog]",
-		"args": {
-			"cog": {
-				"name": "cog",
-				"description": "Az újratöltendő cog"
-			}
-		}
-	},
-	"load": "load",
-	"load_specs": {
-		"description": "Cog betöltése (fejlesztői parancs)",
-		"usage": "load [cog]",
-		"args": {
-			"cog": {
-				"name": "cog",
-				"description": "A betöltendő cog"
-			}
-		}
-	},
-	"unload": "unload",
-	"unload_specs": {
-		"description": "Cog kivétele (fejlesztői parancs)",
-		"usage": "unload [cog]",
-		"args": {
-			"cog": {
-				"name": "cog",
-				"description": "A kivevendő cog"
-			}
-		}
-	},
-	"sync": "sync",
-	"sync_specs": {
-		"description": "Parancsok szinkronizálása (fejlesztői parancs)",
-		"usage": "sync (szerverek...) (scope[~/*/^])",
-		"args": {
-			"guilds": {
-				"name": "szerverek",
-				"description": "A szerverek ID-je, ahova szeretnél szinkronizálni, szóközzel elválasztva"
-			},
-			"scope": {
-				"name": "scope",
-				"description": "Lokális (~), globális (*), vagy újra (^) szinkronizálás. Alap: globális",
-				"local": "Lokális szinkronizálás",
-				"global": "Globális szinkronizálás",
-				"resync": "Újraszinkronizálás",
-				"slash": "Slash commandok lokalizációjának újratöltése"
-			}
-		}
-	},
-	"snapshot": "snapshot",
-	"snapshot_specs": {
-		"description": "Készíts egy snapshotot a szerverről",
-		"fallback": "create"
-	},
-	"ss_load_specs": {
-		"description": "Tölts be egy snapshotot a szerverre",
-		"usage": "snapshot load [snapshot]",
-		"args": {
-			"code": {
-				"name": "kód",
-				"description": "A snapshot kódja"
-			}
-		}
-	},
-	"warn": "warn",
-	"warn_specs": {
-		"description": "Figyelmeztess egy tagot",
-		"usage": "warn [tag] (hossz) (indok)",
-		"args": {
-			"member": {
-				"name": "tag",
-				"description": "A tag, akit figyelmeztetni szeretnél"
-			},
-			"duration": {
-				"name": "hossz",
-				"description": "A figyelmeztetés hossza (pl. 1d5h)"
-			},
-			"reason": {
-				"name": "indok",
-				"description": "A figyelmeztetés oka"
-			}
-		}
-	},
-	"case": "eset",
-	"caseinfo_specs": {
-		"description": "Eset információk",
-		"usage": "case [eset_id]",
-		"fallback": "info",
-		"args": {
-			"case_id": {
-				"name": "eset_id",
-				"description": "Az eset ID-je, amiről információt szeretnél"
-			}
-		}
-	},
-	"casedel_specs": {
-		"description": "Eset törlése",
-		"usage": "case delete [eset_id]",
-		"args": {
-			"case_id": {
-				"name": "eset_id",
-				"description": "Az eset ID-je, amit törölni szeretnél"
-			}
-		}
-	},
-	"caseedit_specs": {
-		"description": "Eset szerkesztése",
-		"usage": "case edit [eset_id] [mező] [érték]",
-		"args": {
-			"case_id": {
-				"name": "eset_id",
-				"description": "Az eset ID-je, amit szerkeszteni szeretnél"
-			},
-			"value": {
-				"name": "érték",
-				"description": "Az érték, amit szerkeszteni szeretnél",
-				"reason": "indok",
-				"expires": "lejárat",
-				"message": "üzenet"
-			},
-			"nvalue": {
-				"name": "új_érték",
-				"description": "A mező új értéke"
-			}
-		}
-	},
-	"list": "lista",
-	"caselist_specs": {
-		"description": "Esetek listázása egy felhasználónak",
-		"usage": "case list (felhasználó)",
-		"args": {
-			"user": {
-				"name": "felhasználó",
-				"description": "A felhasználó, akinek szeretnéd látni az eseteit"
-			}
-		}
-	},
-	"mute": "mute",
-	"mute_specs": {
-		"description": "Tag némítása",
-		"usage": "mute [tag] [hossz] (indok)",
-		"args": {
-			"user": {
-				"name": "tag",
-				"description": "A tag, akit le szeretnél némítani"
-			},
-			"expires": {
-				"name": "hossz",
-				"description": "A némítás hossza (pl. 1d5h)"
-			},
-			"reason": {
-				"name": "indok",
-				"description": "A némítás oka"
-			}
-		}
-	},
-	"unmute": "unmute",
-	"unmute_specs": {
-		"description": "Tag némításának feloldása",
-		"usage": "unmute [tag]",
-		"args": {
-			"user": {
-				"name": "tag",
-				"description": "A tag, akinek a némítását eltávolítanád"
-			}
-		}
-	},
-	"kick": "kick",
-	"kick_specs": {
-		"description": "Tag kirúgása",
-		"usage": "kick [tag] (indok)",
-		"args": {
-			"user": {
-				"name": "tag",
-				"description": "A tag, akit ki szeretnél rúgni"
-			},
-			"reason": {
-				"name": "indok",
-				"description": "A kirúgás indoka"
-			}
-		}
-	},
-	"ban": "ban",
-	"ban_specs": {
-		"description": "Tag kitiltása",
-		"usage": "ban [tag] (hossz) (indok)",
-		"args": {
-			"user": {
-				"name": "tag",
-				"description": "A tag, akit ki szeretnél tiltani"
-			},
-			"expires": {
-				"name": "hossz",
-				"description": "A kitiltás hossza (pl. 1d5h)"
-			},
-			"reason": {
-				"name": "indok",
-				"description": "A kitiltás indoka"
-			}
-		}
-	},
-	"unban": "unban",
-	"unban_specs": {
-		"description": "Kitiltás feloldása",
-		"usage": "unban [tag]",
-		"args": {
-			"user": {
-				"name": "tag",
-				"description": "A tag, akinek a kitiltását szeretnéd feloldani"
-			}
-		}
-	},
-	"prefix": "prefix",
-	"prefix_specs": {
-		"usage": "prefix [prefix]",
-		"description": "Bot prefixének szerkesztése (alapértelmezett: ?!)",
-		"args": {
-			"prefix": {
-				"name": "prefix",
-				"description": "A prefix, amit beállítanál"
-			},
-			"mention": {
-				"name": "említés",
-				"description": "Engedélyezed a bot megemlítését prefixként?"
-			}
-		}
-	},
-	"info": "info",
-	"info_specs": {
-		"usage": "info [dolog]",
-		"description": "Felhasználó, csatorna, rang, vagy emoji információk.",
-		"args": {
-			"argument": {
-				"name": "dolog",
-				"description": "A dolog, amiről szeretnél információt"
-			}
-		}
-	},
-	"bot": "bot",
-	"botinfo_specs": {
-		"description": "Bot információk"
-	},
-	"channel": "csatorna",
-	"chinfo_specs": {
-		"usage": "info channel (csatorna)",
-		"description": "Csatorna információk",
-		"args": {
-			"channel": {
-				"name": "csatorna",
-				"description": "A csatorna, amiről információt szeretnél"
-			}
-		}
-	},
-	"emoji": "emoji",
-	"emojiinfo_specs": {
-		"usage": "info emoji [emoji]",
-		"description": "Emoji információk",
-		"args": {
-			"emoji": {
-				"name": "emoji",
-				"description": "Az emoji, amiről információt szeretnél"
-			}
-		}
-	},
-	"ip": "ip",
-	"ipinfo_specs": {
-		"usage": "info ip [ip]",
-		"description": "IP cím információk",
-		"args": {
-			"ip": {
-				"name": "ip",
-				"description": "Az IP, amiről információt szeretnél"
-			}
-		}
-	},
-	"pokemon": "pokémon",
-	"pokeinfo_specs": {
-		"usage": "info pokemon [pokémon]",
-		"description": "Pokémon információk",
-		"args": {
-			"pokemon": {
-				"name": "pokémon",
-				"description": "A pokémon, amiről információt szeretnél"
-			}
-		}
-	},
-	"role": "rang",
-	"roleinfo_specs": {
-		"usage": "info role (rang)",
-		"description": "Rang információk",
-		"args": {
-			"role": {
-				"name": "rang",
-				"description": "A rang, amiről információt szeretnél"
-			}
-		}
-	},
-	"server": "szerver",
-	"serverinfo_specs": {
-		"description": "Szerver információk"
-	},
-	"user": "user",
-	"userinfo_specs": {
-		"usage": "info user (felhasználó|tag)",
-		"description": "Információ egy felhasznáróról vagy szervertagról",
-		"args": {
-			"user": {
-				"name": "felhasználó",
-				"description": "A felhasználó, akiről információt szeretnél (alap: te!)"
-			}
-		}
-	},
-	"template": "sablon",
-	"tmplteinfo_specs": {
-		"usage": "info template [sablon|snapshot]",
-		"description": "Információk egy Discord sablonról vagy fm01 snapshotról",
-		"args": {
-			"tmpl": {
-				"name": "sablon",
-				"description": "A sablon, amiről információt szeretnél"
-			}
-		}
-	},
-	"l10n_reload": "l10n_reload",
-	"l10n_reload_specs": {
-		"description": "Lokalizációs fájlok újratöltése (fejlesztői parancs)"
-	},
-	"giveaway": "nyereményjáték",
-	"gw_specs": {
-		"description": "Nyereményjáték indítása",
-		"fallback": "start",
-		"usage": "giveaway [hossz] (nyertesek száma) [nyeremény]",
-		"args": {
-			"winners": {
-				"name": "nyertesek",
-				"description": "A maximum nyertesek száma"
-			},
-			"duration": {
-				"name": "hossz",
-				"description": "A nyereményjáték hossza, pl. 1d"
-			},
-			"prize": {
-				"name": "nyeremény",
-				"description": "A nyeremény (kötelező)"
-			}
-		}
-	},
-	"end": "end",
-	"gw_end": {
-		"description": "Nyereményjáték lezárása az aktuális csatornában",
-		"usage": "giveaway end [üzenet_id]",
-		"args": {
-			"message_id": {
-				"name": "üzenet_id",
-				"description": "A nyereményjáték üzenetének ID-je"
-			}
-		}
-	},
-	"say": "say",
-	"say_specs": {
-		"description": "Mondass ki valamit a bottal",
-		"fallback": "üzenet",
-		"usage": "say [üzenet: 1...2000]",
-		"args": {
-			"message": {
-				"name": "üzenet",
-				"description": "Az üzenet, amit ki szeretnél mondatni a bottal"
-			}
-		}
-	},
-	"chsay_specs": {
-		"description": "Mondass ki valamit a bottal egy specifikus csatornában",
-		"usage": "say channel [csatorna] [üzenet: 1...2000]",
-		"args": {
-			"channel": {
-				"name": "csatorna",
-				"description": "A cél csatorna"
-			},
-			"message": {
-				"name": "üzenet",
-				"description": "Az üzenet, amit ki szeretnél mondatni a bottal"
-			}
-		}
-	},
-	"edit": "edit",
-	"editmsg_specs": {
-		"description": "Szerkeszd át a bot egyik üzenetét",
-		"usage": "say edit [üzenet_link] [tartalom: 1...2000]",
-		"args": {
-			"link": {
-				"name": "üzenet_link",
-				"description": "Az üzenet linkje"
-			},
-			"content": {
-				"name": "tartalom",
-				"description": "Az üzenet új tartalma"
-			}
-		}
-	},
-	"ascii": "ascii",
-	"asciisay_specs": {
-		"description": "Szöveg ASCII-vá alakítása",
-		"usage": "say ascii [szöveg: 1...20]",
-		"args": {
-			"message": {
-				"name": "szöveg",
-				"description": "A szöveg, amit át szeretnél alakítani ASCII-vá"
-			}
-		}
-	},
-	"emojisay_specs": {
-		"description": "Üzenet átalakítása Discord emojikká",
-		"usage": "say emoji [üzenet: 1...20]",
-		"args": {
-			"message": {
-				"name": "üzenet",
-				"description": "Az üzenet, amit át szeretnél alakítani emojikká"
-			}
-		}
-	},
-	"achievement": "achievement",
-	"mcsay_specs": {
-		"description": "Szöveg megjelenítése Minecraft teljesítményként",
-		"usage": "say achievement [szöveg: 1...50]",
-		"args": {
-			"message": {
-				"name": "szöveg",
-				"description": "A Minecraft teljesítmény tartalma"
-			}
-		}
-	},
-	"qr": "qr",
-	"qr_specs": {
-		"description": "QR-kód készítése",
-		"usage": "say qr [adat: 1...500]",
-		"args": {
-			"data": {
-				"name": "adat",
-				"description": "A QR-kód tartalma"
-			}
-		}
-	},
-	"reverse": "reverse",
-	"reversesay_specs": {
-		"description": "Üzenet megfordítása",
-		"usage": "say reverse [üzenet: 1...2000]",
-		"args": {
-			"msg": {
-				"name": "üzenet",
-				"description": "A megfordítandó üzenet"
-			}
-		}
-	},
-	"clap": "clap",
-	"clapsay_specs": {
-		"description": "Üzenet👏tapsolása",
-		"usage": "say clap [üzenet: 1...500]",
-		"args": {
-			"message": {
-				"name": "üzenet",
-				"description": "Az👏üzenet👏amit👏tapsolni👏szeretnél"
-			}
-		}
-	},
-	"log": "log",
-	"log_specs": {
-		"description": "Naplózás beállítása a szerveren",
-		"usage": "log [on|off] (csatorna)",
-		"fallback": "set",
-		"args": {
-			"state": {
-				"name": "állapot",
-				"description": "A naplózás állapota (on/off)"
-			},
-			"channel": {
-				"name": "csatorna",
-				"description": "Hová naplózzon a bot?"
-			}
-		}
-	},
-	"add": "add",
-	"logadd_specs": {
-		"description": "Modul hozzáadása a naplózási rendszerhez",
-		"usage": "log add [modul]",
-		"args": {
-			"module": {
-				"name": "modul",
-				"description": "A modul, amit hozzá szeretnél adni a naplózási rendszerhez"
-			}
-		}
-	},
-	"remove": "remove",
-	"logremove_specs": {
-		"description": "Modul eltávolítása a naplózási rendszerből",
-		"usage": "log remove [modul]",
-		"args": {
-			"module": {
-				"name": "modul",
-				"description": "A modul, amit el szeretnél távolítani a naplózási rendszerből"
-			}
-		}
-	},
-	"l10nreload": "l10nreload",
-	"l10nreload_specs": {
-		"description": "Lokalizációs fájlok újratöltése (dev-only)",
-		"usage": "l10nreload (útvonal)",
-		"args": {
-			"path": {
-				"name": "útvonal",
-				"description": "A lokalizációs fájlok mappája (alap: ./localization)"
-			}
-		}
-	},
-	"slowmode": "slowmode",
-	"sm_specs": {
-		"description": "Lassítás beállítása egy csatornában",
-		"usage": "slowmode (hossz) (csatorna)",
-		"args": {
-			"duration": {
-				"name": "hossz",
-				"description": "A lassítás hossza (pl. 1s, 5m, 1h), \"off\" a kikapcsoláshoz"
-			},
-			"channel": {
-				"name": "csatorna",
-				"description": "A csatorna, ahol be szeretnéd állítani a lassítást (alap: aktuális)"
-			}
-		}
-	}
+  "admin": "admin",
+  "mod": "mod",
+  "economy": "economy",
+  "global": {
+    "cash": "készpénz",
+    "bank": "bank"
+  },
+  "ping": {
+    "name": "ping",
+    "desc": "Bot és adatbázis válaszidő megtekintése"
+  },
+  "afk": {
+    "name": "afk",
+    "desc": "AFK státusz beállítása",
+    "usage": "afk (indok)",
+    "args": {
+      "reason": {
+        "name": "indok",
+        "desc": "Az AFK indoklása"
+      }
+    }
+  },
+  "work": {
+    "name": "work",
+    "desc": "Szerezz pénzt munkával (300 Ft-1500 Ft)"
+  },
+  "crime": {
+    "name": "crime",
+    "desc": "Szerezz pénzt virtuális bűncselekménnyel (500 Ft-2000 Ft)"
+  },
+  "daily": {
+    "name": "daily",
+    "desc": "Napi juttatás (5000 Ft)"
+  },
+  "addmoney": {
+    "name": "addmoney",
+    "desc": "Pénz hozzáadása egy felhasználó egyenlegéhez",
+    "usage": "addmoney [tag] [mennyiség] (fiók)",
+    "args": {
+      "member": {
+        "name": "member",
+        "desc": "A tag, akinek szeretnél pénzt adni"
+      },
+      "amount": {
+        "name": "amount",
+        "desc": "Mennyi pénzt szeretnél adni neki?"
+      },
+      "account": {
+        "name": "account",
+        "desc": "A fiók, amihez hozzáadod a pénzt"
+      }
+    }
+  },
+  "removemoney": {
+    "name": "removemoney",
+    "desc": "Vegyél el pénzt egy felhasználótól",
+    "usage": "removemoney [tag] [mennyiség] (fiók)",
+    "args": {
+      "member": {
+        "name": "member",
+        "desc": "A tag, akitől szeretnél pénzt elvenni"
+      },
+      "amount": {
+        "name": "amount",
+        "desc": "Mennyi pénzt szeretnél elvenni a tagtól?"
+      },
+      "account": {
+        "name": "account",
+        "desc": "A fiók, ahonnan elveszed a pénzt"
+      }
+    }
+  },
+  "luck": {
+    "name": "szerencse",
+    "desc": "Próbálj szerencsét (nyer/veszít 200 Ft-1000 Ft)"
+  },
+  "pay": {
+    "name": "pay",
+    "desc": "Adj pénzt egy másik tagnak",
+    "usage": "pay [tag] [mennyiség]",
+    "args": {
+      "member": {
+        "name": "member",
+        "desc": "A tag, akinek pénzt szeretnél adni"
+      },
+      "amount": {
+        "name": "amount",
+        "desc": "A pénz mennyisége"
+      }
+    }
+  },
+  "leaderboard": {
+    "name": "leaderboard",
+    "desc": "Egy ranglista a leggazdagabb felhasználókról"
+  },
+  "balance": {
+    "name": "balance",
+    "desc": "Egyenleg megtekintése",
+    "usage": "balance (tag)",
+    "args": {
+      "member": {
+        "name": "member",
+        "desc": "A felhasználó, akinek szeretnéd az egyenlegét megtekinteni"
+      }
+    }
+  },
+  "slots": {
+    "name": "slots",
+    "desc": "Slots játék (nyerd [4%] vagy veszítsd [96%] 2x a tétet)",
+    "usage": "slots [mennyiség]",
+    "args": {
+      "bet": {
+        "name": "tét",
+        "desc": "A pénz, amit tétre raksz"
+      }
+    }
+  },
+  "deposit": {
+    "name": "deposit",
+    "desc": "Pénz letétele a bankba",
+    "usage": "deposit [mennyiség]",
+    "args": {
+      "amount": {
+        "name": "amount",
+        "desc": "A mennyiség, amit szeretnél letenni"
+      }
+    }
+  },
+  "withdraw": {
+    "name": "withdraw",
+    "desc": "Pénz jóváírása a bankodból",
+    "usage": "withdraw [mennyiség]",
+    "args": {
+      "amount": {
+        "name": "amount",
+        "desc": "A mennyiség, amit szeretnél jóváírni"
+      }
+    }
+  },
+  "shop": {
+    "name": "bolt",
+    "desc": "Szerver bolt megtekintése",
+    "fallback": "lista"
+  },
+  "buy": {
+    "name": "vásárlás",
+    "desc": "Item vásárlása a boltból",
+    "usage": "shop buy [item]",
+    "args": {
+      "item_name": {
+        "name": "item",
+        "desc": "Az item, amit szeretnél megvenni"
+      }
+    }
+  },
+  "set_item": {
+    "name": "set_item",
+    "desc": "Item hozzáadása a bolthoz",
+    "usage": "shop set_item [név] [ár] [leírás] [rang]",
+    "args": {
+      "item_name": {
+        "name": "item",
+        "desc": "Az item neve"
+      },
+      "price": {
+        "name": "price",
+        "desc": "Az item ára"
+      },
+      "description": {
+        "name": "description",
+        "desc": "Az item leírása"
+      },
+      "role": {
+        "name": "role",
+        "desc": "A rang, amit kap a vásárló"
+      }
+    }
+  },
+  "remove_item": {
+    "name": "remove_item",
+    "desc": "Item eltávolítása a boltból",
+    "usage": "shop remove_item [név]",
+    "args": {
+      "item_name": {
+        "name": "item",
+        "desc": "Az item neve, amit el szeretnél távolítani"
+      }
+    }
+  },
+  "reload": {
+    "name": "reload",
+    "desc": "Cog újratöltése (fejlesztői parancs)",
+    "usage": "reload [cog]",
+    "args": {
+      "cog": {
+        "name": "cog",
+        "desc": "Az újratöltendő cog"
+      }
+    }
+  },
+  "load": {
+    "name": "load",
+    "desc": "Cog betöltése (fejlesztői parancs)",
+    "usage": "load [cog]",
+    "args": {
+      "cog": {
+        "name": "cog",
+        "desc": "A betöltendő cog"
+      }
+    }
+  },
+  "unload": {
+    "name": "unload",
+    "desc": "Cog kivétele (fejlesztői parancs)",
+    "usage": "unload [cog]",
+    "args": {
+      "cog": {
+        "name": "cog",
+        "desc": "A kivevendő cog"
+      }
+    }
+  },
+  "sync": {
+    "name": "sync",
+    "desc": "Parancsok szinkronizálása (fejlesztői parancs)",
+    "usage": "sync (szerverek...) (scope[~/*/^])",
+    "args": {
+      "guilds": {
+        "name": "szerverek",
+        "desc": "A szerverek ID-je, ahova szeretnél szinkronizálni, szóközzel elválasztva"
+      },
+      "scope": {
+        "name": "scope",
+        "desc": "Lokális (~), globális (*), vagy újra (^) szinkronizálás. Alap: globális",
+        "local": "Lokális szinkronizálás",
+        "global": "Globális szinkronizálás",
+        "resync": "Újraszinkronizálás",
+        "slash": "Slash commandok lokalizációjának újratöltése"
+      }
+    }
+  },
+  "snapshot": {
+    "name": "snapshot",
+    "desc": "Készíts egy snapshotot a szerverről",
+    "fallback": "create"
+  },
+  "warn": {
+    "name": "warn",
+    "desc": "Figyelmeztess egy tagot",
+    "usage": "warn [tag] (hossz) (indok)",
+    "args": {
+      "member": {
+        "name": "tag",
+        "desc": "A tag, akit figyelmeztetni szeretnél"
+      },
+      "expires": {
+        "name": "hossz",
+        "desc": "A figyelmeztetés hossza (pl. 1d5h)"
+      },
+      "reason": {
+        "name": "indok",
+        "desc": "A figyelmeztetés oka"
+      }
+    }
+  },
+  "case": "eset",
+  "list": "lista",
+  "mute": {
+    "name": "mute",
+    "desc": "Tag némítása",
+    "usage": "mute [tag] [hossz] (indok)",
+    "args": {
+      "member": {
+        "name": "tag",
+        "desc": "A tag, akit le szeretnél némítani"
+      },
+      "expires": {
+        "name": "hossz",
+        "desc": "A némítás hossza (pl. 1d5h)"
+      },
+      "reason": {
+        "name": "indok",
+        "desc": "A némítás oka"
+      }
+    }
+  },
+  "unmute": {
+    "name": "unmute",
+    "desc": "Tag némításának feloldása",
+    "usage": "unmute [tag]",
+    "args": {
+      "member": {
+        "name": "tag",
+        "desc": "A tag, akinek a némítását eltávolítanád"
+      }
+    }
+  },
+  "kick": {
+    "name": "kick",
+    "desc": "Tag kirúgása",
+    "usage": "kick [tag] (indok)",
+    "args": {
+      "member": {
+        "name": "tag",
+        "desc": "A tag, akit ki szeretnél rúgni"
+      },
+      "reason": {
+        "name": "indok",
+        "desc": "A kirúgás indoka"
+      }
+    }
+  },
+  "ban": {
+    "name": "ban",
+    "desc": "Tag kitiltása",
+    "usage": "ban [tag] (hossz) (indok)",
+    "args": {
+      "user": {
+        "name": "tag",
+        "desc": "A tag, akit ki szeretnél tiltani"
+      },
+      "expires": {
+        "name": "hossz",
+        "desc": "A kitiltás hossza (pl. 1d5h)"
+      },
+      "reason": {
+        "name": "indok",
+        "desc": "A kitiltás indoka"
+      }
+    }
+  },
+  "unban": {
+    "name": "unban",
+    "desc": "Kitiltás feloldása",
+    "usage": "unban [tag]",
+    "args": {
+      "user": {
+        "name": "tag",
+        "desc": "A tag, akinek a kitiltását szeretnéd feloldani"
+      }
+    }
+  },
+  "prefix": {
+    "name": "prefix",
+    "desc": "Bot prefixének szerkesztése (alapértelmezett: ?!)",
+    "usage": "prefix [prefix]",
+    "args": {
+      "prefix": {
+        "name": "prefix",
+        "desc": "A prefix, amit beállítanál"
+      },
+      "mention": {
+        "name": "említés",
+        "desc": "Engedélyezed a bot megemlítését prefixként?"
+      }
+    }
+  },
+  "info": {
+    "name": "info",
+    "desc": "Felhasználó, csatorna, rang, vagy emoji információk.",
+    "usage": "info [dolog]",
+    "args": {
+      "argument": {
+        "name": "dolog",
+        "desc": "A dolog, amiről szeretnél információt"
+      }
+    }
+  },
+  "bot": "bot",
+  "channel": "csatorna",
+  "emoji": "emoji",
+  "ip": "ip",
+  "pokemon": "pokémon",
+  "role": "rang",
+  "server": "szerver",
+  "user": "user",
+  "template": "sablon",
+  "l10n_reload": {
+    "name": "l10n_reload",
+    "desc": "Lokalizációs fájlok újratöltése (fejlesztői parancs)"
+  },
+  "endgiveaway": {
+    "name": "lezár",
+    "desc": "Nyereményjáték lezárása az aktuális csatornában",
+    "usage": "giveaway end [üzenet_id]",
+    "args": {
+      "message": {
+        "name": "üzenet_id",
+        "desc": "A nyereményjáték üzenetének ID-je"
+      }
+    }
+  },
+  "say": {
+    "name": "say",
+    "desc": "Mondass ki valamit a bottal",
+    "usage": "say [üzenet: 1...2000]",
+    "fallback": "üzenet",
+    "args": {
+      "message": {
+        "name": "üzenet",
+        "desc": "Az üzenet, amit ki szeretnél mondatni a bottal"
+      }
+    }
+  },
+  "edit": "edit",
+  "ascii": "ascii",
+  "achievement": "achievement",
+  "qr_code": {
+    "name": "qr",
+    "desc": "QR-kód készítése",
+    "usage": "say qr [adat: 1...500]",
+    "args": {
+      "data": {
+        "name": "adat",
+        "desc": "A QR-kód tartalma"
+      }
+    }
+  },
+  "reverse": "reverse",
+  "clap": "clap",
+  "log": {
+    "name": "log",
+    "desc": "Naplózás beállítása a szerveren",
+    "usage": "log [on|off] (csatorna)",
+    "fallback": "set",
+    "args": {
+      "state": {
+        "name": "állapot",
+        "desc": "A naplózás állapota (on/off)"
+      },
+      "channel": {
+        "name": "csatorna",
+        "desc": "Hová naplózzon a bot?"
+      }
+    }
+  },
+  "add": "add",
+  "remove": "remove",
+  "l10nreload": {
+    "name": "l10nreload",
+    "desc": "Lokalizációs fájlok újratöltése (dev-only)",
+    "usage": "l10nreload (útvonal)",
+    "args": {
+      "path": {
+        "name": "útvonal",
+        "desc": "A lokalizációs fájlok mappája (alap: ./localization)"
+      }
+    }
+  },
+  "ss_load": {
+    "name": "load",
+    "desc": "Tölts be egy snapshotot a szerverre",
+    "usage": "snapshot load [snapshot]",
+    "args": {
+      "code": {
+        "name": "kód",
+        "desc": "A snapshot kódja"
+      }
+    }
+  },
+  "caseinfo": {
+    "name": "case",
+    "desc": "Eset információk",
+    "usage": "case [eset_id]",
+    "fallback": "info",
+    "args": {
+      "case_id": {
+        "name": "eset_id",
+        "desc": "Az eset ID-je, amiről információt szeretnél"
+      }
+    }
+  },
+  "casedel": {
+    "name": "casedel",
+    "desc": "Eset törlése",
+    "usage": "case delete [eset_id]",
+    "args": {
+      "case_id": {
+        "name": "eset_id",
+        "desc": "Az eset ID-je, amit törölni szeretnél"
+      }
+    }
+  },
+  "caseedit": {
+    "name": "caseedit",
+    "desc": "Eset szerkesztése",
+    "usage": "case edit [eset_id] [mező] [érték]",
+    "args": {
+      "case_id": {
+        "name": "eset_id",
+        "desc": "Az eset ID-je, amit szerkeszteni szeretnél"
+      },
+      "value": {
+        "name": "érték",
+        "desc": "Az érték, amit szerkeszteni szeretnél",
+        "reason": "indok",
+        "expires": "lejárat",
+        "message": "üzenet"
+      },
+      "new_value": {
+        "name": "új_érték",
+        "desc": "A mező új értéke"
+      }
+    }
+  },
+  "caselist": {
+    "name": "caselist",
+    "desc": "Esetek listázása egy felhasználónak",
+    "usage": "case list (felhasználó)",
+    "args": {
+      "user": {
+        "name": "felhasználó",
+        "desc": "A felhasználó, akinek szeretnéd látni az eseteit"
+      }
+    }
+  },
+  "botinfo": {
+    "name": "botinfo",
+    "desc": "Bot információk"
+  },
+  "chinfo": {
+    "name": "chinfo",
+    "desc": "Csatorna információk",
+    "usage": "info channel (csatorna)",
+    "args": {
+      "channel": {
+        "name": "csatorna",
+        "desc": "A csatorna, amiről információt szeretnél"
+      }
+    }
+  },
+  "emojiinfo": {
+    "name": "emojiinfo",
+    "desc": "Emoji információk",
+    "usage": "info emoji [emoji]",
+    "args": {
+      "emoji_name": {
+        "name": "emoji",
+        "desc": "Az emoji, amiről információt szeretnél"
+      }
+    }
+  },
+  "ipinfo": {
+    "name": "ipinfo",
+    "desc": "IP cím információk",
+    "usage": "info ip [ip]",
+    "args": {
+      "ip_addr": {
+        "name": "ip",
+        "desc": "Az IP, amiről információt szeretnél"
+      }
+    }
+  },
+  "pokeinfo": {
+    "name": "pokeinfo",
+    "desc": "Pokémon információk",
+    "usage": "info pokemon [pokémon]",
+    "args": {
+      "pokemon_name": {
+        "name": "pokémon",
+        "desc": "A pokémon, amiről információt szeretnél"
+      }
+    }
+  },
+  "roleinfo": {
+    "name": "roleinfo",
+    "desc": "Rang információk",
+    "usage": "info role (rang)",
+    "args": {
+      "role": {
+        "name": "rang",
+        "desc": "A rang, amiről információt szeretnél"
+      }
+    }
+  },
+  "serverinfo": {
+    "name": "serverinfo",
+    "desc": "Szerver információk"
+  },
+  "userinfo": {
+    "name": "userinfo",
+    "desc": "Információ egy felhasznáróról vagy szervertagról",
+    "usage": "info user (felhasználó|tag)",
+    "args": {
+      "user": {
+        "name": "felhasználó",
+        "desc": "A felhasználó, akiről információt szeretnél (alap: te!)"
+      }
+    }
+  },
+  "tmplteinfo": {
+    "name": "tmplteinfo",
+    "desc": "Információk egy Discord sablonról vagy fm01 snapshotról",
+    "usage": "info template [sablon|snapshot]",
+    "args": {
+      "template": {
+        "name": "sablon",
+        "desc": "A sablon, amiről információt szeretnél"
+      }
+    }
+  },
+  "giveaway": {
+    "name": "giveaway",
+    "desc": "Nyereményjáték indítása",
+    "usage": "giveaway [hossz] (nyertesek száma) [nyeremény]",
+    "fallback": "start",
+    "args": {
+      "winners": {
+        "name": "nyertesek",
+        "desc": "A maximum nyertesek száma"
+      },
+      "duration": {
+        "name": "hossz",
+        "desc": "A nyereményjáték hossza, pl. 1d"
+      },
+      "prize": {
+        "name": "nyeremény",
+        "desc": "A nyeremény (kötelező)"
+      }
+    }
+  },
+  "chsay": {
+    "name": "channel",
+    "desc": "Mondass ki valamit a bottal egy specifikus csatornában",
+    "usage": "say channel [csatorna] [üzenet: 1...2000]",
+    "args": {
+      "channel": {
+        "name": "csatorna",
+        "desc": "A cél csatorna"
+      },
+      "message": {
+        "name": "üzenet",
+        "desc": "Az üzenet, amit ki szeretnél mondatni a bottal"
+      }
+    }
+  },
+  "editmsg": {
+    "name": "edit",
+    "desc": "Szerkeszd át a bot egyik üzenetét",
+    "usage": "say edit [üzenet_link] [tartalom: 1...2000]",
+    "args": {
+      "message_link": {
+        "name": "üzenet_link",
+        "desc": "Az üzenet linkje"
+      },
+      "content": {
+        "name": "tartalom",
+        "desc": "Az üzenet új tartalma"
+      }
+    }
+  },
+  "asciisay": {
+    "name": "ascii",
+    "desc": "Szöveg ASCII-vá alakítása",
+    "usage": "say ascii [szöveg: 1...20]",
+    "args": {
+      "message": {
+        "name": "szöveg",
+        "desc": "A szöveg, amit át szeretnél alakítani ASCII-vá"
+      }
+    }
+  },
+  "emojisay": {
+    "name": "emoji",
+    "desc": "Üzenet átalakítása Discord emojikká",
+    "usage": "say emoji [üzenet: 1...20]",
+    "args": {
+      "message": {
+        "name": "üzenet",
+        "desc": "Az üzenet, amit át szeretnél alakítani emojikká"
+      }
+    }
+  },
+  "mcsay": {
+    "name": "achievement",
+    "desc": "Szöveg megjelenítése Minecraft teljesítményként",
+    "usage": "say achievement [szöveg: 1...50]",
+    "args": {
+      "message": {
+        "name": "szöveg",
+        "desc": "A Minecraft teljesítmény tartalma"
+      }
+    }
+  },
+  "reversesay": {
+    "name": "reverse",
+    "desc": "Üzenet megfordítása",
+    "usage": "say reverse [üzenet: 1...2000]",
+    "args": {
+      "message": {
+        "name": "üzenet",
+        "desc": "A megfordítandó üzenet"
+      }
+    }
+  },
+  "clapsay": {
+    "name": "clap",
+    "desc": "Üzenet👏tapsolása",
+    "usage": "say clap [üzenet: 1...500]",
+    "args": {
+      "message": {
+        "name": "üzenet",
+        "desc": "Az👏üzenet👏amit👏tapsolni👏szeretnél"
+      }
+    }
+  },
+  "logadd": {
+    "name": "logadd",
+    "desc": "Modul hozzáadása a naplózási rendszerhez",
+    "usage": "log add [modul]",
+    "args": {
+      "module": {
+        "name": "modul",
+        "desc": "A modul, amit hozzá szeretnél adni a naplózási rendszerhez"
+      }
+    }
+  },
+  "logremove": {
+    "name": "logremove",
+    "desc": "Modul eltávolítása a naplózási rendszerből",
+    "usage": "log remove [modul]",
+    "args": {
+      "module": {
+        "name": "modul",
+        "desc": "A modul, amit el szeretnél távolítani a naplózási rendszerből"
+      }
+    }
+  },
+  "sm": {
+    "name": "slowmode",
+    "desc": "Lassítás beállítása vagy megtekintése egy csatornában",
+    "usage": "slowmode (hossz) (csatorna)",
+    "args": {
+      "duration": {
+        "name": "hossz",
+        "desc": "A lassítás hossza (pl. 1s, 5m, 1h), \"off\" a kikapcsoláshoz"
+      },
+      "channel": {
+        "name": "csatorna",
+        "desc": "A csatorna, ahol be szeretnéd állítani a lassítást (alap: aktuális)"
+      }
+    }
+  }
 }

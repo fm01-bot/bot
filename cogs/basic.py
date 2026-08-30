@@ -1,15 +1,15 @@
 from time import perf_counter
 
+from core import Bot, Context
+from core.hybrid import command, group
 from discord.ext import commands
-
-from core import Context, MyClient
 
 
 class Basic(commands.Cog, name="Basic"):
-	def __init__(self, client: MyClient):
+	def __init__(self, client: Bot):
 		self.client = client
 
-	@commands.hybrid_command(name="ping", description="ping_specs-description")
+	@command()
 	async def ping(self, ctx: Context):
 		# Database ping calculation
 		database_start = perf_counter()
@@ -19,5 +19,5 @@ class Basic(commands.Cog, name="Basic"):
 		await ctx.send("ping", latency=float(self.client.latency), db=float(database))
 
 
-async def setup(client: MyClient):
+async def setup(client: Bot):
 	await client.add_cog(Basic(client))

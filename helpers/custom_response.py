@@ -1,72 +1,67 @@
 """A helper for custom messages."""
 
+from __future__ import annotations
+
 import datetime
 import json
 import logging
 import pathlib
 import random
 import time
-from typing import Any, Optional, Union, overload
+from typing import TYPE_CHECKING, Any, Optional, Union, overload
 
 import discord
+from core.context import Context
 from discord.ext import commands, localization
 
 from helpers import emojis
 
-from .custom_args import (
-	CustomEmoji,
-	CustomGuild,
-	CustomMember,
-	CustomPartialEmoji,
-	CustomRole,
-	CustomUser,
-	FormatDateTime,
-)
+if TYPE_CHECKING:
+	from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, User
+	from core.bot import Bot
 
 logger = logging.getLogger(__name__)
 
 
 class CustomResponse:
-	"""A class to handle custom responses with localization."""
-
-	def __init__(self, client: discord.Client | type[discord.Client], name: Optional[str] = None) -> None:
-		"""A custom message instance.
+	def __init__(self, client: "Bot", name: Optional[str] = None) -> None:
+		"""A class to handle custom responses with localization.
 
 		Parameters
 		----------
-		client: `discord.Client`
-			The client object with a `db` attribute.
-		name: `str`
+		client
+			The client object with a ``db`` attribute.
+		name
 			The name of the cog that uses this class.
 		"""
 		self.client = client
 		self.name = name
 		self.localizations: dict[str, dict] = {}
-		self._localizer = None
+		self._localizer: localization.Localization | None = None
 		self._last_debug_reload: float = 0
 
 		self.load_localizations()
 
 	@staticmethod
 	def convert_embeds(data: Any) -> Any:
-		"""Converts `data`'s embed (dict) or embeds (list) keys' values into a discord.Embed.
+		"""Converts ``data``'s embed (dict) or embeds (list) keys' values into a ``discord.Embed``.
 
-		This converts in a smart way: if there are both an `embed` and `embeds` key, `embed` will be merged into `embeds`.
+		This converts in a smart way: if there are both an ``embed`` and ``embeds`` key, ``embed`` will be merged into ``embeds``.
 
 		Parameters
 		----------
-		data: `Any`
-		        The data that might contain an `embed` or an `embeds` key. Conversion is only performed if this is a `dict`.
+		data
+			The data that might contain an ``embed`` or an ``embeds`` key. Conversion is only performed if this is a ``dict``.
+
+		Returns
+		-------
+		Any
+			The original data, but with usable ``discord.Embed``s.
 
 		Raises
 		------
 		ValueError
-		        If there are more than 10 embeds.
-
-		Returns
-		--------
-		Any
-		        The original data, but with usable `discord.Embed`s.
+			If there are more than 10 embeds.
 		"""
 		if isinstance(data, dict) and (data.get("embed") or data.get("embeds")):
 			if len(data.get("embeds", [])) > 10:
@@ -127,28 +122,27 @@ class CustomResponse:
 	async def get_message(
 		self,
 		name: str,
-		locale: Union[str, discord.Locale, discord.Guild, discord.Interaction, commands.Context],
+		locale: Union[str, discord.Locale, discord.Guild, discord.Interaction, commands.Context, Context],
 		*,
 		convert_embeds: bool = True,
-		**kwargs: Any,
+		**kwargs,
 	) -> Union[dict, str, list, int, float, bool]:
-		"""Gets a custom message from the database, or if not found, gets the default message.
+		"""Returns a custom message from the database, or if not found, returns the default message.
 
 		Parameters
 		----------
-		name: str
-		        The name of the message.
-		locale: Union[str, discord.Locale, discord.Guild, discord.Interaction, commands.Context]
-		        The locale to use or the context to derive it.
-		convert_embeds: bool
-		        Whether to convert the embeds in the message to discord.Embeds.
+		name
+			The name of the message.
+		locale
+			The locale to use or the context to derive it.
+		convert_embeds
+		    Whether to convert the embeds in the message to discord.Embeds.
 
 		Returns
 		-------
 		Union[dict, str, list, int, float, bool]
-		        The message payload.
+		    The message payload.
 		"""
-
 		original = locale
 
 		if isinstance(locale, (discord.Interaction, commands.Context)):
@@ -162,54 +156,64 @@ class CustomResponse:
 
 		match original:
 			case discord.Guild():
-				guild_id = original.id  # noqa: F841
+				guild_id = original.id
 			case discord.Interaction() | commands.Context():
-				guild_id = original.guild.id  # noqa: F841
+				guild_id = original.guild.id if original.guild else None
 			case _:
-				guild_id = None  # noqa: F841
+				guild_id = None
+
+		from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, User
 
 		# these are variables that are always inserted into commands IF there is a context
 		context_formatting = {
-			"author": CustomMember.from_member(original.author)
+			"author": (
+				Member.from_member(original.author)
+				if original.guild and isinstance(original.author, discord.Member)
+				else User.from_user(original.author)
+			)
 			if isinstance(original, commands.Context)
-			else CustomMember.from_member(original.user)
+			else (
+				Member.from_member(original.user)
+				if original.guild and isinstance(original.user, discord.Member)
+				else User.from_user(original.user)
+			)
 			if isinstance(original, discord.Interaction)
 			else None,
 			"guild": (
-				CustomGuild.from_guild(original.guild)
-				if isinstance(original, (discord.Interaction, commands.Context)) and hasattr(original, "guild")
-				else CustomGuild.from_guild(original)
+				Guild.from_guild(original.guild)
+				if isinstance(original, (discord.Interaction, commands.Context)) and original.guild
+				else Guild.from_guild(original)
 				if isinstance(original, discord.Guild)
 				else None
 			),
 			"now": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
 		}
 
+		kwag_mapping = {
+			discord.Guild: Guild.from_guild,
+			discord.Member: Member.from_member,
+			discord.User: User.from_user,
+			discord.Role: Role.from_role,
+			discord.Emoji: Emoji.from_emoji,
+			discord.PartialEmoji: PartialEmoji.from_emoji,
+		}
+
 		# these are kwargs that are passed in but they're converted into custom args
 		for key, value in kwargs.items():
-			match value:
-				case discord.Guild():
-					kwargs[key] = CustomGuild.from_guild(value)
-				case discord.Member():
-					kwargs[key] = CustomMember.from_member(value)
-				case discord.User():
-					kwargs[key] = CustomUser.from_user(value)
-				case discord.Role():
-					kwargs[key] = CustomRole.from_role(value)
-				case discord.Emoji():
-					kwargs[key] = CustomEmoji.from_emoji(value)
-				case discord.PartialEmoji():
-					kwargs[key] = CustomPartialEmoji.from_emoji(value)
-				case datetime.datetime():
-					kwargs[key] = FormatDateTime(value, "F")
-				case _:
-					continue
+			for _type, converter in kwag_mapping.items():
+				if isinstance(value, _type):
+					kwargs[key] = converter(value)
+				elif isinstance(value, datetime.datetime):
+					kwargs[key] = FormatDateTime(value, default_style="F")
 
-		if __debug__:
+		if self.client.debug:
 			now = time.time()
 			if now - self._last_debug_reload > 5:
 				self.load_localizations("../localization")
 				self._last_debug_reload = now
+
+		if not self._localizer:
+			return "localizer not initialized!"
 
 		payload = self._localizer.localize(name, locale, **kwargs, random=r"{random}", **context_formatting)
 

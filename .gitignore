@@ -1,5 +1,5 @@
-# Error reporting
-auto-report_stack-trace.txt
+# Configuration file
+config.yml
 
 # For beta purposes
 cogs/fun.py
@@ -25,6 +25,8 @@ cogs/whitelist.i18n.json
 cogs/whitelist.py
 cogs/yt.py
 
+assets/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -33,6 +35,9 @@ __pycache__/
 
 # C extensions
 *.so
+
+# VSCode
+.vscode/
 
 # Distribution / packaging
 .Python

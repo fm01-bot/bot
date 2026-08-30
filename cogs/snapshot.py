@@ -7,14 +7,13 @@ from uuid import UUID
 
 import asyncpg
 import discord
+from core import Bot, Context, group
 from discord import app_commands
 from discord.ext import commands
 
-from core import Context, MyClient
-
 
 class Snapshot(commands.Cog, name="Snapshots"):
-	def __init__(self, client: MyClient):
+	def __init__(self, client: Bot):
 		self.client = client
 		self.connection: asyncpg.Pool = client.db
 		self.custom_response = client.custom_response
@@ -34,7 +33,6 @@ class Snapshot(commands.Cog, name="Snapshots"):
 		`dict`
 		        The payload of the snapshot.
 		"""
-
 		payload = {"roles": {}, "channels": {}}
 
 		for x in ctx.guild.roles:
@@ -61,19 +59,11 @@ class Snapshot(commands.Cog, name="Snapshots"):
 				"bitrate": x.bitrate if x.type == [discord.ChannelType.voice] else None,
 				"slowmode": x.slowmode_delay
 				if x.type
-				not in [
-					discord.ChannelType.voice,
-					discord.ChannelType.category,
-					discord.ChannelType.stage_voice,
-				]
+				not in [discord.ChannelType.voice, discord.ChannelType.category, discord.ChannelType.stage_voice]
 				else None,
 				"nsfw": x.is_nsfw()
 				if x.type
-				not in [
-					discord.ChannelType.voice,
-					discord.ChannelType.category,
-					discord.ChannelType.stage_voice,
-				]
+				not in [discord.ChannelType.voice, discord.ChannelType.category, discord.ChannelType.stage_voice]
 				else None,
 				"user_limit": x.user_limit if x.type in [discord.ChannelType.voice] else None,
 				"topic": x.topic if x.type not in [discord.ChannelType.voice, discord.ChannelType.category] else None,
@@ -180,11 +170,7 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			await asyncio.sleep(0.5)
 
 	async def load_snapshot(self, ctx: Context, payload: dict):
-		for x in sorted(
-			payload["roles"],
-			key=lambda r: payload["roles"][r]["position"],
-			reverse=True,
-		):
+		for x in sorted(payload["roles"], key=lambda r: payload["roles"][r]["position"], reverse=True):
 			perms = discord.Permissions(permissions=int(payload["roles"][x]["perms"]))
 			if payload["roles"][x]["color"]:
 				color = discord.Colour(int(payload["roles"][x]["color"]))
@@ -326,27 +312,18 @@ class Snapshot(commands.Cog, name="Snapshots"):
 				except (discord.Forbidden, discord.HTTPException):
 					continue
 
-	@commands.hybrid_group(
-		name="snapshot",
-		description="snapshot_specs-description",
-		fallback="snapshot_specs-fallback",
-	)
-	@app_commands.checks.has_permissions(administrator=True)
-	@commands.has_permissions(administrator=True)
+	@group(permissions=["administrator"])
 	async def snapshot(self, ctx: Context):
 		code = await self.create_snapshot(ctx)
 
 		await ctx.send("snapshot.create", code=code)
 
-	@snapshot.command(name="load", description="ss_load_specs-description")
-	@app_commands.describe(code="ss_load_specs-args-code-description")
-	@app_commands.rename(code="ss_load_specs-args-code-name")
-	@app_commands.checks.has_permissions(administrator=True)
-	@commands.has_permissions(administrator=True)
+	@snapshot.command(l10n_key="ss_load", permissions=["administrator"])
 	async def load(self, ctx: Context, code: str):
 		payload = await self.get_snapshot(code)
 		if not payload:
-			return await ctx.send("snapshot.not_found")
+			await ctx.send("snapshot.not_found")
+			return
 
 		old = await self.create_snapshot(ctx)
 
@@ -356,13 +333,13 @@ class Snapshot(commands.Cog, name="Snapshots"):
 
 		if not ctx.guild.owner_id == ctx.author.id:  # prevent griefs by sending the code to the owner
 			alert = await self.custom_response("snapshot.owner_alert", ctx, code=old)
-			alert.pop("reply", None)
-			alert.pop("ephemeral", None)
-			alert.pop("delete_after", None)
-			await ctx.guild.owner.send(**alert)
+			alert.pop("reply", None)  # type: ignore
+			alert.pop("ephemeral", None)  # type: ignore
+			alert.pop("delete_after", None)  # type: ignore
+			await ctx.guild.owner.send(**alert)  # type: ignore
 
 		await ctx.send("snapshot.load")
 
 
-async def setup(client: MyClient):
+async def setup(client: Bot):
 	await client.add_cog(Snapshot(client))

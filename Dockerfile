@@ -6,4 +6,4 @@ WORKDIR /bot
 
 COPY . .
 
-CMD ["uv", "run", "python", "-OO", "main.py"]
+CMD ["uv", "run", "main.py"]
