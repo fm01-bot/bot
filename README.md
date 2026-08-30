@@ -80,7 +80,9 @@ the `.env` file to function properly.
     - These help ensure editable messages are safe and intuitive (e.g., `User.avatar` returns the URL, not the raw
       asset)
 
-8. Questions? DM **@pearoo** on Discord.
+8. AI contributions are allowed, but only if you're not vibe-coding things. We don't recommend opening pull requests without understanding how Python, discord.py or this project specifically works. An `AGENTS.md` file has been provided though.
+
+9. Questions? DM **@pearoo** on Discord.
 
 ## Versioning & Releasing
 
