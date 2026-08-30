@@ -56,8 +56,8 @@ the `.env` file to function properly.
 
 1. You're welcome to contribute via PRs - we’ll review and respond!
 
-2. We're subclassing `commands.Context`. You’ll find this in `main.py`:
-    - Import with `import main`, and use `main.Context`
+2. We're subclassing `commands.Context`. You’ll find this in `core/context.py`:
+    - Import with `from core import Context`
     - This makes localization easier - check the docstring for details
 
 3. The default language is **English**
