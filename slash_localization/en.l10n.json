@@ -1,27 +1,10 @@
 {
-	"member": "member",
-	"amount": "amount",
-	"bet": "bet",
-	"on": "on",
-	"off": "off",
-	"mod": "mod",
-	"delete": "delete",
+	"admin": "admin",
 	"economy": "economy",
-	"account": "account",
-	"cash": "cash",
-	"bank": "bank",
-	"…": "...",
+	"mod": "mod",
 	"global": {
-		"member": "member",
-		"amount": "amount",
-		"account": "account",
 		"cash": "cash",
-		"bank": "bank",
-		"user": "user",
-		"role": "role",
-		"price": "price",
-		"description": "description",
-		"item": "item"
+		"bank": "bank"
 	},
 	"ping": {
 		"name": "ping",
@@ -271,7 +254,7 @@
 				"name": "member",
 				"desc": "The member you want to warn"
 			},
-			"duration": {
+			"expires": {
 				"name": "duration",
 				"desc": "The duration of the warning (ex. 1d5h)"
 			},
@@ -288,7 +271,7 @@
 		"desc": "Mute a member",
 		"usage": "mute [member] (duration) (reason)",
 		"args": {
-			"user": {
+			"member": {
 				"name": "member",
 				"desc": "The member you want to mute"
 			},
@@ -307,7 +290,7 @@
 		"desc": "Unmute a member",
 		"usage": "unmute [member]",
 		"args": {
-			"user": {
+			"member": {
 				"name": "member",
 				"desc": "The member you want to unmute"
 			}
@@ -318,7 +301,7 @@
 		"desc": "Kick a member",
 		"usage": "kick [member] (reason)",
 		"args": {
-			"user": {
+			"member": {
 				"name": "member",
 				"desc": "The member you want to kick"
 			},
@@ -330,12 +313,12 @@
 	},
 	"ban": {
 		"name": "ban",
-		"desc": "Ban a member",
-		"usage": "ban [member] (duration) (reason)",
+		"desc": "Ban a user",
+		"usage": "ban [user] (duration) (reason)",
 		"args": {
 			"user": {
-				"name": "member",
-				"desc": "The member you want to ban"
+				"name": "user",
+				"desc": "The user you want to ban"
 			},
 			"expires": {
 				"name": "duration",
@@ -349,12 +332,12 @@
 	},
 	"unban": {
 		"name": "unban",
-		"desc": "Unban a member",
-		"usage": "unban [member]",
+		"desc": "Unban a user",
+		"usage": "unban [user]",
 		"args": {
 			"user": {
-				"name": "member",
-				"desc": "The member you want to unban"
+				"name": "user",
+				"desc": "The user you want to unban"
 			}
 		}
 	},
@@ -596,7 +579,7 @@
 				"expires": "expires",
 				"message": "message"
 			},
-			"nvalue": {
+			"new_value": {
 				"name": "new_value",
 				"desc": "The new value of the field"
 			}
@@ -633,7 +616,7 @@
 		"desc": "Information about an emoji",
 		"usage": "info emoji [emoji]",
 		"args": {
-			"emoji": {
+			"emoji_name": {
 				"name": "emoji",
 				"desc": "The emoji you'd like information of"
 			}
@@ -644,7 +627,7 @@
 		"desc": "Information about an IP address",
 		"usage": "info ip [ip]",
 		"args": {
-			"ip": {
+			"ip_addr": {
 				"name": "ip",
 				"desc": "The IP address you'd like information of"
 			}
@@ -655,7 +638,7 @@
 		"desc": "Information about a Pokémon",
 		"usage": "info pokemon [pokemon]",
 		"args": {
-			"pokemon": {
+			"pokemon_name": {
 				"name": "pokemon",
 				"desc": "The pokémon you'd like information of"
 			}
@@ -688,11 +671,11 @@
 		}
 	},
 	"tmplteinfo": {
-		"name": "tmplteinfo",
+		"name": "templateinfo",
 		"desc": "Information about a template or fm01 snapshot",
 		"usage": "info template [template|snapshot]",
 		"args": {
-			"tmpl": {
+			"template": {
 				"name": "template",
 				"desc": "The template you'd like information of"
 			}
@@ -719,7 +702,7 @@
 		}
 	},
 	"chsay": {
-		"name": "chsay",
+		"name": "channel",
 		"desc": "Make the bot say something in a specific channel",
 		"usage": "say channel [channel] [message: 1...2000]",
 		"args": {
@@ -734,11 +717,11 @@
 		}
 	},
 	"editmsg": {
-		"name": "editmsg",
+		"name": "edit",
 		"desc": "Edit a message sent by the bot",
 		"usage": "say edit [message] [content: 1...2000]",
 		"args": {
-			"link": {
+			"message_link": {
 				"name": "message_link",
 				"desc": "The message's link"
 			},
@@ -749,7 +732,7 @@
 		}
 	},
 	"asciisay": {
-		"name": "asciisay",
+		"name": "ascii",
 		"desc": "Send a string with ASCII art",
 		"usage": "say ascii [message: 1...20]",
 		"args": {
@@ -760,7 +743,7 @@
 		}
 	},
 	"emojisay": {
-		"name": "emojisay",
+		"name": "emoji",
 		"desc": "Say a message with discord emojis",
 		"usage": "say emoji [message: 1...20]",
 		"args": {
@@ -771,7 +754,7 @@
 		}
 	},
 	"mcsay": {
-		"name": "mcsay",
+		"name": "achievement",
 		"desc": "Say a message in the format of a Minecraft achievement",
 		"usage": "say achievement [message: 1...50]",
 		"args": {
@@ -782,18 +765,18 @@
 		}
 	},
 	"reversesay": {
-		"name": "reversesay",
+		"name": "reverse",
 		"desc": "Reverse a message",
 		"usage": "say reverse [message: 1...2000]",
 		"args": {
-			"msg": {
+			"message": {
 				"name": "message",
 				"desc": "The message to reverse"
 			}
 		}
 	},
 	"clapsay": {
-		"name": "clapsay",
+		"name": "clap",
 		"desc": "Clap👏a👏message👏with👏emojis",
 		"usage": "say clap [message: 1...500]",
 		"args": {
@@ -826,7 +809,7 @@
 		}
 	},
 	"sm": {
-		"name": "sm",
+		"name": "slowmode",
 		"desc": "Set slowmode in a channel or check the current channel's slowmode",
 		"usage": "slowmode (duration) (channel)",
 		"args": {
@@ -840,6 +823,5 @@
 			}
 		}
 	},
-	"admin": "admin",
 	"cog": "cog"
 }

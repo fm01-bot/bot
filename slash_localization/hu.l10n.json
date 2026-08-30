@@ -1,28 +1,10 @@
 {
-  "member": "tag",
-  "amount": "mennyiség",
-  "bet": "tét",
-  "ip_addr": "ip_cím",
-  "on": "be",
-  "off": "ki",
+  "admin": "admin",
   "mod": "mod",
-  "delete": "törlés",
   "economy": "economy",
-  "account": "fiók",
-  "cash": "készpénz",
-  "bank": "bank",
-  "…": "...",
   "global": {
-    "member": "tag",
-    "amount": "mennyiség",
-    "account": "fiók",
     "cash": "készpénz",
-    "bank": "bank",
-    "user": "felhasználó",
-    "role": "rang",
-    "price": "ár",
-    "description": "leírás",
-    "item": "item"
+    "bank": "bank"
   },
   "ping": {
     "name": "ping",
@@ -166,7 +148,7 @@
     "desc": "Item vásárlása a boltból",
     "usage": "shop buy [item]",
     "args": {
-      "item": {
+      "item_name": {
         "name": "item",
         "desc": "Az item, amit szeretnél megvenni"
       }
@@ -177,7 +159,7 @@
     "desc": "Item hozzáadása a bolthoz",
     "usage": "shop set_item [név] [ár] [leírás] [rang]",
     "args": {
-      "item": {
+      "item_name": {
         "name": "item",
         "desc": "Az item neve"
       },
@@ -200,7 +182,7 @@
     "desc": "Item eltávolítása a boltból",
     "usage": "shop remove_item [név]",
     "args": {
-      "item": {
+      "item_name": {
         "name": "item",
         "desc": "Az item neve, amit el szeretnél távolítani"
       }
@@ -272,7 +254,7 @@
         "name": "tag",
         "desc": "A tag, akit figyelmeztetni szeretnél"
       },
-      "duration": {
+      "expires": {
         "name": "hossz",
         "desc": "A figyelmeztetés hossza (pl. 1d5h)"
       },
@@ -289,7 +271,7 @@
     "desc": "Tag némítása",
     "usage": "mute [tag] [hossz] (indok)",
     "args": {
-      "user": {
+      "member": {
         "name": "tag",
         "desc": "A tag, akit le szeretnél némítani"
       },
@@ -308,7 +290,7 @@
     "desc": "Tag némításának feloldása",
     "usage": "unmute [tag]",
     "args": {
-      "user": {
+      "member": {
         "name": "tag",
         "desc": "A tag, akinek a némítását eltávolítanád"
       }
@@ -319,7 +301,7 @@
     "desc": "Tag kirúgása",
     "usage": "kick [tag] (indok)",
     "args": {
-      "user": {
+      "member": {
         "name": "tag",
         "desc": "A tag, akit ki szeretnél rúgni"
       },
@@ -398,13 +380,12 @@
     "name": "l10n_reload",
     "desc": "Lokalizációs fájlok újratöltése (fejlesztői parancs)"
   },
-  "giveaway": "nyereményjáték",
-  "end": "end",
-  "gw_end": {
+  "endgiveaway": {
+    "name": "lezár",
     "desc": "Nyereményjáték lezárása az aktuális csatornában",
     "usage": "giveaway end [üzenet_id]",
     "args": {
-      "message_id": {
+      "message": {
         "name": "üzenet_id",
         "desc": "A nyereményjáték üzenetének ID-je"
       }
@@ -425,7 +406,7 @@
   "edit": "edit",
   "ascii": "ascii",
   "achievement": "achievement",
-  "qr": {
+  "qr_code": {
     "name": "qr",
     "desc": "QR-kód készítése",
     "usage": "say qr [adat: 1...500]",
@@ -479,7 +460,7 @@
     }
   },
   "caseinfo": {
-    "name": "caseinfo",
+    "name": "case",
     "desc": "Eset információk",
     "usage": "case [eset_id]",
     "fallback": "info",
@@ -517,7 +498,7 @@
         "expires": "lejárat",
         "message": "üzenet"
       },
-      "nvalue": {
+      "new_value": {
         "name": "új_érték",
         "desc": "A mező új értéke"
       }
@@ -554,7 +535,7 @@
     "desc": "Emoji információk",
     "usage": "info emoji [emoji]",
     "args": {
-      "emoji": {
+      "emoji_name": {
         "name": "emoji",
         "desc": "Az emoji, amiről információt szeretnél"
       }
@@ -565,7 +546,7 @@
     "desc": "IP cím információk",
     "usage": "info ip [ip]",
     "args": {
-      "ip": {
+      "ip_addr": {
         "name": "ip",
         "desc": "Az IP, amiről információt szeretnél"
       }
@@ -576,7 +557,7 @@
     "desc": "Pokémon információk",
     "usage": "info pokemon [pokémon]",
     "args": {
-      "pokemon": {
+      "pokemon_name": {
         "name": "pokémon",
         "desc": "A pokémon, amiről információt szeretnél"
       }
@@ -613,14 +594,14 @@
     "desc": "Információk egy Discord sablonról vagy fm01 snapshotról",
     "usage": "info template [sablon|snapshot]",
     "args": {
-      "tmpl": {
+      "template": {
         "name": "sablon",
         "desc": "A sablon, amiről információt szeretnél"
       }
     }
   },
-  "gw": {
-    "name": "gw",
+  "giveaway": {
+    "name": "giveaway",
     "desc": "Nyereményjáték indítása",
     "usage": "giveaway [hossz] (nyertesek száma) [nyeremény]",
     "fallback": "start",
@@ -640,7 +621,7 @@
     }
   },
   "chsay": {
-    "name": "chsay",
+    "name": "channel",
     "desc": "Mondass ki valamit a bottal egy specifikus csatornában",
     "usage": "say channel [csatorna] [üzenet: 1...2000]",
     "args": {
@@ -655,11 +636,11 @@
     }
   },
   "editmsg": {
-    "name": "editmsg",
+    "name": "edit",
     "desc": "Szerkeszd át a bot egyik üzenetét",
     "usage": "say edit [üzenet_link] [tartalom: 1...2000]",
     "args": {
-      "link": {
+      "message_link": {
         "name": "üzenet_link",
         "desc": "Az üzenet linkje"
       },
@@ -670,7 +651,7 @@
     }
   },
   "asciisay": {
-    "name": "asciisay",
+    "name": "ascii",
     "desc": "Szöveg ASCII-vá alakítása",
     "usage": "say ascii [szöveg: 1...20]",
     "args": {
@@ -681,7 +662,7 @@
     }
   },
   "emojisay": {
-    "name": "emojisay",
+    "name": "emoji",
     "desc": "Üzenet átalakítása Discord emojikká",
     "usage": "say emoji [üzenet: 1...20]",
     "args": {
@@ -692,7 +673,7 @@
     }
   },
   "mcsay": {
-    "name": "mcsay",
+    "name": "achievement",
     "desc": "Szöveg megjelenítése Minecraft teljesítményként",
     "usage": "say achievement [szöveg: 1...50]",
     "args": {
@@ -703,18 +684,18 @@
     }
   },
   "reversesay": {
-    "name": "reversesay",
+    "name": "reverse",
     "desc": "Üzenet megfordítása",
     "usage": "say reverse [üzenet: 1...2000]",
     "args": {
-      "msg": {
+      "message": {
         "name": "üzenet",
         "desc": "A megfordítandó üzenet"
       }
     }
   },
   "clapsay": {
-    "name": "clapsay",
+    "name": "clap",
     "desc": "Üzenet👏tapsolása",
     "usage": "say clap [üzenet: 1...500]",
     "args": {
@@ -747,8 +728,8 @@
     }
   },
   "sm": {
-    "name": "sm",
-    "desc": "Lassítás beállítása egy csatornában",
+    "name": "slowmode",
+    "desc": "Lassítás beállítása vagy megtekintése egy csatornában",
     "usage": "slowmode (hossz) (csatorna)",
     "args": {
       "duration": {
