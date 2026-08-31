@@ -449,7 +449,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def deposit(self, ctx: Context, amount: discord.app_commands.Range[int, 1] | None = None):
-		cash: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
+		cash, _ = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
 		amount = amount or cash
 		try:
 			amount = int(amount)
