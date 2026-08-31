@@ -322,4 +322,4 @@ class Guild:
 		return self.id
 
 	def __len__(self):
-		return self.members
+		return self.members or 0
