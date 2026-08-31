@@ -19,6 +19,7 @@ services:
       TOKEN: ${TOKEN}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_PORT: ${DB_PORT:-5432}
+      DB_HOST: ${DB_HOST:-localhost}
     volumes:
       - .:/bot
 
