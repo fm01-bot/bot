@@ -364,10 +364,12 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 		minimum_balance = 1000
 		if balance < minimum_balance:
 			await ctx.send("luck.errors.balance", amount=minimum_balance)
+			return
 
 		amount = random.randint(200, 1000)
 		if balance - amount < 0:
 			await ctx.send("luck.errors.balance", amount=minimum_balance)
+			return
 
 		won = random_helper.randbool()
 		if won:
