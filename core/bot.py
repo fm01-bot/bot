@@ -316,6 +316,8 @@ class Bot(commands.AutoShardedBot):
 			pass
 
 	async def after_invoke(self, ctx: Context):  # type: ignore
+		if ctx.interaction:
+			return
 		try:
 			await ctx.message.remove_reaction(LOADING, ctx.me)
 		except discord.HTTPException:
