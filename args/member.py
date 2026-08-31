@@ -60,16 +60,14 @@ class Member(User):
 	@property
 	def roles(self) -> Optional[str]:
 		"""The roles the user has (excluding @everyone)."""
-		self._roles.pop(0)
-		roles_string = ", ".join([role.mention for role in self._roles])
+		roles_string = ", ".join([role.mention for role in self._roles[1:]])
 		if len(roles_string) > 512:
 			return None
 		return roles_string
 
 	@property
 	def roles_reverse(self) -> Optional[str]:
-		self._roles.pop(0)
-		roles_string = ", ".join([role.mention for role in reversed(self._roles)])
+		roles_string = ", ".join([role.mention for role in reversed(self._roles[1:])])
 		if len(roles_string) > 512:
 			return None
 		return roles_string
