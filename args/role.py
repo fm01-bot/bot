@@ -32,7 +32,7 @@ class Role:
 	_boost: bool = field(repr=False)
 	_integration: bool = field(repr=False)
 	_assignable: bool = field(repr=False)
-	_color: Optional[Color] = field(repr=False)
+	_color: Optional[discord.Colour] = field(repr=False)
 	icon: str | None = field(repr=False)
 	"""The role's icon URL, or an emoji, if the role has one. This is only available for guilds that are
 	boosted to at least level 2."""
@@ -66,7 +66,7 @@ class Role:
 			_boost=role.is_premium_subscriber(),
 			_integration=role.is_integration(),
 			_assignable=role.is_assignable(),
-			_color=Color(role.color),
+			_color=role.color,
 			icon=icon,
 			_created_at=role.created_at,
 			mention=role.mention,
@@ -124,7 +124,7 @@ class Role:
 	@property
 	def color(self) -> Color | None:
 		"""The role's color."""
-		return Color(self._color) if self._color else None  # type: ignore
+		return Color(self._color) if self._color else None
 
 	colour = color
 
