@@ -293,9 +293,6 @@ class Case:
 		db: `asyncpg.Pool`
 		        The database connection pool.
 		"""
-		if self._user not in self._guild.members:
-			return
-
 		await self.before_deletion()
 		await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
 		await self.after_deletion()
