@@ -135,8 +135,8 @@ class Bot(commands.AutoShardedBot):
 		benchmark = perf_counter()
 		# Connects to database
 		self.db = await asyncpg.create_pool(
-			host=os.getenv("DB_HOST"),
-			database="lumin_beta",
+			host=os.getenv("DB_HOST", "localhost"),
+			database=os.getenv("DB_NAME", "lumin_beta"),
 			# ! Replace with default database name when ran for the first time
 			# ! Any subsequent executions of this code must use `database="lumin"`
 			user="lumin",
@@ -316,6 +316,8 @@ class Bot(commands.AutoShardedBot):
 			pass
 
 	async def after_invoke(self, ctx: Context):  # type: ignore
+		if ctx.interaction:
+			return
 		try:
 			await ctx.message.remove_reaction(LOADING, ctx.me)
 		except discord.HTTPException:

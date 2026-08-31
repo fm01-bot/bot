@@ -9,7 +9,7 @@ from args import FormatDateTime, Guild, Member, TextChannel, User
 from core import Bot, Context
 from core.hybrid import command, group
 from discord import app_commands
-from discord.ext import commands, localization
+from discord.ext import commands, localization, tasks
 from helpers import convert_to_query, custom_response, seconds_to_text, text_to_seconds
 
 
@@ -293,9 +293,6 @@ class Case:
 		db: `asyncpg.Pool`
 		        The database connection pool.
 		"""
-		if self._user not in self._guild.members:
-			return
-
 		await self.before_deletion()
 		await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
 		await self.after_deletion()
@@ -573,24 +570,19 @@ class Ban(Case):
 @commands.guild_only()
 @app_commands.guild_only()
 class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
-	def __init__(self, client: Bot) -> None:
+	def __init__(self, client: Bot):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
 
+	@tasks.loop(seconds=30)
 	async def case_removal(self):
-		await self.client.wait_until_ready()
-
 		case_rows = await self.client.db.fetch(
 			"SELECT * FROM cases WHERE expires IS NOT NULL AND expires <= $1", datetime.datetime.now()
 		)
 		for row in case_rows:
 			case = Case.from_dict(row, self.client, get_type=True)
-
 			if not case._guild:
 				continue
-
-			if not case._guild.chunked:
-				await case._guild.chunk()
 
 			match case.type:
 				case CaseType.WARN:
@@ -603,8 +595,16 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 					case = Ban.from_dict(row, self.client)
 			await case.delete(self.client.db)
 
+	@case_removal.before_loop
+	async def before_case_removal(self):
+		await self.client.wait_until_ready()
+
 	async def cog_load(self):
-		self.client.loop.create_task(self.case_removal())
+		if not self.case_removal.is_running():
+			self.case_removal.start()
+
+	async def cog_unload(self):
+		self.case_removal.cancel()
 
 	@command(user=False, permissions=["moderate_members"])
 	async def warn(

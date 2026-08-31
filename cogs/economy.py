@@ -364,10 +364,12 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 		minimum_balance = 1000
 		if balance < minimum_balance:
 			await ctx.send("luck.errors.balance", amount=minimum_balance)
+			return
 
 		amount = random.randint(200, 1000)
 		if balance - amount < 0:
 			await ctx.send("luck.errors.balance", amount=minimum_balance)
+			return
 
 		won = random_helper.randbool()
 		if won:
@@ -447,7 +449,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def deposit(self, ctx: Context, amount: discord.app_commands.Range[int, 1] | None = None):
-		cash: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
+		cash, _ = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
 		amount = amount or cash
 		try:
 			amount = int(amount)
