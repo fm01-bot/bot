@@ -420,6 +420,22 @@
 				}
 			}
 		},
+		"slowmode": {
+			"reason": "Slowmode changed by {moderator.username}",
+			"response": {
+				"embeds": [
+					{
+						"title": "Slowmode changed",
+						"description": "Set slowmode in {channel.mention} to `{time}`.",
+						"color": 6656243,
+						"timestamp": "{now}"
+					}
+				]
+			},
+			"current_slowmode": {
+				"content": "The current slowmode in {channel.mention} is `{channel.slowmode}`."
+			}
+		},
 		"info": {
 			"response": {
 				"embeds": [
@@ -897,6 +913,9 @@
 					"author": {
 						"name": "{server.name}",
 						"icon_url": "{server.icon}"
+					},
+					"image": {
+						"url": "{server.banner}"
 					},
 					"timestamp": "{now}"
 				}
@@ -1602,6 +1621,15 @@
 		"view_guild_insights": "View Server Insights"
 	},
 	"errors": {
+		"command_not_found": {
+			"embeds": [
+				{
+					"title": "Command not found",
+					"description": "The command you tried to run does not exist.",
+					"color": 13369344
+				}
+			]
+		},
 		"missing_required_argument": {
 			"embeds": [
 				{
@@ -1793,6 +1821,615 @@
 					"content": "The prefix can only be up to {limit} characters long!"
 				}
 			}
+		}
+	},
+	"giveaway": {
+		"message": {
+			"button": "🎉 {participants}",
+			"ended": {
+				"content": "This giveaway has already ended!",
+				"ephemeral": true
+			},
+			"already_joined": {
+				"content": "You've already joined this giveaway!",
+				"ephemeral": true
+			},
+			"joined": {
+				"content": "You have joined the giveaway!",
+				"ephemeral": true
+			}
+		},
+		"end": {
+			"success": {
+				"content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
+			},
+			"no_winners": {
+				"content": "No one joined the giveaway..."
+			}
+		},
+		"start": {
+			"response": {
+				"embeds": [
+					{
+						"title": "🎉 Giveaway!",
+						"description": "{prize}",
+						"fields": [
+							{
+								"name": "Winners",
+								"value": "{winners}",
+								"inline": true
+							},
+							{
+								"name": "Ends",
+								"value": "{ends}",
+								"inline": true
+							}
+						],
+						"footer": {
+							"text": "Click the button below to enter!"
+						}
+					}
+				]
+			}
+		}
+	},
+	"say": {
+		"message": {
+			"content": "{message}"
+		},
+		"edit": {
+			"content": "Message edited successfully."
+		},
+		"ascii": {
+			"content": "```\n{ascii}```"
+		},
+		"emoji": {
+			"content": "{emoji}"
+		},
+		"achievement": {
+			"title": "Achievement Get!",
+			"response": {
+				"embeds": [
+					{
+						"title": "Achievement Get!",
+						"image": {
+							"url": "{achievement}"
+						}
+					}
+				]
+			}
+		},
+		"qr": {
+			"embeds": [
+				{
+					"title": "QR code",
+					"image": {
+						"url": "{qr}"
+					}
+				}
+			]
+		},
+		"reverse": {
+			"content": "{message}"
+		},
+		"clap": {
+			"content": "{message}"
+		}
+	},
+	"log": {
+		"toggle": {
+			"on": {
+				"content": "Logging is now enabled in {channel.mention}."
+			},
+			"off": {
+				"content": "Logging is now disabled."
+			}
+		},
+		"module": {
+			"add": {
+				"content": "Module `{module}` has been added to the logging system."
+			},
+			"remove": {
+				"content": "Module `{module}` has been removed from the logging system."
+			}
+		},
+		"on_invite_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Invite Created",
+						"description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
+						"fields": [
+							{
+								"name": "Max Uses",
+								"value": "{invite.max_uses}",
+								"inline": true
+							},
+							{
+								"name": "Expires",
+								"value": "{invite.expires}",
+								"inline": true
+							},
+							{
+								"name": "Temporary membership",
+								"value": "{invite.temporary}",
+								"inline": true
+							}
+						],
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_invite_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Invite Deleted",
+						"description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_guild_channel_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Channel Created",
+						"description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_guild_channel_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Channel Deleted",
+						"description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_guild_channel_pins_update": {
+			"pins": {
+				"embeds": [
+					{
+						"title": "Channel Pins Updated",
+						"description": "The pins in {channel.mention} were updated.",
+						"fields": [
+							{
+								"name": "Last pinned message",
+								"value": "{last_pin}",
+								"inline": true
+							}
+						],
+						"color": 2067276
+					}
+				]
+			}
+		},
+		"on_guild_channel_update": {
+			"name": {
+				"embeds": [
+					{
+						"title": "Channel Name Updated",
+						"description": "The name of {after.mention} was updated by {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "Previous name",
+								"value": "`{before.name}`",
+								"inline": true
+							},
+							{
+								"name": "New name",
+								"value": "`{after.name}`",
+								"inline": true
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"topic": {
+				"embeds": [
+					{
+						"title": "Channel Topic Updated",
+						"description": "The topic of {after.mention} was updated {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "Before",
+								"value": "```\n{before.topic}\n```",
+								"inline": false
+							},
+							{
+								"name": "After",
+								"value": "```\n{after.topic}\n```",
+								"inline": false
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"nsfw": {
+				"embeds": [
+					{
+						"title": "Channel NSFW Status Updated",
+						"description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "NSFW?",
+								"value": "{after.nsfw}",
+								"inline": false
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"slowmode_delay": {
+				"embeds": [
+					{
+						"title": "Channel Slowmode Updated",
+						"description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
+						"color": 3447003
+					}
+				]
+			},
+			"permissions": {
+				"embeds": [
+					{
+						"title": "Channel Permissions Updated",
+						"description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
+						"color": 3447003
+					}
+				]
+			},
+			"position": {
+				"embeds": [
+					{
+						"title": "Channel Position Updated",
+						"description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_automod_rule_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "AutoMod Rule Created",
+						"color": 3066993,
+						"fields": [
+							{
+								"name": "Rule Name",
+								"value": "{rule.name}",
+								"inline": true
+							},
+							{
+								"name": "Rule ID",
+								"value": "`{rule.id}`",
+								"inline": true
+							},
+							{
+								"name": "Created By",
+								"value": "{rule.creator.mention}",
+								"inline": true
+							},
+							{
+								"name": "Trigger",
+								"value": "`{rule.trigger_type}`",
+								"inline": true
+							},
+							{
+								"name": "Actions",
+								"value": "{rule.actions}",
+								"inline": true
+							},
+							{
+								"name": "Enabled",
+								"value": "{rule.enabled}",
+								"inline": true
+							}
+						]
+					}
+				]
+			}
+		},
+		"on_automod_rule_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "AutoMod Rule Updated",
+						"color": 3447003,
+						"fields": [
+							{
+								"name": "Rule Name",
+								"value": "{rule.name}",
+								"inline": true
+							},
+							{
+								"name": "Rule ID",
+								"value": "`{rule.id}`",
+								"inline": true
+							},
+							{
+								"name": "Enabled",
+								"value": "{rule.enabled}",
+								"inline": true
+							},
+							{
+								"name": "Actions",
+								"value": "{rule.actions}",
+								"inline": true
+							},
+							{
+								"name": "Exempt Roles",
+								"value": "{rule.exempt_roles}"
+							},
+							{
+								"name": "Exempt Channels",
+								"value": "{rule.exempt_channels}"
+							}
+						]
+					}
+				]
+			}
+		},
+		"on_automod_rule_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "AutoMod Rule Deleted",
+						"color": 15158332,
+						"fields": [
+							{
+								"name": "Rule Name",
+								"value": "{rule.name}",
+								"inline": true
+							},
+							{
+								"name": "Rule ID",
+								"value": "`{rule.id}`",
+								"inline": true
+							},
+							{
+								"name": "Originally Created By",
+								"value": "{rule.creator.mention}",
+								"inline": true
+							}
+						]
+					}
+				]
+			}
+		},
+		"on_automod_action": {
+			"action": {
+				"embeds": [
+					{
+						"title": "AutoMod Action Executed",
+						"color": 15105570,
+						"description": "A message by {execution.member.mention} was flagged.",
+						"fields": [
+							{
+								"name": "Member",
+								"value": "{execution.member.mention} (`{execution.member.id}`)",
+								"inline": true
+							},
+							{
+								"name": "Action Taken",
+								"value": "`{execution.action_types}`",
+								"inline": true
+							},
+							{
+								"name": "In Channel",
+								"value": "{execution.channel}",
+								"inline": true
+							},
+							{
+								"name": "Triggered By",
+								"value": "`{execution.rule_trigger_type}`",
+								"inline": true
+							},
+							{
+								"name": "Matched Keyword",
+								"value": "```\n{execution.matched_keyword}\n```"
+							},
+							{
+								"name": "Full Matched Content",
+								"value": "```\n{execution.matched_content}\n```"
+							}
+						]
+					}
+				]
+			}
+		},
+		"on_message_edit": {
+			"content": {
+				"embeds": [
+					{
+						"title": "Message Edited",
+						"description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
+						"fields": [
+							{
+								"name": "Before",
+								"value": "```\n{before.content}\n```"
+							},
+							{
+								"name": "After",
+								"value": "```\n{after.content}\n```"
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"embeds": {
+				"embeds": [
+					{
+						"title": "Message Embeds Updated",
+						"description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
+						"fields": [
+							{
+								"name": "Number of embeds before",
+								"value": "{before.embeds}",
+								"inline": false
+							},
+							{
+								"name": "Number of embeds after",
+								"value": "{after.embeds}",
+								"inline": false
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"attachments": {
+				"embeds": [
+					{
+						"title": "Message Attachments Updated",
+						"description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
+						"fields": [
+							{
+								"name": "Number of attachments before",
+								"value": "{before.attachments}",
+								"inline": false
+							},
+							{
+								"name": "Number of attachments after",
+								"value": "{after.attachments}",
+								"inline": false
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"pinned": {
+				"embeds": [
+					{
+						"title": "Message Pin Status Updated",
+						"description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
+						"fields": [
+							{
+								"name": "Pinned?",
+								"value": "{after.pinned}"
+							}
+						],
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_message_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Message Deleted",
+						"description": "A message by {message.author} was deleted in {message.channel.mention}.",
+						"fields": [
+							{
+								"name": "Message content",
+								"value": "```{message.content}```",
+								"inline": false
+							},
+							{
+								"name": "Number of embeds",
+								"value": "{message.embeds}",
+								"inline": true
+							},
+							{
+								"name": "Number of attachments",
+								"value": "{message.attachments}",
+								"inline": true
+							},
+							{
+								"name": "Deleted by",
+								"value": "{deleted_by.mention} (`{deleted_by.id}`)"
+							}
+						]
+					}
+				]
+			}
+		}
+	},
+	"cogs": {
+		"afk": "AFK",
+		"basic": "Basic",
+		"economy": "Economy",
+		"giveaway": "Giveaway",
+		"help": "Help",
+		"information": "Information",
+		"logging": "Logging",
+		"moderation": "Moderation",
+		"say": "Says",
+		"setup": "Setup",
+		"snapshot": "Snapshots",
+		"status": "Status"
+	},
+	"help": {
+		"bot": {
+			"embeds": [
+				{
+					"title": "Help",
+					"description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
+					"fields": [
+						{
+							"name": "{module}",
+							"value": "{commands} commands",
+							"inline": true
+						}
+					]
+				}
+			]
+		},
+		"cog": {
+			"embeds": [
+				{
+					"title": "{cog} Help",
+					"description": "This module contains {commands} commands.",
+					"fields": [
+						{
+							"name": "{command.usage}",
+							"value": "{command.description}"
+						}
+					]
+				}
+			]
+		},
+		"group": {
+			"embeds": [
+				{
+					"title": "{group.prefix}{group.name} Help",
+					"description": "This group contains {commands} commands.",
+					"fields": [
+						{
+							"name": "{command.usage}",
+							"value": "{command.description}"
+						}
+					]
+				}
+			]
+		},
+		"command": {
+			"embeds": [
+				{
+					"title": "{command.usage}",
+					"description": "{command.description}",
+					"fields": [
+						{
+							"name": "Aliases",
+							"value": "{command.aliases}"
+						}
+					]
+				}
+			]
 		}
 	}
 }
