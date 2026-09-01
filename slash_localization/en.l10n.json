@@ -1,228 +1,238 @@
 {
+	"admin": "admin",
+	"economy": "economy",
+	"mod": "mod",
 	"global": {
-		"member": "member",
-		"amount": "amount",
-		"account": "account",
 		"cash": "cash",
-		"bank": "bank",
-		"user": "user",
-		"role": "role",
-		"price": "price",
-		"description": "description",
-		"item": "item"
+		"bank": "bank"
 	},
-	"ping": "ping",
-	"ping_specs": {
-		"description": "Check bot and database latency"
+	"ping": {
+		"name": "ping",
+		"desc": "Check bot and database latency"
 	},
-	"afk": "afk",
-	"afk_specs": {
-		"description": "Set an AFK status",
+	"afk": {
+		"name": "afk",
+		"desc": "Set an AFK status",
 		"usage": "afk (reason)",
 		"args": {
 			"reason": {
 				"name": "reason",
-				"description": "The reason for being AFK"
+				"desc": "The reason for being AFK"
 			}
 		}
 	},
-	"work": "work",
-	"work_specs": {
-		"description": "Earn money by working ($300-$1500)"
+	"work": {
+		"name": "work",
+		"desc": "Earn money by working ($300-$1500)"
 	},
-	"crime": "crime",
-	"crime_specs": {
-		"description": "Earn money by committing crime virtually ($500-$2000)"
+	"crime": {
+		"name": "crime",
+		"desc": "Earn money by committing crime virtually ($500-$2000)"
 	},
-	"daily": "daily",
-	"daily_specs": {
-		"description": "Daily allowance ($5000)"
+	"daily": {
+		"name": "daily",
+		"desc": "Daily allowance ($5000)"
 	},
-	"addmoney": "addmoney",
-	"addmoney_specs": {
-		"description": "Add money to a user's balance",
+	"addmoney": {
+		"name": "addmoney",
+		"desc": "Add money to a user's balance",
 		"usage": "addmoney [member] [amount] (account)",
 		"args": {
 			"member": {
-				"description": "The member you want to give money to"
+				"name": "member",
+				"desc": "The member you want to give money to"
 			},
 			"amount": {
-				"description": "The amount to add to the user's balance"
+				"name": "amount",
+				"desc": "The amount to add to the user's balance"
 			},
 			"account": {
-				"description": "Account to use"
+				"name": "account",
+				"desc": "Account to use"
 			}
 		}
 	},
-	"removemoney": "removemoney",
-	"removemoney_specs": {
-		"description": "Remove money from a user's balance",
+	"removemoney": {
+		"name": "removemoney",
+		"desc": "Remove money from a user's balance",
 		"usage": "removemoney [member] [amount] (account)",
 		"args": {
 			"member": {
-				"description": "The member you want to remove money from"
+				"name": "member",
+				"desc": "The member you want to remove money from"
 			},
 			"amount": {
-				"description": "The amount to remove from the user's balance"
+				"name": "amount",
+				"desc": "The amount to remove from the user's balance"
 			},
 			"account": {
-				"description": "Account to use"
+				"name": "account",
+				"desc": "Account to use"
 			}
 		}
 	},
-	"luck": "luck",
-	"luck_specs": {
-		"description": "Try your luck (wins/loses $200-$1000)"
+	"luck": {
+		"name": "luck",
+		"desc": "Try your luck (wins/loses $200-$1000)"
 	},
-	"pay": "pay",
-	"pay_specs": {
-		"description": "Give money to another member",
+	"pay": {
+		"name": "pay",
+		"desc": "Give money to another member",
 		"usage": "pay [member] [amount]",
 		"args": {
 			"member": {
-				"description": "The member to give money to"
+				"name": "member",
+				"desc": "The member to give money to"
 			},
 			"amount": {
-				"description": "The amount to give to the member"
+				"name": "amount",
+				"desc": "The amount to give to the member"
 			}
 		}
 	},
-	"leaderboard": "leaderboard",
-	"leaderboard_specs": {
-		"description": "A leaderboard of the richest users on the server"
+	"leaderboard": {
+		"name": "leaderboard",
+		"desc": "A leaderboard of the richest users on the server"
 	},
-	"balance": "balance",
-	"balance_specs": {
-		"description": "Check your (or someone else's) balance",
+	"balance": {
+		"name": "balance",
+		"desc": "Check your (or someone else's) balance",
 		"usage": "balance (member)",
 		"args": {
 			"member": {
-				"description": "The member whose balance you want to check"
+				"name": "member",
+				"desc": "The member whose balance you want to check"
 			}
 		}
 	},
-	"slots": "slots",
-	"slots_specs": {
-		"description": "Slots game (win [4%] or lose [96%] double your bet)",
+	"slots": {
+		"name": "slots",
+		"desc": "Slots game (win [4%] or lose [96%] double your bet)",
 		"usage": "slots [amount]",
 		"args": {
 			"bet": {
 				"name": "bet",
-				"description": "The amount of money you want to bet"
+				"desc": "The amount of money you want to bet"
 			}
 		}
 	},
-	"deposit": "deposit",
-	"deposit_specs": {
-		"description": "Deposit money into your bank account",
+	"deposit": {
+		"name": "deposit",
+		"desc": "Deposit money into your bank account",
 		"usage": "deposit [amount]",
 		"args": {
 			"amount": {
-				"description": "The amount of money you want to deposit"
+				"name": "amount",
+				"desc": "The amount of money you want to deposit"
 			}
 		}
 	},
-	"withdraw": "withdraw",
-	"withdraw_specs": {
-		"description": "Withdraw money from your bank account",
+	"withdraw": {
+		"name": "withdraw",
+		"desc": "Withdraw money from your bank account",
 		"usage": "withdraw [amount]",
 		"args": {
 			"amount": {
-				"description": "The amount of money you want to withdraw"
+				"name": "amount",
+				"desc": "The amount of money you want to withdraw"
 			}
 		}
 	},
-	"shop": "shop",
-	"shop_specs": {
-		"description": "View the server's item shop",
+	"shop": {
+		"name": "shop",
+		"desc": "View the server's item shop",
 		"fallback": "view"
 	},
-	"buy": "buy",
-	"buy_specs": {
+	"buy": {
 		"name": "buy",
-		"description": "Buy an item from the shop",
+		"desc": "Buy an item from the shop",
 		"usage": "shop buy [item]",
 		"args": {
-			"item": {
+			"item_name": {
 				"name": "item",
-				"description": "The item you want to buy"
+				"desc": "The item you want to buy"
 			}
 		}
 	},
-	"set_item": "set_item",
-	"set_item_specs": {
-		"description": "Set an item in the shop",
+	"set_item": {
+		"name": "set_item",
+		"desc": "Set an item in the shop",
 		"usage": "shop set_item [item] [price] [description] [role]",
 		"args": {
-			"item": {
-				"description": "The name of the item"
+			"item_name": {
+				"name": "item",
+				"desc": "The name of the item"
 			},
 			"price": {
-				"description": "The price of the item"
+				"name": "price",
+				"desc": "The price of the item"
 			},
 			"description": {
-				"description": "The description of the item"
+				"name": "description",
+				"desc": "The description of the item"
 			},
 			"role": {
-				"description": "The role required to buy the item"
+				"name": "role",
+				"desc": "The role required to buy the item"
 			}
 		}
 	},
-	"remove_item": "remove_item",
-	"remove_item_specs": {
-		"description": "Remove an item from the shop",
+	"remove_item": {
+		"name": "remove_item",
+		"desc": "Remove an item from the shop",
 		"usage": "shop remove_item [item]",
 		"args": {
-			"item": {
-				"description": "The name of the item to remove"
+			"item_name": {
+				"name": "item",
+				"desc": "The name of the item to remove"
 			}
 		}
 	},
-	"reload": "reload",
-	"reload_specs": {
-		"description": "Reloads a cog (dev-only)",
+	"reload": {
+		"name": "reload",
+		"desc": "Reloads a cog (dev-only)",
 		"usage": "reload [cog]",
 		"args": {
 			"cog": {
 				"name": "cog",
-				"description": "The cog to reload"
+				"desc": "The cog to reload"
 			}
 		}
 	},
-	"load": "load",
-	"load_specs": {
-		"description": "Loads a cog (dev-only)",
+	"load": {
+		"name": "load",
+		"desc": "Loads a cog (dev-only)",
 		"usage": "load [cog]",
 		"args": {
 			"cog": {
 				"name": "cog",
-				"description": "The cog to load"
+				"desc": "The cog to load"
 			}
 		}
 	},
-	"unload": "unload",
-	"unload_specs": {
-		"description": "Unloads a cog (dev-only)",
+	"unload": {
+		"name": "unload",
+		"desc": "Unloads a cog (dev-only)",
 		"usage": "unload [cog]",
 		"args": {
 			"cog": {
 				"name": "cog",
-				"description": "The cog to unload"
+				"desc": "The cog to unload"
 			}
 		}
 	},
-	"sync": "sync",
-	"sync_specs": {
-		"description": "Sync the command tree. (dev-only)",
+	"sync": {
+		"name": "sync",
+		"desc": "Sync the command tree. (dev-only)",
 		"usage": "sync (guilds...) (scope[~/*/^])",
 		"args": {
 			"guilds": {
 				"name": "guilds",
-				"description": "The guilds IDs to sync the command tree in, separated by spaces"
+				"desc": "The guilds IDs to sync the command tree in, separated by spaces"
 			},
 			"scope": {
 				"name": "scope",
-				"description": "Sync locally (~), globally (*), or resync (^). If not given, syncs globally.",
+				"desc": "Sync locally (~), globally (*), or resync (^). If not given, syncs globally.",
 				"local": "Sync locally",
 				"global": "Sync globally",
 				"resync": "Resync",
@@ -230,282 +240,588 @@
 			}
 		}
 	},
-	"snapshot": "snapshot",
-	"snapshot_specs": {
-		"description": "Create a snapshot of the server",
+	"snapshot": {
+		"name": "snapshot",
+		"desc": "Create a snapshot of the server",
 		"fallback": "create"
 	},
-	"ss_load_specs": {
-		"description": "Load a snapshot of the server",
-		"usage": "snapshot load [snapshot]",
-		"args": {
-			"code": {
-				"name": "code",
-				"description": "The code of the snapshot you want load"
-			}
-		}
-	},
-	"warn": "warn",
-	"warn_specs": {
-		"description": "Warn a member",
+	"warn": {
+		"name": "warn",
+		"desc": "Warn a member",
 		"usage": "warn [member] (duration) (reason)",
 		"args": {
 			"member": {
 				"name": "member",
-				"description": "The member you want to warn"
+				"desc": "The member you want to warn"
 			},
-			"duration": {
+			"expires": {
 				"name": "duration",
-				"description": "The duration of the warning (ex. 1d5h)"
+				"desc": "The duration of the warning (ex. 1d5h)"
 			},
 			"reason": {
 				"name": "reason",
-				"description": "The reason for the warning"
+				"desc": "The reason for the warning"
 			}
 		}
 	},
 	"case": "case",
-	"caseinfo_specs": {
-		"description": "Get case information",
+	"list": "list",
+	"mute": {
+		"name": "mute",
+		"desc": "Mute a member",
+		"usage": "mute [member] (duration) (reason)",
+		"args": {
+			"member": {
+				"name": "member",
+				"desc": "The member you want to mute"
+			},
+			"expires": {
+				"name": "duration",
+				"desc": "The duration of the mute (ex. 1d5h)"
+			},
+			"reason": {
+				"name": "reason",
+				"desc": "The reason for the mute"
+			}
+		}
+	},
+	"unmute": {
+		"name": "unmute",
+		"desc": "Unmute a member",
+		"usage": "unmute [member]",
+		"args": {
+			"member": {
+				"name": "member",
+				"desc": "The member you want to unmute"
+			}
+		}
+	},
+	"kick": {
+		"name": "kick",
+		"desc": "Kick a member",
+		"usage": "kick [member] (reason)",
+		"args": {
+			"member": {
+				"name": "member",
+				"desc": "The member you want to kick"
+			},
+			"reason": {
+				"name": "reason",
+				"desc": "The reason for the kick"
+			}
+		}
+	},
+	"ban": {
+		"name": "ban",
+		"desc": "Ban a user",
+		"usage": "ban [user] (duration) (reason)",
+		"args": {
+			"user": {
+				"name": "user",
+				"desc": "The user you want to ban"
+			},
+			"expires": {
+				"name": "duration",
+				"desc": "The duration of the ban (ex. 1d5h)"
+			},
+			"reason": {
+				"name": "reason",
+				"desc": "The reason for the ban"
+			}
+		}
+	},
+	"unban": {
+		"name": "unban",
+		"desc": "Unban a user",
+		"usage": "unban [user]",
+		"args": {
+			"user": {
+				"name": "user",
+				"desc": "The user you want to unban"
+			}
+		}
+	},
+	"prefix": {
+		"name": "prefix",
+		"desc": "Edit the prefix of the bot",
+		"usage": "prefix [prefix]",
+		"args": {
+			"prefix": {
+				"name": "prefix",
+				"desc": "The prefix you want to set"
+			},
+			"mention": {
+				"name": "mention",
+				"desc": "Whether to allow mentioning the bot as a prefix"
+			}
+		}
+	},
+	"info": {
+		"name": "info",
+		"desc": "Get information about a user, channel, role, or emoji.",
+		"usage": "info [thing]",
+		"args": {
+			"argument": {
+				"name": "thing",
+				"desc": "The thing you'd like to get information of"
+			}
+		}
+	},
+	"bot": "bot",
+	"channel": "channel",
+	"emoji": "emoji",
+	"ip": "ip",
+	"pokemon": "pokemon",
+	"role": "role",
+	"server": "server",
+	"user": "user",
+	"template": "template",
+	"l10n_reload": {
+		"name": "l10n_reload",
+		"desc": "Reload localization files (dev-only)"
+	},
+	"endgiveaway": {
+		"name": "end",
+		"desc": "End a giveaway (must be in current channel)",
+		"usage": "giveaway end [message_id]",
+		"args": {
+			"message": {
+				"name": "message_id",
+				"desc": "The giveaway's message ID"
+			}
+		}
+	},
+	"say": {
+		"name": "say",
+		"desc": "Make the bot say something",
+		"usage": "say [message: 1...2000]",
+		"fallback": "message",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"channel_say": {
+		"name": "channel",
+		"desc": "Make the bot say something in a channel",
+		"usage": "say channel [channel] [message: 1...2000]",
+		"args": {
+			"channel": {
+				"name": "channel",
+				"desc": "The channel you want the bot to say in"
+			},
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"edit_message": {
+		"name": "edit",
+		"desc": "Edit a message",
+		"usage": "edit [message_link] [message: 1...2000]",
+		"args": {
+			"message_link": {
+				"name": "message_link",
+				"desc": "The message link you want to edit"
+			},
+			"content": {
+				"name": "content",
+				"desc": "The message you want to edit"
+			}
+		}
+	},
+	"ascii_say": {
+		"name": "ascii",
+		"desc": "Make the bot say something in ASCII art",
+		"usage": "say ascii [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"emoji_say": {
+		"name": "emoji",
+		"desc": "Make the bot say something with emojis",
+		"usage": "say emoji [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"achievement_say": {
+		"name": "achievement",
+		"desc": "Make the bot say something as a Minecraft achievement",
+		"usage": "say achievement [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"qr_code": {
+		"name": "qr",
+		"desc": "Make a QR code",
+		"usage": "say qr [data: 1...500]",
+		"args": {
+			"data": {
+				"name": "data",
+				"desc": "The data to feed into the QR code"
+			}
+		}
+	},
+	"reverse_say": {
+		"name": "reverse",
+		"desc": "Make the bot say something in reverse",
+		"usage": "say reverse [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"clap_say": {
+		"name": "clap",
+		"desc": "Make the bot say something with clapping emojis",
+		"usage": "say clap [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"log": {
+		"name": "log",
+		"desc": "Set up logging in the server",
+		"usage": "log [on|off] (channel)",
+		"fallback": "set",
+		"args": {
+			"state": {
+				"name": "state",
+				"desc": "Whether to turn logging on or off"
+			},
+			"channel": {
+				"name": "channel",
+				"desc": "The channel to log in"
+			}
+		}
+	},
+	"add": "add",
+	"remove": "remove",
+	"l10nreload": {
+		"name": "l10nreload",
+		"desc": "Reload localization files (dev-only)",
+		"usage": "l10nreload (path)",
+		"args": {
+			"path": {
+				"name": "path",
+				"desc": "The path to the localization files (default: ./localization)"
+			}
+		}
+	},
+	"slowmode": "slowmode",
+	"ss_load": {
+		"name": "load",
+		"desc": "Load a snapshot of the server",
+		"usage": "snapshot load [snapshot]",
+		"args": {
+			"code": {
+				"name": "code",
+				"desc": "The code of the snapshot you want load"
+			}
+		}
+	},
+	"caseinfo": {
+		"name": "caseinfo",
+		"desc": "Get case information",
 		"usage": "case [case_id]",
 		"fallback": "info",
 		"args": {
 			"case_id": {
 				"name": "case_id",
-				"description": "The case ID you want information about"
+				"desc": "The case ID you want information about"
 			}
 		}
 	},
-	"casedel_specs": {
-		"description": "Delete a case",
+	"casedel": {
+		"name": "casedel",
+		"desc": "Delete a case",
 		"usage": "case delete [case_id]",
 		"args": {
 			"case_id": {
 				"name": "case_id",
-				"description": "The case ID you want to delete"
+				"desc": "The case ID you want to delete"
 			}
 		}
 	},
-	"caseedit_specs": {
-		"description": "Edit a case",
+	"caseedit": {
+		"name": "caseedit",
+		"desc": "Edit a case",
 		"usage": "case edit [case_id] [field] [value]",
 		"args": {
 			"case_id": {
 				"name": "case_id",
-				"description": "The case ID you want to edit"
+				"desc": "The case ID you want to edit"
 			},
 			"value": {
 				"name": "value",
-				"description": "The value that you want to edit",
+				"desc": "The value that you want to edit",
 				"reason": "reason",
 				"expires": "expires",
 				"message": "message"
 			},
-			"nvalue": {
+			"new_value": {
 				"name": "new_value",
-				"description": "The new value of the field"
+				"desc": "The new value of the field"
 			}
 		}
 	},
-	"list": "list",
-	"caselist_specs": {
-		"description": "List all cases for a user or yourself",
+	"caselist": {
+		"name": "caselist",
+		"desc": "List all cases for a user or yourself",
 		"usage": "case list (user)",
 		"args": {
 			"user": {
 				"name": "user",
-				"description": "The user you want to list cases for"
+				"desc": "The user you want to list cases for"
 			}
 		}
 	},
-	"mute": "mute",
-	"mute_specs": {
-		"description": "Mute a member",
-		"usage": "mute [member] (duration) (reason)",
-		"args": {
-			"user": {
-				"name": "member",
-				"description": "The member you want to mute"
-			},
-			"expires": {
-				"name": "duration",
-				"description": "The duration of the mute (ex. 1d5h)"
-			},
-			"reason": {
-				"name": "reason",
-				"description": "The reason for the mute"
-			}
-		}
+	"botinfo": {
+		"name": "botinfo",
+		"desc": "Information about the bot"
 	},
-	"unmute": "unmute",
-	"unmute_specs": {
-		"description": "Unmute a member",
-		"usage": "unmute [member]",
-		"args": {
-			"user": {
-				"name": "member",
-				"description": "The member you want to unmute"
-			}
-		}
-	},
-	"kick": "kick",
-	"kick_specs": {
-		"description": "Kick a member",
-		"usage": "kick [member] (reason)",
-		"args": {
-			"user": {
-				"name": "member",
-				"description": "The member you want to kick"
-			},
-			"reason": {
-				"name": "reason",
-				"description": "The reason for the kick"
-			}
-		}
-	},
-	"ban": "ban",
-	"ban_specs": {
-		"description": "Ban a member",
-		"usage": "ban [member] (duration) (reason)",
-		"args": {
-			"user": {
-				"name": "member",
-				"description": "The member you want to ban"
-			},
-			"expires": {
-				"name": "duration",
-				"description": "The duration of the ban (ex. 1d5h)"
-			},
-			"reason": {
-				"name": "reason",
-				"description": "The reason for the ban"
-			}
-		}
-	},
-	"unban": "unban",
-	"unban_specs": {
-		"description": "Unban a member",
-		"usage": "unban [member]",
-		"args": {
-			"user": {
-				"name": "member",
-				"description": "The member you want to unban"
-			}
-		}
-	},
-	"prefix": "prefix",
-	"prefix_specs": {
-		"usage": "prefix [prefix]",
-		"description": "Edit the prefix of the bot",
-		"args": {
-			"prefix": {
-				"name": "prefix",
-				"description": "The prefix you want to set"
-			},
-			"mention": {
-				"name": "mention",
-				"description": "Whether to allow mentioning the bot as a prefix"
-			}
-		}
-	},
-	"info": "info",
-	"info_specs": {
-		"usage": "info [thing]",
-		"description": "Get information about a user, channel, role, or emoji.",
-		"args": {
-			"argument": {
-				"name": "thing",
-				"description": "The thing you'd like to get information of"
-			}
-		}
-	},
-	"bot": "bot",
-	"botinfo_specs": {
-		"description": "Information about the bot"
-	},
-	"channel": "channel",
-	"chinfo_specs": {
+	"chinfo": {
+		"name": "chinfo",
+		"desc": "Information about a channel",
 		"usage": "info channel (channel)",
-		"description": "Information about a channel",
 		"args": {
 			"channel": {
 				"name": "channel",
-				"description": "The channel you'd like information of"
+				"desc": "The channel you'd like information of"
 			}
 		}
 	},
-	"emoji": "emoji",
-	"emojiinfo_specs": {
+	"emojiinfo": {
+		"name": "emojiinfo",
+		"desc": "Information about an emoji",
 		"usage": "info emoji [emoji]",
-		"description": "Information about an emoji",
 		"args": {
-			"emoji": {
+			"emoji_name": {
 				"name": "emoji",
-				"description": "The emoji you'd like information of"
+				"desc": "The emoji you'd like information of"
 			}
 		}
 	},
-	"ip": "ip",
-	"ipinfo_specs": {
+	"ipinfo": {
+		"name": "ipinfo",
+		"desc": "Information about an IP address",
 		"usage": "info ip [ip]",
-		"description": "Information about an IP address",
 		"args": {
-			"ip": {
+			"ip_addr": {
 				"name": "ip",
-				"description": "The IP address you'd like information of"
+				"desc": "The IP address you'd like information of"
 			}
 		}
 	},
-	"pokemon": "pokemon",
-	"pokeinfo_specs": {
+	"pokeinfo": {
+		"name": "pokeinfo",
+		"desc": "Information about a Pokémon",
 		"usage": "info pokemon [pokemon]",
-		"description": "Information about a Pokémon",
 		"args": {
-			"pokemon": {
+			"pokemon_name": {
 				"name": "pokemon",
-				"description": "The pokémon you'd like information of"
+				"desc": "The pokémon you'd like information of"
 			}
 		}
 	},
-	"role": "role",
-	"roleinfo_specs": {
+	"roleinfo": {
+		"name": "roleinfo",
+		"desc": "Information about a role",
 		"usage": "info role (role)",
-		"description": "Information about a role",
 		"args": {
 			"role": {
 				"name": "role",
-				"description": "The role you'd like information of (default: your top role)"
+				"desc": "The role you'd like information of (default: your top role)"
 			}
 		}
 	},
-	"server": "server",
-	"serverinfo_specs": {
-		"description": "Information about the server"
+	"serverinfo": {
+		"name": "serverinfo",
+		"desc": "Information about the server"
 	},
-	"user": "user",
-	"userinfo_specs": {
+	"userinfo": {
+		"name": "userinfo",
+		"desc": "Information about a user or a member",
 		"usage": "info user (user|member)",
-		"description": "Information about a user or a member",
 		"args": {
 			"user": {
 				"name": "user",
-				"description": "The user you'd like information of (default: you!)"
+				"desc": "The user you'd like information of (default: you!)"
 			}
 		}
 	},
-	"template": "template",
-	"tmplteinfo_specs": {
+	"tmplteinfo": {
+		"name": "templateinfo",
+		"desc": "Information about a template or fm01 snapshot",
 		"usage": "info template [template|snapshot]",
-		"description": "Information about a template or fm01 snapshot",
 		"args": {
-			"tmpl": {
+			"template": {
 				"name": "template",
-				"description": "The template you'd like information of"
+				"desc": "The template you'd like information of"
 			}
 		}
 	},
-	"l10n_reload": "l10n_reload",
-	"l10n_reload_specs": {
-		"description": "Reload localization files (dev-only)"
-	}
+	"giveaway": {
+		"name": "giveaway",
+		"desc": "Start a giveaway",
+		"usage": "giveaway [duration] (winners) [prize]",
+		"fallback": "start",
+		"args": {
+			"winners": {
+				"name": "winners",
+				"desc": "The number of max winners"
+			},
+			"duration": {
+				"name": "duration",
+				"desc": "The duration of the giveaway, e.x. 1d"
+			},
+			"prize": {
+				"name": "prize",
+				"desc": "The giveaway prize (required)"
+			}
+		}
+	},
+	"chsay": {
+		"name": "channel",
+		"desc": "Make the bot say something in a specific channel",
+		"usage": "say channel [channel] [message: 1...2000]",
+		"args": {
+			"channel": {
+				"name": "channel",
+				"desc": "The channel for the message"
+			},
+			"message": {
+				"name": "message",
+				"desc": "The message you want the bot to say"
+			}
+		}
+	},
+	"editmsg": {
+		"name": "edit",
+		"desc": "Edit a message sent by the bot",
+		"usage": "say edit [message] [content: 1...2000]",
+		"args": {
+			"message_link": {
+				"name": "message_link",
+				"desc": "The message's link"
+			},
+			"content": {
+				"name": "content",
+				"desc": "The new content of the message"
+			}
+		}
+	},
+	"asciisay": {
+		"name": "ascii",
+		"desc": "Send a string with ASCII art",
+		"usage": "say ascii [message: 1...20]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message to transform to ASCII art"
+			}
+		}
+	},
+	"emojisay": {
+		"name": "emoji",
+		"desc": "Say a message with discord emojis",
+		"usage": "say emoji [message: 1...20]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message to transform to emojis"
+			}
+		}
+	},
+	"mcsay": {
+		"name": "achievement",
+		"desc": "Say a message in the format of a Minecraft achievement",
+		"usage": "say achievement [message: 1...50]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message to transform to a Minecraft achievement"
+			}
+		}
+	},
+	"reversesay": {
+		"name": "reverse",
+		"desc": "Reverse a message",
+		"usage": "say reverse [message: 1...2000]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The message to reverse"
+			}
+		}
+	},
+	"clapsay": {
+		"name": "clap",
+		"desc": "Clap👏a👏message👏with👏emojis",
+		"usage": "say clap [message: 1...500]",
+		"args": {
+			"message": {
+				"name": "message",
+				"desc": "The👏message👏to👏clap"
+			}
+		}
+	},
+	"log_module_add": {
+		"name": "logadd",
+		"desc": "Add a module to the logging system",
+		"usage": "log add [module]",
+		"args": {
+			"module": {
+				"name": "module",
+				"desc": "The module you want to add to the logging system"
+			}
+		}
+	},
+	"log_module_remove": {
+		"name": "logremove",
+		"desc": "Remove a module from the logging system",
+		"usage": "log remove [module]",
+		"args": {
+			"module": {
+				"name": "module",
+				"desc": "The module you want to remove from the logging system"
+			}
+		}
+	},
+	"sm": {
+		"name": "slowmode",
+		"desc": "Set slowmode in a channel or check the current channel's slowmode",
+		"usage": "slowmode (duration) (channel)",
+		"args": {
+			"duration": {
+				"name": "duration",
+				"desc": "The duration of the slowmode (ex. 1s, 5m, 1h), \"off\" to disable slowmode"
+			},
+			"channel": {
+				"name": "channel",
+				"desc": "The channel to set the slowmode in (default: current channel)"
+			}
+		}
+	},
+	"cog": "cog"
 }
