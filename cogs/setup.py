@@ -2,7 +2,6 @@ from typing import Optional
 
 from core import Bot, Context
 from core.hybrid import command
-from discord import app_commands
 from discord.ext import commands
 
 
