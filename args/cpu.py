@@ -23,6 +23,5 @@ class CPU:
 		"""The amount of logical cores in the CPU."""
 		return psutil.cpu_count(logical=True)
 
-	@property
 	def __str__(self):
 		return self.name
