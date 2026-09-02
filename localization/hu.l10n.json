@@ -364,7 +364,7 @@
 							},
 							{
 								"name": "Lejár",
-								"value": "{warn.length}"
+								"value": "{warn.date}"
 							}
 						],
 						"footer": {
@@ -420,6 +420,22 @@
 				}
 			}
 		},
+		"slowmode": {
+			"reason": "Slowmode changed by {moderator.username}",
+			"response": {
+				"embeds": [
+					{
+						"title": "Slowmode changed",
+						"description": "Set slowmode in {channel.mention} to `{time}`.",
+						"color": 6656243,
+						"timestamp": "{now}"
+					}
+				]
+			},
+			"current_slowmode": {
+				"content": "The current slowmode in {channel.mention} is `{channel.slowmode}`."
+			}
+		},
 		"info": {
 			"response": {
 				"embeds": [
@@ -464,22 +480,6 @@
 				"not_found": {
 					"content": "Nem található ilyen szankció."
 				}
-			}
-		},
-		"slowmode": {
-			"reason": "{moderator.username} frissítette a lassítást",
-			"response": {
-				"embeds": [
-					{
-						"title": "Lassítás frissítve",
-						"description": "{channel.mention} csatorna lassítása frissítve lett `{time}` értékre.",
-						"color": 6656243,
-						"timestamp": "{now}"
-					}
-				]
-			},
-			"current_slowmode": {
-				"content": "A lassítás {channel.mention} csatornában jelenleg `{channel.slowmode}`."
 			}
 		},
 		"delete": {
@@ -1621,6 +1621,15 @@
 		"view_guild_insights": "A Server Insights megtekintése"
 	},
 	"errors": {
+		"command_not_found": {
+			"embeds": [
+				{
+					"title": "Command not found",
+					"description": "The command you tried to run does not exist.",
+					"color": 13369344
+				}
+			]
+		},
 		"missing_required_argument": {
 			"embeds": [
 				{
@@ -1818,46 +1827,46 @@
 		"message": {
 			"button": "🎉 {participants}",
 			"ended": {
-				"content": "Ez a nyereményjáték már véget ért!",
+				"content": "This giveaway has already ended!",
 				"ephemeral": true
 			},
 			"already_joined": {
-				"content": "Már csatlakoztál ehhez a nyereményjátékhoz!",
+				"content": "You've already joined this giveaway!",
 				"ephemeral": true
 			},
 			"joined": {
-				"content": "Csatlakoztál a nyereményjátékhoz!",
+				"content": "You have joined the giveaway!",
 				"ephemeral": true
 			}
 		},
 		"end": {
 			"success": {
-				"content": "🎉 **Gratulálok,** {winners}! A nyereményjátéknak vége!"
+				"content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
 			},
 			"no_winners": {
-				"content": "Senki sem csatlakozott a nyereményjátékhoz..."
+				"content": "No one joined the giveaway..."
 			}
 		},
 		"start": {
 			"response": {
 				"embeds": [
 					{
-						"title": "🎉 Nyereményjáték!",
+						"title": "🎉 Giveaway!",
 						"description": "{prize}",
 						"fields": [
 							{
-								"name": "Nyertesek",
+								"name": "Winners",
 								"value": "{winners}",
 								"inline": true
 							},
 							{
-								"name": "Vége",
+								"name": "Ends",
 								"value": "{ends}",
 								"inline": true
 							}
 						],
 						"footer": {
-							"text": "Kattints a lenti gombra a csatlakozáshoz!"
+							"text": "Click the button below to enter!"
 						}
 					}
 				]
@@ -1869,7 +1878,7 @@
 			"content": "{message}"
 		},
 		"edit": {
-			"content": "Az üzenet sikeresen szerkesztve lett."
+			"content": "Message edited successfully."
 		},
 		"ascii": {
 			"content": "```\n{ascii}```"
@@ -1878,11 +1887,11 @@
 			"content": "{emoji}"
 		},
 		"achievement": {
-			"title": "Teljesítmény elérve!",
+			"title": "Achievement Get!",
 			"response": {
 				"embeds": [
 					{
-						"title": "Teljesítmény elérve!",
+						"title": "Achievement Get!",
 						"image": {
 							"url": "{achievement}"
 						}
@@ -1893,7 +1902,7 @@
 		"qr": {
 			"embeds": [
 				{
-					"title": "QR kód",
+					"title": "QR code",
 					"image": {
 						"url": "{qr}"
 					}
@@ -1910,39 +1919,39 @@
 	"log": {
 		"toggle": {
 			"on": {
-				"content": "Logolás bekapcsolva a(z) {channel.mention} csatornában."
+				"content": "Logging is now enabled in {channel.mention}."
 			},
 			"off": {
-				"content": "Logolás kikapcsolva."
+				"content": "Logging is now disabled."
 			}
 		},
 		"module": {
 			"add": {
-				"content": "A(z) `{module}` modul hozzá lett adva a log rendszerhez."
+				"content": "Module `{module}` has been added to the logging system."
 			},
 			"remove": {
-				"content": "A(z) `{module}` modul el lett távolítva a log rendszerből."
+				"content": "Module `{module}` has been removed from the logging system."
 			}
 		},
 		"on_invite_create": {
 			"create": {
 				"embeds": [
 					{
-						"title": "Meghívó létrehozva",
-						"description": "Egy meghívó `{invite.code}` kóddal a(z) {invite.channel.mention} csatornába elkészült {invite.author.mention} által.",
+						"title": "Invite Created",
+						"description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
 						"fields": [
 							{
-								"name": "Max használat",
+								"name": "Max Uses",
 								"value": "{invite.max_uses}",
 								"inline": true
 							},
 							{
-								"name": "Lejár",
+								"name": "Expires",
 								"value": "{invite.expires}",
 								"inline": true
 							},
 							{
-								"name": "Ideiglenes tagság",
+								"name": "Temporary membership",
 								"value": "{invite.temporary}",
 								"inline": true
 							}
@@ -1956,8 +1965,8 @@
 			"delete": {
 				"embeds": [
 					{
-						"title": "Meghívó törölve",
-						"description": "A(z) `{invite.code}` kóddal rendelkező, {invite.channel.mention} csatornába szóló meghívót törölte {invite.author.mention}.",
+						"title": "Invite Deleted",
+						"description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
 						"color": 15548997
 					}
 				]
@@ -1967,8 +1976,8 @@
 			"create": {
 				"embeds": [
 					{
-						"title": "Csatorna létrehozva",
-						"description": "{channel.mention} (`{channel.name}`) létre lett hozva {created_by.mention} által.",
+						"title": "Channel Created",
+						"description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
 						"color": 5763719
 					}
 				]
@@ -1978,8 +1987,8 @@
 			"delete": {
 				"embeds": [
 					{
-						"title": "Csatorna törölve",
-						"description": "A(z) `{channel.name}` törölve lett {deleted_by.mention} által.",
+						"title": "Channel Deleted",
+						"description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
 						"color": 15548997
 					}
 				]
@@ -1989,11 +1998,11 @@
 			"pins": {
 				"embeds": [
 					{
-						"title": "Csatorna kitűzött üzenetei frissítve",
-						"description": "A(z) {channel.mention} kitűzött üzenetei frissítve lettek.",
+						"title": "Channel Pins Updated",
+						"description": "The pins in {channel.mention} were updated.",
 						"fields": [
 							{
-								"name": "Legutolsó kitűzött üzenet",
+								"name": "Last pinned message",
 								"value": "{last_pin}",
 								"inline": true
 							}
@@ -2007,16 +2016,16 @@
 			"name": {
 				"embeds": [
 					{
-						"title": "Csatorna neve frissítve",
-						"description": "A(z) {after.mention} csatorna nevét frissítette {updated_by.mention}.",
+						"title": "Channel Name Updated",
+						"description": "The name of {after.mention} was updated by {updated_by.mention}.",
 						"fields": [
 							{
-								"name": "Előző név",
+								"name": "Previous name",
 								"value": "`{before.name}`",
 								"inline": true
 							},
 							{
-								"name": "Új név",
+								"name": "New name",
 								"value": "`{after.name}`",
 								"inline": true
 							}
@@ -2028,16 +2037,16 @@
 			"topic": {
 				"embeds": [
 					{
-						"title": "Csatorna téma frissítve",
-						"description": "A(z) {after.mention} csatorna témáját frissítette {updated_by.mention}.",
+						"title": "Channel Topic Updated",
+						"description": "The topic of {after.mention} was updated {updated_by.mention}.",
 						"fields": [
 							{
-								"name": "Előző téma",
+								"name": "Before",
 								"value": "```\n{before.topic}\n```",
 								"inline": false
 							},
 							{
-								"name": "Új téma",
+								"name": "After",
 								"value": "```\n{after.topic}\n```",
 								"inline": false
 							}
@@ -2049,8 +2058,8 @@
 			"nsfw": {
 				"embeds": [
 					{
-						"title": "Csatorna NSFW státusz frissítve",
-						"description": "A(z) {after.mention} csatorna NSFW státuszát frissítette {updated_by.mention}.",
+						"title": "Channel NSFW Status Updated",
+						"description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
 						"fields": [
 							{
 								"name": "NSFW?",
@@ -2065,8 +2074,8 @@
 			"slowmode_delay": {
 				"embeds": [
 					{
-						"title": "Csatorna lassítás frissítve",
-						"description": "A(z) {after.mention} csatorna lassítását megváltoztatta {updated_by.mention}: `{before.slowmode_delay}s` -> `{after.slowmode_delay}s`",
+						"title": "Channel Slowmode Updated",
+						"description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
 						"color": 3447003
 					}
 				]
@@ -2074,8 +2083,8 @@
 			"permissions": {
 				"embeds": [
 					{
-						"title": "Csatorna jogosultságok frissítve",
-						"description": "A(z) {channel.mention} csatorna jogosultságait frissítette {updated_by.mention}.\n\n{diff}",
+						"title": "Channel Permissions Updated",
+						"description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
 						"color": 3447003
 					}
 				]
@@ -2083,8 +2092,8 @@
 			"position": {
 				"embeds": [
 					{
-						"title": "Csatorna pozíció frissítve",
-						"description": "A(z) {after.mention} csatorna pozíciója megváltozott: `{before.position}` -> `{after.position}`",
+						"title": "Channel Position Updated",
+						"description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
 						"color": 3447003
 					}
 				]
@@ -2094,36 +2103,36 @@
 			"create": {
 				"embeds": [
 					{
-						"title": "AutoMod szabály létrehozva",
+						"title": "AutoMod Rule Created",
 						"color": 3066993,
 						"fields": [
 							{
-								"name": "Név",
+								"name": "Rule Name",
 								"value": "{rule.name}",
 								"inline": true
 							},
 							{
-								"name": "ID",
+								"name": "Rule ID",
 								"value": "`{rule.id}`",
 								"inline": true
 							},
 							{
-								"name": "Készítette",
+								"name": "Created By",
 								"value": "{rule.creator.mention}",
 								"inline": true
 							},
 							{
-								"name": "Észlelési mód",
+								"name": "Trigger",
 								"value": "`{rule.trigger_type}`",
 								"inline": true
 							},
 							{
-								"name": "Következmények",
+								"name": "Actions",
 								"value": "{rule.actions}",
 								"inline": true
 							},
 							{
-								"name": "Bekapcsolva?",
+								"name": "Enabled",
 								"value": "{rule.enabled}",
 								"inline": true
 							}
@@ -2136,35 +2145,35 @@
 			"update": {
 				"embeds": [
 					{
-						"title": "AutoMod szabály frissítve",
+						"title": "AutoMod Rule Updated",
 						"color": 3447003,
 						"fields": [
 							{
-								"name": "Név",
+								"name": "Rule Name",
 								"value": "{rule.name}",
 								"inline": true
 							},
 							{
-								"name": "ID",
+								"name": "Rule ID",
 								"value": "`{rule.id}`",
 								"inline": true
 							},
 							{
-								"name": "Bekapcsolva?",
+								"name": "Enabled",
 								"value": "{rule.enabled}",
 								"inline": true
 							},
 							{
-								"name": "Következmények",
+								"name": "Actions",
 								"value": "{rule.actions}",
 								"inline": true
 							},
 							{
-								"name": "Kivételezett rangok",
+								"name": "Exempt Roles",
 								"value": "{rule.exempt_roles}"
 							},
 							{
-								"name": "Kivételezett csatornák",
+								"name": "Exempt Channels",
 								"value": "{rule.exempt_channels}"
 							}
 						]
@@ -2176,21 +2185,21 @@
 			"delete": {
 				"embeds": [
 					{
-						"title": "AutoMod szabály törölve",
+						"title": "AutoMod Rule Deleted",
 						"color": 15158332,
 						"fields": [
 							{
-								"name": "Név",
+								"name": "Rule Name",
 								"value": "{rule.name}",
 								"inline": true
 							},
 							{
-								"name": "ID",
+								"name": "Rule ID",
 								"value": "`{rule.id}`",
 								"inline": true
 							},
 							{
-								"name": "Eredetileg létrehozta",
+								"name": "Originally Created By",
 								"value": "{rule.creator.mention}",
 								"inline": true
 							}
@@ -2203,36 +2212,36 @@
 			"action": {
 				"embeds": [
 					{
-						"title": "AutoMod végrehajtva",
+						"title": "AutoMod Action Executed",
 						"color": 15105570,
-						"description": "Egy üzenet {execution.member.mention} által bejelzett.",
+						"description": "A message by {execution.member.mention} was flagged.",
 						"fields": [
 							{
-								"name": "Tag",
+								"name": "Member",
 								"value": "{execution.member.mention} (`{execution.member.id}`)",
 								"inline": true
 							},
 							{
-								"name": "Következmény",
+								"name": "Action Taken",
 								"value": "`{execution.action_types}`",
 								"inline": true
 							},
 							{
-								"name": "Csatorna",
+								"name": "In Channel",
 								"value": "{execution.channel}",
 								"inline": true
 							},
 							{
-								"name": "Bejelzett erre",
+								"name": "Triggered By",
 								"value": "`{execution.rule_trigger_type}`",
 								"inline": true
 							},
 							{
-								"name": "Kulcsszó",
+								"name": "Matched Keyword",
 								"value": "```\n{execution.matched_keyword}\n```"
 							},
 							{
-								"name": "Teljes tartalom",
+								"name": "Full Matched Content",
 								"value": "```\n{execution.matched_content}\n```"
 							}
 						]
@@ -2244,15 +2253,15 @@
 			"content": {
 				"embeds": [
 					{
-						"title": "Üzenet szerkesztve",
-						"description": "{after.author.mention} üzenete a(z) {after.channel.mention} csatornában szerkesztve lett. [Ugrás az üzenethez]({after.jump_url})",
+						"title": "Message Edited",
+						"description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
 						"fields": [
 							{
-								"name": "Előtte",
+								"name": "Before",
 								"value": "```\n{before.content}\n```"
 							},
 							{
-								"name": "Utána",
+								"name": "After",
 								"value": "```\n{after.content}\n```"
 							}
 						],
@@ -2263,16 +2272,16 @@
 			"embeds": {
 				"embeds": [
 					{
-						"title": "Üzenet beágyazásai frissítve",
-						"description": "{after.author.mention} üzenetének beágyazásai a(z) {after.channel.mention} csatornában frissítve lettek. [Ugrás az üzenethez]({after.jump_url})",
+						"title": "Message Embeds Updated",
+						"description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
 						"fields": [
 							{
-								"name": "Beágyazások száma előtte",
+								"name": "Number of embeds before",
 								"value": "{before.embeds}",
 								"inline": false
 							},
 							{
-								"name": "Beágyazások száma utána",
+								"name": "Number of embeds after",
 								"value": "{after.embeds}",
 								"inline": false
 							}
@@ -2284,16 +2293,16 @@
 			"attachments": {
 				"embeds": [
 					{
-						"title": "Üzenet csatolmányai frissítve",
-						"description": "{after.author.mention} üzenetének csatolmányai a(z) {after.channel.mention} csatornában frissítve lettek. [Ugrás az üzenethez]({after.jump_url})",
+						"title": "Message Attachments Updated",
+						"description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
 						"fields": [
 							{
-								"name": "Csatolmányok száma előtte",
+								"name": "Number of attachments before",
 								"value": "{before.attachments}",
 								"inline": false
 							},
 							{
-								"name": "Csatolmányok száma utána",
+								"name": "Number of attachments after",
 								"value": "{after.attachments}",
 								"inline": false
 							}
@@ -2305,11 +2314,11 @@
 			"pinned": {
 				"embeds": [
 					{
-						"title": "Üzenet kitűzése frissítve",
-						"description": "{after.author.mention} üzenetének kitűzése frissítve lett a(z) {after.channel.mention} csatornában. [Ugrás az üzenethez]({after.jump_url})",
+						"title": "Message Pin Status Updated",
+						"description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
 						"fields": [
 							{
-								"name": "Kitűzve?",
+								"name": "Pinned?",
 								"value": "{after.pinned}"
 							}
 						],
@@ -2322,26 +2331,26 @@
 			"delete": {
 				"embeds": [
 					{
-						"title": "Üzenet Törölve",
-						"description": "{message.author} üzenete a(z) {message.channel.mention} csatornában törölve lett.",
+						"title": "Message Deleted",
+						"description": "A message by {message.author} was deleted in {message.channel.mention}.",
 						"fields": [
 							{
-								"name": "Tartalom",
+								"name": "Message content",
 								"value": "```{message.content}```",
 								"inline": false
 							},
 							{
-								"name": "Beágyazások száma",
+								"name": "Number of embeds",
 								"value": "{message.embeds}",
 								"inline": true
 							},
 							{
-								"name": "Csatolmányok száma",
+								"name": "Number of attachments",
 								"value": "{message.attachments}",
 								"inline": true
 							},
 							{
-								"name": "Törölte",
+								"name": "Deleted by",
 								"value": "{deleted_by.mention} (`{deleted_by.id}`)"
 							}
 						]
@@ -2352,28 +2361,28 @@
 	},
 	"cogs": {
 		"afk": "AFK",
-		"basic": "Alap (basic)",
-		"economy": "Pénzrendszer (economy)",
-		"giveaway": "Nyereményjáték (giveaway)",
-		"help": "Segítség (help)",
-		"info": "Információ (information)",
-		"log": "Naplózás (logging)",
-		"moderation": "Moderáció (moderation)",
-		"say": "Üzenetek (says)",
-		"setup": "Konfiguráció (setup)",
-		"snapshot": "Snapshot-ok (snapshots)",
-		"status": "Státusz (status)"
+		"basic": "Basic",
+		"economy": "Economy",
+		"giveaway": "Giveaway",
+		"help": "Help",
+		"information": "Information",
+		"logging": "Logging",
+		"moderation": "Moderation",
+		"say": "Says",
+		"setup": "Setup",
+		"snapshot": "Snapshots",
+		"status": "Status"
 	},
 	"help": {
 		"bot": {
 			"embeds": [
 				{
-					"title": "Segítség",
-					"description": "Itt egy lista a botban található modulokról és csoportokról.\nHasználd a(z) `{prefix}help (csoport)` parancsot további információkért.",
+					"title": "Help",
+					"description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
 					"fields": [
 						{
 							"name": "{module}",
-							"value": "{commands} parancs",
+							"value": "{commands} commands",
 							"inline": true
 						}
 					]
@@ -2383,8 +2392,8 @@
 		"cog": {
 			"embeds": [
 				{
-					"title": "{cog} segítség",
-					"description": "Ez a modul {commands} parancsot tartalmaz.",
+					"title": "{cog} Help",
+					"description": "This module contains {commands} commands.",
 					"fields": [
 						{
 							"name": "{command.usage}",
@@ -2397,8 +2406,8 @@
 		"group": {
 			"embeds": [
 				{
-					"title": "{group.prefix}{group.name} segítség",
-					"description": "Ez a csoport {commands} parancsot tartalmaz.",
+					"title": "{group.prefix}{group.name} Help",
+					"description": "This group contains {commands} commands.",
 					"fields": [
 						{
 							"name": "{command.usage}",
@@ -2415,7 +2424,7 @@
 					"description": "{command.description}",
 					"fields": [
 						{
-							"name": "Aliasok",
+							"name": "Aliases",
 							"value": "{command.aliases}"
 						}
 					]
