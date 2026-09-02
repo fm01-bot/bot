@@ -20,6 +20,7 @@ from args import (
 	TextChannel,
 	User,
 	VoiceChannel,
+	Bot as BotArg,
 )
 from core import Bot, Context, group
 from discord import app_commands
@@ -89,7 +90,7 @@ class Info(commands.Cog, name="Information"):
 
 	@info.command(l10n_key="botinfo")
 	async def bot(self, ctx: Context):
-		await ctx.send("info.bot", bot=args.bot.Bot(self.client))
+		await ctx.send("info.bot", bot=BotArg(self.client))
 
 	@info.command(l10n_key="emojiinfo")
 	async def emoji(self, ctx: Context, emoji_name: str):
