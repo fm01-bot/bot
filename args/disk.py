@@ -13,17 +13,17 @@ class Disk:
 	@property
 	def total(self):
 		"""The total amount of disk space in gigabytes."""
-		return self._disk.total / 1073741824
+		return round(self._disk.total / 1073741824)
 
 	@property
 	def used(self):
 		"""The amount of used disk space in gigabytes."""
-		return self._disk.used / 1073741824
+		return round(self._disk.used / 1073741824)
 
 	@property
 	def free(self):
 		"""The amount of free disk space in gigabytes."""
-		return self._disk.free / 1073741824
+		return round(self._disk.free / 1073741824)
 
 	def __str__(self):
-		return f"{self.percent}%"
+		return f"{self.percent}% ({self.used}/{self.total} GB)"
