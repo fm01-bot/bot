@@ -322,14 +322,14 @@ wheels = [
 
 [[package]]
 name = "discord-localization"
-version = "1.1.4"
+version = "1.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "discord-py" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/b7/ee6eb51fb7a7c914a30ad533ee8530d212d7954686148ff7861a6e3a5c9a/discord_localization-1.1.4.tar.gz", hash = "sha256:210e6665777585daed4af9b6f39c967f3f1b7a25bf40035e565b1c828943e3fe", size = 11141, upload-time = "2024-12-30T18:15:23.633Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/be/c4c8904a2bf30c621eaae2762e1bd195d0480c01375504f73c2789b7e913/discord_localization-1.1.5.tar.gz", hash = "sha256:17af16ec094b7fb33d73f8e28068eed32f1364dc1aca65132481a208050bbefa", size = 11306, upload-time = "2026-09-02T10:51:16.192Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/2c/0fbbc5a86c1922ce44388ef309c25540065e1f1a58021cf55592b34abaa1/discord_localization-1.1.4-py3-none-any.whl", hash = "sha256:ed3c529235e545a84b0185b6259d6394e1c2e729b4c7c770018330fc9532c75a", size = 8686, upload-time = "2024-12-30T18:15:21.166Z" },
+    { url = "https://files.pythonhosted.org/packages/02/74/d0525342c7d3bd9e2c252c6eee95e38e17acbd6c24f88ac8b035dcbbd9b7/discord_localization-1.1.5-py3-none-any.whl", hash = "sha256:3dd2f61c2caa10b886296d95d62fb36ae1079247ef348136783d223ec9ab93fb", size = 8740, upload-time = "2026-09-02T10:51:14.963Z" },
 ]
 
 [[package]]
@@ -377,7 +377,7 @@ wheels = [
 
 [[package]]
 name = "fm01"
-version = "0.7.0"
+version = "0.7.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiodns" },
