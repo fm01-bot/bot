@@ -15,7 +15,7 @@ class RAM:
 
 	@property
 	def usage(self):
-		return f"{self.current} GB / {self.available} GB"
+		return f"{self.available} / {self.current} GB"
 
 	def __str__(self):
 		return self.usage
