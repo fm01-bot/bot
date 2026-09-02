@@ -16,7 +16,7 @@ class HelpCommand(commands.HelpCommand):
 		self.name = "help"
 
 	async def prepare_help_command(self, ctx: Context, command: Optional[str] = None, /) -> None:
-		if self.custom_response is None:
+		if not hasattr(self, "custom_response"):
 			self.custom_response = ctx.bot.custom_response
 
 	def get_command_signature(self, command: commands.Command[Any, ..., Any], /) -> str:
