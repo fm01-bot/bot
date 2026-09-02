@@ -1,5 +1,4 @@
 from discord.utils import MISSING
-import os
 from logging import getLogger
 from time import perf_counter
 from typing import Literal, Optional
@@ -8,6 +7,7 @@ import discord
 from core import Bot, Context, command, update_slash_localizations
 from discord import app_commands
 from discord.ext import commands
+import sys
 
 logger = getLogger(__name__)
 
@@ -21,6 +21,9 @@ class Admin(commands.GroupCog, name="admin"):
 	async def reload(self, ctx: Context, cog: str):
 		try:
 			benchmark = perf_counter()
+			for module_name in list(sys.modules.keys()):
+				if module_name.startswith(("args", "helpers")):
+					del sys.modules[module_name]
 			await self.client.reload_extension(f"cogs.{cog}")
 			end = perf_counter() - benchmark
 			await ctx.reply(content=f"Reloaded extension `{cog}` in **{end:.2f}s**")
