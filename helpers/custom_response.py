@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, overload
 
 import discord
 import wavelink
+from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, Track, User
 from core.context import Context
 from discord.ext import commands, localization
 
@@ -21,6 +22,16 @@ if TYPE_CHECKING:
 	from core.bot import Bot
 
 logger = logging.getLogger(__name__)
+
+KWAG_MAPPING = {
+	discord.Guild: Guild.from_guild,
+	discord.Member: Member.from_member,
+	discord.User: User.from_user,
+	discord.Role: Role.from_role,
+	discord.Emoji: Emoji.from_emoji,
+	discord.PartialEmoji: PartialEmoji.from_emoji,
+	wavelink.Playable: Track.from_track,
+}
 
 
 class CustomResponse:
@@ -155,8 +166,6 @@ class CustomResponse:
 		else:
 			locale = str(locale)
 
-		from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, Track, User
-
 		# these are variables that are always inserted into commands IF there is a context
 		context_formatting = {
 			"author": (
@@ -184,19 +193,9 @@ class CustomResponse:
 
 		logger.debug(context_formatting)
 
-		kwag_mapping = {
-			discord.Guild: Guild.from_guild,
-			discord.Member: Member.from_member,
-			discord.User: User.from_user,
-			discord.Role: Role.from_role,
-			discord.Emoji: Emoji.from_emoji,
-			discord.PartialEmoji: PartialEmoji.from_emoji,
-			wavelink.Playable: Track.from_track,
-		}
-
 		# these are kwargs that are passed in but they're converted into custom args
 		for key, value in kwargs.items():
-			for _type, converter in kwag_mapping.items():
+			for _type, converter in KWAG_MAPPING.items():
 				if isinstance(value, _type):
 					kwargs[key] = converter(value)
 				elif isinstance(value, datetime.datetime):

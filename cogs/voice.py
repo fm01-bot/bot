@@ -47,7 +47,12 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 
 	async def _init_lavalink(self) -> None:
 		node_uri = os.getenv("LAVALINK_URI", "http://localhost:2333")
-		node_password = os.getenv("LAVALINK_PASSWORD", "8pX3Mn9tLUvGwHVs")
+		node_password = os.getenv("LAVALINK_PASSWORD")
+		if not node_password:
+			self.client.logger.warning(
+				"[Lavalink] LAVALINK_PASSWORD environment variable is not set. Skipping Lavalink connection."
+			)
+			return
 		try:
 			nodes = [wavelink.Node(uri=node_uri, password=node_password)]
 			pool = await wavelink.Pool.connect(nodes=nodes, client=self.client)
@@ -93,15 +98,12 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 		if not member.guild or not member.guild.voice_client:
 			return
 		player = cast(LuminPlayer, member.guild.voice_client)
-		if not player or not player.playing or not player.channel:
+		if not player or not player.channel:
 			return
 
-		if (
-			before.channel
-			and after.channel is None
-			and player.channel.id == before.channel.id
-			and len(before.channel.members) <= 1
-		):
+		# Disconnect if no non-bot members remain in the bot's voice channel
+		non_bot_members = [m for m in player.channel.members if not m.bot]
+		if len(non_bot_members) == 0:
 			await player.disconnect()
 			if player.home:
 				ch = member.guild.get_channel(player.home)

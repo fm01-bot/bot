@@ -1,4 +1,3 @@
-import sys
 from logging import getLogger
 from time import perf_counter
 from typing import Literal
@@ -20,9 +19,6 @@ class Admin(commands.GroupCog, name="admin"):
 	async def reload(self, ctx: Context, cog: str):
 		try:
 			benchmark = perf_counter()
-			for module_name in list(sys.modules.keys()):
-				if module_name.startswith(("args", "helpers")):
-					del sys.modules[module_name]
 			await self.client.reload_extension(f"cogs.{cog}")
 			end = perf_counter() - benchmark
 			await ctx.reply(content=f"Reloaded extension `{cog}` in **{end:.2f}s**")
@@ -72,9 +68,17 @@ class Admin(commands.GroupCog, name="admin"):
 	@command()
 	@commands.is_owner()
 	async def l10nreload(self, ctx: Context, path: str = "./localization"):
-		ctx.bot.custom_response.load_localizations(path)
+		from pathlib import Path
+
+		target_path = Path(path).resolve()
+		allowed_roots = [Path("./localization").resolve(), Path("./slash_localization").resolve()]
+		if not any(target_path == root or root in target_path.parents for root in allowed_roots):
+			await ctx.reply(content="⚠️ Access denied: path must be within ./localization or ./slash_localization.")
+			return
+
+		ctx.bot.custom_response.load_localizations(str(target_path))
 		await ctx.reply(content="Reloaded localization files.")
-		logger.info(f"{ctx.author.name} reloaded localization files.")
+		logger.info(f"{ctx.author.name} reloaded localization files from {target_path}.")
 
 	@command()
 	@commands.is_owner()

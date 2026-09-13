@@ -43,6 +43,8 @@ class Role:
 	def from_role(cls, role: discord.Role):
 		if isinstance(role.display_icon, discord.Asset):
 			icon = role.display_icon.url
+		elif isinstance(role.display_icon, str):
+			icon = role.display_icon
 		elif isinstance(role.display_icon, discord.Emoji):
 			from args._emoji import Emoji
 

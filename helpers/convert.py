@@ -89,21 +89,35 @@ def text_to_seconds(time: str, base: int = 0) -> int:
 		"seconds": 1,
 	}
 
-	total_seconds = 0
-	matches = TIME.findall(time)
+	raw_time = time.strip()
+	is_negative = raw_time.startswith("-")
+	is_positive = raw_time.startswith("+")
+	to_parse = raw_time[1:].strip() if (is_negative or is_positive) else raw_time
 
+	matches = list(TIME.finditer(to_parse))
 	if not matches:
 		try:
-			return int(time) + base
+			val = int(to_parse)
+			return base - val if is_negative else base + val
 		except ValueError:
 			raise ValueError(f"String doesn't contain time units ('{time}')")
 
-	for value, unit in matches:
-		total_seconds += int(value) * time_units.get(unit)  # type: ignore
+	matched_chars = sum(m.end() - m.start() for m in matches)
+	non_whitespace_chars = len("".join(to_parse.split()))
+	if matched_chars != non_whitespace_chars:
+		raise ValueError(f"Malformed time string with invalid trailing or embedded characters ('{time}')")
 
-	if time.startswith("-"):
+	total_seconds = 0
+	for m in matches:
+		value, unit = m.group(1), m.group(2)
+		multiplier = time_units.get(unit)
+		if multiplier is None:
+			raise ValueError(f"Unknown time unit '{unit}' in '{time}'")
+		total_seconds += int(value) * multiplier
+
+	if is_negative:
 		total_seconds = base - total_seconds
-	elif time.startswith("+"):
+	elif is_positive or base:
 		total_seconds = base + total_seconds
 
 	return total_seconds
@@ -149,6 +163,25 @@ def seconds_to_text(seconds: int) -> str:
 	return time.strip()
 
 
+ALLOWED_TABLES = {
+	"afk",
+	"cases",
+	"closed_beta",
+	"cooldowns",
+	"economy",
+	"giveaways",
+	"global_ban",
+	"global_ban_blacklist",
+	"guilds",
+	"join_messages",
+	"leave_messages",
+	"log",
+	"messages",
+	"shop",
+	"snapshots",
+}
+
+
 def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int | None = None, **filters):
 	"""Converts a set of filters to an SQL query.
 
@@ -168,6 +201,9 @@ def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int 
 	(`str`, list[Any])
 	    The query string and the query parameters.
 	"""
+	if table not in ALLOWED_TABLES:
+		raise ValueError(f"Disallowed or invalid table name: '{table}'")
+
 	processed_filters = {}
 	for key, value in filters.items():
 		if isinstance(value, (discord.User, discord.Guild, discord.Member, discord.Message)):
@@ -182,11 +218,13 @@ def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int 
 	where_clauses = []
 	query_parameters = []
 	for idx, (key, value) in enumerate(processed_filters.items(), start=1):
-		where_clauses.append(f"{key} = ${idx}")
+		if not key.isidentifier():
+			raise ValueError(f"Invalid column identifier: '{key}'")
+		where_clauses.append(f'"{key}" = ${idx}')
 		query_parameters.append(value)
 
 	where_statement = " AND ".join(where_clauses) if where_clauses else "1=1"
-	query = f"SELECT * FROM {table} WHERE {where_statement}"
+	query = f'SELECT * FROM "{table}" WHERE {where_statement}'
 	if limit is not None:
 		query += f" LIMIT ${len(query_parameters) + 1}"
 		query_parameters.append(limit)
