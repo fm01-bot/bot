@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 from typing import Literal, cast
@@ -7,6 +8,8 @@ import wavelink
 from core import Bot, Context
 from core.hybrid import command
 from discord.ext import commands
+
+logger = logging.getLogger(__name__)
 
 
 class LuminPlayer(wavelink.Player):
@@ -43,18 +46,21 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 	async def cog_unload(self) -> None:
 		await wavelink.Pool.close()
 		self.client.lavalink = None
-		self.client.logger.info("[Lavalink] ~> Connection closed.")
+		logger.info("[Lavalink] ~> Connection closed.")
 
 	async def _init_lavalink(self) -> None:
-		node_uri = os.getenv("LAVALINK_URI", "http://localhost:2333")
-		node_password = os.getenv("LAVALINK_PASSWORD", "8pX3Mn9tLUvGwHVs")
+		node_uri = os.getenv("LAVALINK_URI")
+		node_password = os.getenv("LAVALINK_PASSWORD")
+		if not node_uri or not node_password:
+			logger.error("LAVALINK_URI or LAVALINK_PASSWORD not set")
+			return
 		try:
 			nodes = [wavelink.Node(uri=node_uri, password=node_password)]
 			pool = await wavelink.Pool.connect(nodes=nodes, client=self.client)
 			self.client.lavalink = pool
-			self.client.logger.info(f"Connected to {node_uri}")
+			logger.info(f"Connected to {node_uri}")
 		except Exception:
-			self.client.logger.exception("Connection failed")
+			logger.exception("Connection failed")
 
 	async def _get_player(self, ctx: Context, *, connect: bool = False) -> LuminPlayer | None:
 		if not ctx.guild:

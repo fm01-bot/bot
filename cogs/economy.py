@@ -326,7 +326,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 				cash, bank = await self.helper.get_balance(i["user_id"], ctx.guild.id, wallet=None)  # type: ignore # we know its a tuple
 				formatted = Localization.format_strings(template, user=user, number=number, cash=cash, bank=bank)
 				embeds[0].add_field(**formatted)
-			message["embeds"] = custom_response.CustomResponse.convert_embeds(embeds)
+			message["embeds"] = self.client.custom_response.convert_embeds(embeds)
 
 		await ctx.send(**message)
 
@@ -611,7 +611,7 @@ class Shop(commands.Cog, name="Shop"):
 				item = ShopItem(i["item_name"], i["item_price"], i["item_description"], role)
 				formatted = Localization.format_strings(template, item=item)
 				embeds[0].add_field(**formatted)
-			message["embeds"] = custom_response.CustomResponse.convert_embeds(embeds)
+			message["embeds"] = self.client.custom_response.convert_embeds(embeds)
 
 		await ctx.send(**message)
 

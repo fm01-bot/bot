@@ -15,7 +15,6 @@ class AFK(commands.Cog):
 		self.afk_cache: dict[tuple[int, int], dict[str, str]] = {}
 
 	async def cog_load(self):
-		await self.client.wait_until_ready()
 		rows = await self.client.db.fetch(
 			"SELECT guild_id, user_id, message, previous_nick FROM afk WHERE state = TRUE"
 		)

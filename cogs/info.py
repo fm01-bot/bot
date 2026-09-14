@@ -1,9 +1,6 @@
-import asyncio
 import re
 
 import discord
-import pypokedex
-import requests
 from args import Bot as BotArg
 from args import (
 	Category,
@@ -116,17 +113,6 @@ class Info(commands.Cog, name="Information"):
 			await ctx.send("info.channel.stage", channel=StageChannel.from_channel(channel))
 		else:
 			raise commands.BadArgument("channel")
-
-	@info.command(l10n_key="pokeinfo")
-	async def pokemon(self, ctx: Context, pokemon_name: str):
-		try:
-			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
-		except requests.HTTPError:
-			raise commands.BadArgument("pokemon")
-		pokemon.type = "\n".join(pokemon.types)
-		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"
-
-		await ctx.send("info.pokemon", pokemon=pokemon)
 
 	@info.command(l10n_key="tmplteinfo")
 	async def template(self, ctx: Context, template: str):

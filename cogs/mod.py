@@ -314,14 +314,14 @@ class Case:
 		Parameters
 		----------
 		db: `asyncpg.Pool`
-		        The database connection pool.
+			The database connection pool.
 
 		Returns
 		-------
 		`Case`
-		        The created case.
+			The created case.
 		"""
-		if self._user not in self._guild.members:
+		if self.type != CaseType.BAN and self._user not in self._guild.members:
 			return None
 
 		await self.before_creation()
@@ -336,7 +336,11 @@ class Case:
 			self.expires,
 			self.message,
 		)
-		await self.after_creation()
+		try:
+			await self.after_creation()
+		except Exception:
+			await self.delete(db)
+			raise
 		return self
 
 	@staticmethod
@@ -485,9 +489,13 @@ class Mute(Case):
 		self._custom_response = custom_response.CustomResponse(self.bot, "mod")
 		reason = await self._custom_response("mod.mute.reason", self._guild, mute=self)
 		if isinstance(self._user, discord.Member) and self.expires is not None:
-			await self._user.timeout(
-				self.expires.astimezone(datetime.UTC), reason=reason if isinstance(reason, str) else None
-			)
+			now = datetime.datetime.now(tz=datetime.UTC)
+			expires_utc = self.expires.astimezone(datetime.UTC)
+			max_timeout = now + datetime.timedelta(days=28)
+			expires_utc = min(expires_utc, max_timeout)
+			if expires_utc <= now:
+				return
+			await self._user.timeout(expires_utc, reason=reason if isinstance(reason, str) else None)
 
 	async def after_creation(self) -> None:
 		"""Notifies the user about the mute."""
