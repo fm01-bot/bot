@@ -105,7 +105,8 @@ class AFK(commands.Cog):
 			self.afk_cache[key] = {"message": str(reason_text), "previous_nick": ctx.author.display_name}
 			try:
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
-				await ctx.author.edit(nick=nick[:32])
+				if isinstance(nick, str):
+					await ctx.author.edit(nick=nick[:32])
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
@@ -134,7 +135,8 @@ class AFK(commands.Cog):
 			)
 			try:
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
-				await ctx.author.edit(nick=nick[:32])
+				if isinstance(nick, str):
+					await ctx.author.edit(nick=nick[:32])
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
