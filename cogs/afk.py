@@ -12,33 +12,41 @@ class AFK(commands.Cog):
 	def __init__(self, client: Bot):
 		self.client = client
 		self.custom_response = client.custom_response
+		self.afk_cache: dict[tuple[int, int], dict[str, str]] = {}
+
+	async def cog_load(self):
+		await self.client.wait_until_ready()
+		rows = await self.client.db.fetch(
+			"SELECT guild_id, user_id, message, previous_nick FROM afk WHERE state = TRUE"
+		)
+		for r in rows:
+			self.afk_cache[(int(r["guild_id"]), int(r["user_id"]))] = {
+				"message": r["message"],
+				"previous_nick": r["previous_nick"],
+			}
 
 	@commands.Cog.listener("on_message")
 	async def check_afk(self, message: discord.Message) -> None:
 		"""Listens to messages sent. If the author of the message is AFK, turn AFK off."""
 		if not message.guild:
 			return
-		row = await self.client.db.fetchrow(
-			"SELECT * FROM afk WHERE guild_id = $1 AND user_id = $2 AND state = TRUE",
-			message.guild.id,
-			message.author.id,
-		)
-		if not row:
+		key = (message.guild.id, message.author.id)
+		if key not in self.afk_cache:
 			return
 
-		# Turn off AFK
 		ctx = await self.client.get_context(message)
-
 		if ctx.command and ctx.command.name == "afk":
 			return
 
+		data = self.afk_cache.pop(key, None)
 		await self.client.db.execute(
 			"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3", False, ctx.author.id, ctx.guild.id
 		)
-		try:
-			await ctx.author.edit(nick=row["previous_nick"])
-		except discord.Forbidden:
-			pass
+		if data and data.get("previous_nick"):
+			try:
+				await ctx.author.edit(nick=data["previous_nick"])
+			except (discord.Forbidden, discord.HTTPException):
+				pass
 		await ctx.reply("afk.off")
 
 	@commands.Cog.listener("on_message")
@@ -47,30 +55,30 @@ class AFK(commands.Cog):
 		if message.author.bot or not message.guild or not message.mentions:
 			return
 
-		ctx = await self.client.get_context(message)
+		afk_mentions = [
+			u for u in message.mentions if (message.guild.id, u.id) in self.afk_cache and u.id != message.author.id
+		]
 
-		afk_lines = []
-
-		for user in message.mentions:
-			row = await self.client.db.fetchrow(
-				"SELECT * FROM afk WHERE guild_id = $1 AND user_id = $2 AND state = TRUE", message.guild.id, user.id
-			)
-
-			if row and row["user_id"] != message.author.id:
-				# Use localization for each AFK user
-				text = await self.custom_response(
-					"afk.reason",
-					ctx,
-					user=User.from_user(user) if isinstance(user, discord.User) else Member.from_member(user),
-					reason=row["message"],
-				)
-				if isinstance(text, dict):
-					afk_lines.append(text["content"])
-		if not afk_lines:
+		if not afk_mentions:
 			return
 
-		final_message = "\n".join(afk_lines)
-		await ctx.reply(final_message)
+		ctx = await self.client.get_context(message)
+		afk_lines = []
+		for user in afk_mentions:
+			cached = self.afk_cache.get((message.guild.id, user.id))
+			if not cached:
+				continue
+			text = await self.custom_response(
+				"afk.reason",
+				ctx,
+				user=User.from_user(user) if isinstance(user, discord.User) else Member.from_member(user),
+				reason=cached["message"],
+			)
+			if isinstance(text, dict) and "content" in text:
+				afk_lines.append(text["content"])
+
+		if afk_lines:
+			await ctx.reply("\n".join(afk_lines))
 
 	@command(user=False)
 	async def afk(self, ctx: Context, reason: str | None = None):
@@ -81,6 +89,7 @@ class AFK(commands.Cog):
 		if isinstance(reason_text, str) and regex.DISCORD_INVITE.search(reason_text):
 			return await ctx.send("afk.link")
 
+		key = (ctx.guild.id, ctx.author.id)
 		row = await self.client.db.fetchrow(
 			"SELECT * FROM afk WHERE user_id = $1 AND guild_id = $2", ctx.author.id, ctx.guild.id
 		)
@@ -93,26 +102,28 @@ class AFK(commands.Cog):
 				True,
 				ctx.author.display_name,
 			)
+			self.afk_cache[key] = {"message": str(reason_text), "previous_nick": ctx.author.display_name}
 			try:
-				await ctx.author.edit(
-					nick=(await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name))
-				)
-			except discord.errors.Forbidden:
+				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
+				await ctx.author.edit(nick=nick[:32])
+			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
 
 		if row["state"]:
 			# Turn off AFK
+			self.afk_cache.pop(key, None)
 			await self.client.db.execute(
 				"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3", False, ctx.author.id, ctx.guild.id
 			)
 			try:
 				await ctx.author.edit(nick=row["previous_nick"])
-			except discord.Forbidden:
+			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.off")
 		else:
 			# Turn on AFK
+			self.afk_cache[key] = {"message": str(reason_text), "previous_nick": ctx.author.display_name}
 			await self.client.db.execute(
 				"UPDATE afk SET state = $1, message = $2, previous_nick = $3 WHERE user_id = $4 AND guild_id = $5",
 				True,
@@ -122,10 +133,9 @@ class AFK(commands.Cog):
 				ctx.guild.id,
 			)
 			try:
-				await ctx.author.edit(
-					nick=(await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name))
-				)
-			except discord.Forbidden:
+				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
+				await ctx.author.edit(nick=nick[:32])
+			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
 
