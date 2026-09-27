@@ -16,8 +16,6 @@ from args import Emoji, FormatDateTime, Guild, Member, PartialEmoji, Role, Track
 from core.context import Context
 from discord.ext import commands, localization
 
-from helpers import emojis
-
 if TYPE_CHECKING:
 	from core.bot import Bot
 
@@ -53,8 +51,7 @@ class CustomResponse:
 
 		self.load_localizations()
 
-	@staticmethod
-	def convert_embeds(data: Any) -> Any:
+	def convert_embeds(self, data: Any) -> Any:
 		"""Converts ``data``'s embed (dict) or embeds (list) keys' values into a ``discord.Embed``.
 
 		This converts in a smart way: if there are both an ``embed`` and ``embeds`` key, ``embed`` will be merged into ``embeds``.
@@ -92,9 +89,9 @@ class CustomResponse:
 					if value in ("None", "0", ""):
 						continue  # skip empty fields
 					if value == "True":
-						field["value"] = emojis.CHECK
+						field["value"] = self.client.config.emojis.get("check")
 					if value == "False":
-						field["value"] = emojis.XMARK
+						field["value"] = self.client.config.emojis.get("x")
 					cleaned_fields.append(field)
 
 				embed_dict["fields"] = cleaned_fields

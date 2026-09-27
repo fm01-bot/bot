@@ -314,12 +314,12 @@ class Case:
 		Parameters
 		----------
 		db: `asyncpg.Pool`
-		        The database connection pool.
+			The database connection pool.
 
 		Returns
 		-------
 		`Case`
-		        The created case.
+			The created case.
 		"""
 		if self.type != CaseType.BAN and self._user not in self._guild.members:
 			return None

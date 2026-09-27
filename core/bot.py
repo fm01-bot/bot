@@ -17,7 +17,6 @@ import wavelink
 from discord import app_commands
 from discord.ext import commands, localization
 from helpers import custom_response, seconds_to_text
-from helpers.emojis import LOADING
 
 from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
 from core.config import Config
@@ -27,15 +26,14 @@ class Bot(commands.AutoShardedBot):
 	def __init__(self, config: Config):
 		self.config = config
 		update_slash_localizations()
-		self.debug: bool = self.config.get("debug")
+		self.debug: bool = config.debug
 		self.logger = getLogger(__name__)
 		self.uptime: datetime.datetime | None = None
 		self.lavalink: dict[str, wavelink.Node] | None = None
 		intents: discord.Intents = discord.Intents.all()
 		self.db: asyncpg.Pool = None
 		self.session: aiohttp.ClientSession | None = None
-		self.owner_ids: set[int] = set(self.config.get("owner_ids"))
-		self._error_webhook: discord.Webhook | None = None
+		self.owner_ids: set[int] = set(config.owner_ids)
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
 			heartbeat_timeout=150.0,
@@ -46,9 +44,9 @@ class Bot(commands.AutoShardedBot):
 			chunk_guilds_at_startup=False,
 			member_cache_flags=discord.MemberCacheFlags.from_intents(intents),
 			max_messages=1000,
-			allowed_contexts=app_commands.AppCommandContext(**self.config.get("allowed_contexts")),
-			allowed_installs=app_commands.AppInstallationType(**self.config.get("allowed_installs")),
-			allowed_mentions=discord.AllowedMentions(**self.config.get("allowed_mentions")),
+			allowed_contexts=app_commands.AppCommandContext(**config.allowed_contexts),
+			allowed_installs=app_commands.AppInstallationType(**config.allowed_installs),
+			allowed_mentions=discord.AllowedMentions(**config.allowed_mentions),
 		)
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
@@ -155,7 +153,7 @@ class Bot(commands.AutoShardedBot):
 		self.logger.info("Loading cogs...")
 		benchmark = perf_counter()
 
-		allowed: list[str] = self.config.get("modules")
+		allowed: list[str] = self.config.modules
 		self.logger.debug(f"Allowed cogs: {', '.join(allowed)}")
 
 		cogs = Path("cogs").glob("*.py")
@@ -253,7 +251,7 @@ class Bot(commands.AutoShardedBot):
 				channel = (
 					ctx.channel
 					if self.debug and ctx and ctx.channel
-					else await self.fetch_channel(self.config.get("log_channel_id"))
+					else await self.fetch_channel(self.config.log_channel_id)
 				)
 
 				if channel and isinstance(channel, discord.TextChannel):
@@ -326,7 +324,7 @@ class Bot(commands.AutoShardedBot):
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
 				await ctx.interaction.response.defer(thinking=True)
 			else:
-				await ctx.message.add_reaction(LOADING)
+				await ctx.message.add_reaction(self.config.emojis.get("loading"))
 		except discord.HTTPException:
 			pass
 
@@ -334,6 +332,6 @@ class Bot(commands.AutoShardedBot):
 		if ctx.interaction:
 			return
 		try:
-			await ctx.message.remove_reaction(LOADING, ctx.me)
+			await ctx.message.remove_reaction(self.config.emojis.get("loading"), ctx.me)
 		except discord.HTTPException:
 			pass

@@ -131,32 +131,6 @@ class Info(commands.Cog, name="Information"):
 		else:
 			raise commands.BadArgument("channel")
 
-	@info.command(l10n_key="pokeinfo")
-	async def pokemon(self, ctx: Context, pokemon_name: str):
-		name = pokemon_name.strip().lower()
-		url = f"https://pokeapi.co/api/v2/pokemon/{name}"
-		headers = {"User-Agent": "fm01-discord-bot/1.0"}
-		if not self.client.session or self.client.session.closed:
-			raise commands.BadArgument("pokemon")
-		try:
-			async with self.client.session.get(url, headers=headers) as resp:
-				if resp.status != 200:
-					raise commands.BadArgument("pokemon")
-				data = await resp.json()
-		except (aiohttp.ClientError, TimeoutError):
-			raise commands.BadArgument("pokemon")
-
-		dex = data["id"]
-		types = [t["type"]["name"].capitalize() for t in data["types"]]
-		stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}
-		image = (
-			data.get("sprites", {}).get("other", {}).get("official-artwork", {}).get("front_default")
-			or f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{dex}.png"
-		)
-		pokemon = PokemonInfo(dex=dex, types=types, stats=stats, image=image)
-
-		await ctx.send("info.pokemon", pokemon=pokemon)
-
 	@info.command(l10n_key="tmplteinfo")
 	async def template(self, ctx: Context, template: str):
 		regex = DISCORD_TEMPLATE.search(template)

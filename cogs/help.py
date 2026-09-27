@@ -302,7 +302,7 @@ class HelpCommand(commands.HelpCommand):
 
 				formatted = Localization.format_strings(template, module=cog.qualified_name or "-", commands=cmd_count)
 				embeds[0].add_field(**formatted)
-			message["embeds"] = CustomResponse.convert_embeds(embeds)  # type: ignore
+			message["embeds"] = self.custom_response.convert_embeds(embeds)  # type: ignore
 
 		await self.get_destination().send(**message)  # type: ignore
 
