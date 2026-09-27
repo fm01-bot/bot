@@ -517,7 +517,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			await self.helper.add_money(ctx.author.id, ctx.guild.id, payout, "cash")
 			await ctx.send("slots.win", results=" ".join(results), amount=payout)
 		else:
-			new_balance = await self.helper.get_balance(ctx.author.id, ctx.guild.id, "cash")
+			new_balance: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id, "cash")  # type: ignore
 			message: dict = await self.custom_response(
 				"slots.lose", ctx, convert_embeds=False, results=" ".join(results), amount=bet
 			)  # type: ignore
