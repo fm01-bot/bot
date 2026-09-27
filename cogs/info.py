@@ -1,9 +1,7 @@
-import asyncio
 import re
 
+import aiohttp
 import discord
-import pypokedex
-import requests
 from args import Bot as BotArg
 from args import (
 	Category,
@@ -24,6 +22,22 @@ from core import Bot, Context, group
 from discord.ext import commands
 from emoji.unicode_codes import EMOJI_DATA
 from helpers.regex import DISCORD_TEMPLATE
+
+
+class PokemonStats:
+	def __init__(self, stats: dict[str, int]):
+		self.hp = stats.get("hp", 0)
+		self.attack = stats.get("attack", 0)
+		self.defense = stats.get("defense", 0)
+
+
+class PokemonInfo:
+	def __init__(self, dex: int, types: list[str], stats: dict[str, int], image: str):
+		self.dex = dex
+		self.types = types
+		self.type = "\n".join(types)
+		self.base_stats = PokemonStats(stats)
+		self.image = image
 
 
 class Info(commands.Cog, name="Information"):
@@ -119,12 +133,27 @@ class Info(commands.Cog, name="Information"):
 
 	@info.command(l10n_key="pokeinfo")
 	async def pokemon(self, ctx: Context, pokemon_name: str):
-		try:
-			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
-		except requests.HTTPError:
+		name = pokemon_name.strip().lower()
+		url = f"https://pokeapi.co/api/v2/pokemon/{name}"
+		headers = {"User-Agent": "fm01-discord-bot/1.0"}
+		if not self.client.session or self.client.session.closed:
 			raise commands.BadArgument("pokemon")
-		pokemon.type = "\n".join(pokemon.types)
-		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"
+		try:
+			async with self.client.session.get(url, headers=headers) as resp:
+				if resp.status != 200:
+					raise commands.BadArgument("pokemon")
+				data = await resp.json()
+		except (aiohttp.ClientError, TimeoutError):
+			raise commands.BadArgument("pokemon")
+
+		dex = data["id"]
+		types = [t["type"]["name"].capitalize() for t in data["types"]]
+		stats = {s["stat"]["name"]: s["base_stat"] for s in data["stats"]}
+		image = (
+			data.get("sprites", {}).get("other", {}).get("official-artwork", {}).get("front_default")
+			or f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{dex}.png"
+		)
+		pokemon = PokemonInfo(dex=dex, types=types, stats=stats, image=image)
 
 		await ctx.send("info.pokemon", pokemon=pokemon)
 

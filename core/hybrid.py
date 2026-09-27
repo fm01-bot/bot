@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar, Unpack
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.commands.hybrid import _CallableDefault, maybe_coroutine
 from discord.utils import MISSING
 
 if TYPE_CHECKING:
@@ -170,42 +169,11 @@ class HybridAppCommand(commands.hybrid.HybridAppCommand):
 	async def _transform_arguments(
 		self, interaction: discord.Interaction, namespace: app_commands.Namespace
 	) -> dict[str, Any]:
-		values = namespace.__dict__
-		transformed_values = {}
-
+		# Ensure all param.display_name keys exist in namespace if keyed by param.name
 		for param in self._params.values():
-			try:
-				# Use param.name instead of param.display_name because
-				# Namespace uses internal names, but we might have renamed
-				# the parameter for localization via _rename.
-				value = values[param.name]
-			except KeyError:
-				if param.display_name in values:
-					transformed_values[param.name] = await param.transform(interaction, values[param.display_name])
-				elif not param.required:
-					if isinstance(param.default, _CallableDefault):
-						transformed_values[param.name] = await maybe_coroutine(param.default.func, interaction._baton)
-					else:
-						transformed_values[param.name] = param.default
-				else:
-					raise app_commands.CommandSignatureMismatch(self) from None
-			else:
-				transformed_values[param.name] = await param.transform(interaction, value)
-
-		if self.flag_converter is not None:
-			param_name, flag_cls = self.flag_converter
-			flag = flag_cls.__new__(flag_cls)
-			for f in flag_cls.__commands_flags__.values():
-				try:
-					value = transformed_values.pop(f.attribute)
-				except KeyError:
-					raise app_commands.CommandSignatureMismatch(self) from None
-				else:
-					setattr(flag, f.attribute, value)
-
-			transformed_values[param_name] = flag
-
-		return transformed_values
+			if param.display_name not in namespace.__dict__ and param.name in namespace.__dict__:
+				namespace.__dict__[param.display_name] = namespace.__dict__[param.name]
+		return await super()._transform_arguments(interaction, namespace)
 
 
 class HybridCommand(commands.HybridCommand):

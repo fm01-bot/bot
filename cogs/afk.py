@@ -58,7 +58,6 @@ class AFK(commands.Cog):
 		afk_mentions = [
 			u for u in message.mentions if (message.guild.id, u.id) in self.afk_cache and u.id != message.author.id
 		]
-
 		if not afk_mentions:
 			return
 
@@ -106,7 +105,8 @@ class AFK(commands.Cog):
 			try:
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
 				if isinstance(nick, str):
-					await ctx.author.edit(nick=nick[:32])
+					nick = nick[:32]
+				await ctx.author.edit(nick=nick)
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
@@ -136,7 +136,8 @@ class AFK(commands.Cog):
 			try:
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
 				if isinstance(nick, str):
-					await ctx.author.edit(nick=nick[:32])
+					nick = nick[:32]
+				await ctx.author.edit(nick=nick)
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")

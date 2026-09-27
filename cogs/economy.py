@@ -22,8 +22,8 @@ class ShopItem:
 		self._name = name
 		self._price = price
 		self._description = description
-		self._raw_role = role
-		self._role = Role.from_role(role) if role else None
+		self._raw_role: discord.Role | None = role
+		self._role: Role | None = Role.from_role(role) if role else None
 
 	@property
 	def name(self) -> str:
@@ -45,6 +45,11 @@ class ShopItem:
 		"""The role that is given to the user when they buy the item."""
 		return self._role
 
+	@property
+	def raw_role(self) -> discord.Role | None:
+		"""The discord.Role object associated with the item."""
+		return self._raw_role
+
 	def __str__(self) -> str:
 		return self.name
 
@@ -60,7 +65,7 @@ class EconomyHelper:
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
 		"""
-		Add money to a user's balance.
+		Add money to a user's balance atomically.
 
 		Parameters
 		----------
@@ -71,7 +76,7 @@ class EconomyHelper:
 		amount
 			The amount to add to the user's balance.
 		wallet
-			Whether to use the cash or bank wallet. Defaults to `cash`. If the user is in debt, it will always use the cash wallet.
+		        Whether to use the cash or bank wallet. Defaults to `cash`.
 
 		Returns
 		-------
@@ -117,7 +122,7 @@ class EconomyHelper:
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
 		"""
-		Remove money from a user's balance.
+		Remove money from a user's balance atomically.
 
 		Parameters
 		----------
@@ -238,7 +243,7 @@ class EconomyHelper:
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
 		"""
-		Sets the balance of a user.
+		Sets the balance of a user atomically.
 
 		Parameters
 		----------
@@ -518,7 +523,6 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			await ctx.send("slots.win", results=" ".join(results), amount=payout)
 		else:
 			new_balance: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id, "cash")  # type: ignore
-
 			message: dict = await self.custom_response(
 				"slots.lose", ctx, convert_embeds=False, results=" ".join(results), amount=bet
 			)  # type: ignore
@@ -624,8 +628,9 @@ class Shop(commands.Cog, name="Shop"):
 			await ctx.send("shop.buy.errors.not_found")
 			return
 
-		item = ShopItem(row["item_name"], row["item_price"], row["item_description"], ctx.guild.get_role(row["role"]))
-		if not item.role:
+		role = ctx.guild.get_role(row["role"])
+		item = ShopItem(row["item_name"], row["item_price"], row["item_description"], role)
+		if not item.raw_role:
 			await ctx.send("shop.buy.errors.role_not_found")
 			return
 
@@ -634,7 +639,7 @@ class Shop(commands.Cog, name="Shop"):
 			await ctx.send("shop.buy.errors.balance")
 			return
 
-		await ctx.author.add_roles(item._raw_role)
+		await ctx.author.add_roles(item.raw_role)
 		await self.helper.remove_money(ctx.author.id, ctx.guild.id, item.price)
 
 		await ctx.send("shop.buy.success", item=item)
@@ -682,8 +687,9 @@ class Shop(commands.Cog, name="Shop"):
 			await ctx.send("shop.remove.errors.not_found")
 			return
 
-		item = ShopItem(row["item_name"], row["item_price"], row["item_description"], ctx.guild.get_role(row["role"]))
-		if item._raw_role and ctx.author.top_role.position <= item._raw_role.position:
+		role = ctx.guild.get_role(row["role"])
+		item = ShopItem(row["item_name"], row["item_price"], row["item_description"], role)
+		if item.raw_role and ctx.author.top_role.position <= item.raw_role.position:
 			await ctx.send("shop.remove.errors.role_higher")
 			return
 

@@ -18,7 +18,7 @@ class Say(commands.Cog, name="Says"):
 	@group()
 	@commands.has_permissions(manage_messages=True)
 	async def say(self, ctx: Context, *, message: commands.Range[str, 1, 2000]):
-		await ctx.send("say.message", message=message)
+		await ctx.send("say.message", message=message, allowed_mentions=discord.AllowedMentions.none())
 
 	@say.command(permissions=["manage_messages"], l10n_key="chsay")
 	async def channel_say(self, ctx: Context, channel: discord.TextChannel, *, message: commands.Range[str, 1, 2000]):
@@ -29,13 +29,17 @@ class Say(commands.Cog, name="Says"):
 		match = DISCORD_MESSAGE_URL.search(message_link)
 		try:
 			if match:
-				_, channel_id, message_id = match.groups()
-				channel = self.client.get_channel(int(channel_id))
+				guild_id, channel_id, message_id = match.groups()
+				if not ctx.guild or int(guild_id) != ctx.guild.id:
+					raise commands.BadArgument("message_link")
+				channel = ctx.guild.get_channel(int(channel_id))
 				if not isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.Thread)):
-					raise commands.BadArgument
+					raise commands.BadArgument("message_link")
 				message = await channel.fetch_message(int(message_id))
 			else:
 				message = await ctx.channel.fetch_message(int(message_link))
+			if message.author != ctx.me:
+				raise commands.BadArgument("message_link")
 		except (discord.NotFound, discord.Forbidden):
 			raise commands.BadArgument("message_link")
 		try:
