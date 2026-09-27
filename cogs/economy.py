@@ -70,11 +70,11 @@ class EconomyHelper:
 		Parameters
 		----------
 		user_id
-		        The user's ID.
+			The user's ID.
 		guild_id
-		        The guild's ID.
+			The guild's ID.
 		amount
-		        The amount to add to the user's balance.
+			The amount to add to the user's balance.
 		wallet
 		        Whether to use the cash or bank wallet. Defaults to `cash`.
 
@@ -255,6 +255,11 @@ class EconomyHelper:
 			The amount to set the user's balance to.
 		wallet
 			The wallet to set the balance of. Defaults to cash.
+
+		Returns
+		-------
+		int
+			The user's balance.
 		"""
 		async with self.client.db.acquire() as conn, conn.transaction():
 			row = await conn.fetchrow(
@@ -521,6 +526,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			message: dict = await self.custom_response(
 				"slots.lose", ctx, convert_embeds=False, results=" ".join(results), amount=bet
 			)  # type: ignore
+
 			if new_balance >= 0 and message.get("embeds"):
 				for index, embed in enumerate(message["embeds"]):
 					if len(embed.fields) > 2:
