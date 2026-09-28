@@ -7,6 +7,7 @@ from helpers import seconds_to_text
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 from args.member import Member
+from args.user import User
 
 
 @dataclass(slots=True)
@@ -19,16 +20,23 @@ class AutoModRule:
 	"""Whether the rule is enabled."""
 	trigger_type: str
 	"""The rule's trigger type."""
-	_creator: discord.Member = field(repr=False)
+	_creator: discord.Member | discord.User | None = field(repr=False)
 	_guild: discord.Guild = field(repr=False)
 	_actions: list[discord.AutoModRuleAction] = field(repr=False)
 	_exempt_roles: list[discord.Role] = field(repr=False)
 	_exempt_channels: list[discord.abc.GuildChannel | discord.Thread] = field(repr=False)
 	_created_at: datetime.datetime = field(repr=False)
 
+	_creator_id: int = field(repr=False, default=0)
+
 	@classmethod
 	async def from_rule(cls, rule: discord.AutoModRule):
-		creator = rule.guild.get_member(rule.creator_id) or await rule.guild.fetch_member(rule.creator_id)
+		creator = rule.guild.get_member(rule.creator_id)
+		if creator is None:
+			try:
+				creator = await rule.guild.fetch_member(rule.creator_id)
+			except (discord.NotFound, discord.HTTPException):
+				creator = None
 		return cls(
 			name=rule.name,
 			id=rule.id,
@@ -40,12 +48,30 @@ class AutoModRule:
 			_exempt_roles=rule.exempt_roles,
 			_exempt_channels=rule.exempt_channels,
 			_created_at=discord.utils.snowflake_time(rule.id),
+			_creator_id=rule.creator_id,
 		)
 
 	@property
-	def creator(self) -> Member:
+	def creator(self) -> Member | User:
 		"""The rule's creator."""
-		return Member.from_member(self._creator)
+		if isinstance(self._creator, discord.Member):
+			return Member.from_member(self._creator)
+		if isinstance(self._creator, discord.User):
+			return User.from_user(self._creator)
+		return User(
+			_name="Unknown",
+			id=self._creator_id,
+			_discriminator=None,
+			global_name="Unknown",
+			display_name="Unknown",
+			bot=False,
+			_color=None,
+			_avatar="",
+			_decoration=None,
+			_banner=None,
+			_created_at=datetime.datetime.now(datetime.UTC),
+			mention=f"<@{self._creator_id}>" if self._creator_id else "Unknown",
+		)
 
 	@property
 	def guild(self) -> Guild:

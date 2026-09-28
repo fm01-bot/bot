@@ -45,6 +45,11 @@ class AutoModAction:
 		return RuleAction.from_action(self._action, self._guild)
 
 	@property
+	def action_types(self) -> str:
+		"""The action type as a string."""
+		return self._action.type.name.upper()
+
+	@property
 	def guild(self) -> Guild:
 		"""The guild where the action was executed."""
 		return Guild.from_guild(self._guild)
