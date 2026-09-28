@@ -2357,6 +2357,675 @@
 					}
 				]
 			}
+		},
+		"on_bulk_message_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Bulk Messages Deleted",
+						"description": "{count} messages were deleted in {channel.mention}.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_guild_role_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Role Created",
+						"description": "Role {role.mention} was created by {created_by.mention}.",
+						"fields": [
+							{
+								"name": "Color",
+								"value": "`{role.color}`",
+								"inline": true
+							},
+							{
+								"name": "Mentionable",
+								"value": "{role.mentionable}",
+								"inline": true
+							},
+							{
+								"name": "Hoisted",
+								"value": "{role.hoist}",
+								"inline": true
+							}
+						],
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_guild_role_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Role Updated",
+						"description": "Role {after.mention} was updated by {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "Name",
+								"value": "`{before.name}` → `{after.name}`",
+								"inline": true
+							},
+							{
+								"name": "Color",
+								"value": "`{before.color}` → `{after.color}`",
+								"inline": true
+							}
+						],
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_guild_role_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Role Deleted",
+						"description": "Role `{role.name}` was deleted by {deleted_by.mention}.",
+						"fields": [
+							{
+								"name": "Members",
+								"value": "{role.members}",
+								"inline": true
+							}
+						],
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_member_join": {
+			"join": {
+				"embeds": [
+					{
+						"title": "Member Joined",
+						"description": "{member.mention} (`{member.name}`) joined the server.",
+						"fields": [
+							{
+								"name": "Account Created",
+								"value": "{member.created_at}",
+								"inline": true
+							}
+						],
+						"color": 5763719,
+						"thumbnail": {
+							"url": "{member.avatar}"
+						}
+					}
+				]
+			}
+		},
+		"on_member_remove": {
+			"leave": {
+				"embeds": [
+					{
+						"title": "Member Left",
+						"description": "{member.mention} (`{member.name}`) left the server.",
+						"fields": [
+							{
+								"name": "Joined",
+								"value": "{member.joined_at}",
+								"inline": true
+							},
+							{
+								"name": "Roles",
+								"value": "{member.roles}",
+								"inline": false
+							}
+						],
+						"color": 15105570,
+						"thumbnail": {
+							"url": "{member.avatar}"
+						}
+					}
+				]
+			},
+			"kick": {
+				"embeds": [
+					{
+						"title": "Member Kicked",
+						"description": "{member.mention} (`{member.name}`) was kicked by {kicked_by.mention}.",
+						"fields": [
+							{
+								"name": "Reason",
+								"value": "{reason}",
+								"inline": false
+							}
+						],
+						"color": 15158332,
+						"thumbnail": {
+							"url": "{member.avatar}"
+						}
+					}
+				]
+			}
+		},
+		"on_member_update": {
+			"roles": {
+				"embeds": [
+					{
+						"title": "Member Roles Updated",
+						"description": "Roles for {member.mention} were updated by {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "Added",
+								"value": "{added}",
+								"inline": true
+							},
+							{
+								"name": "Removed",
+								"value": "{removed}",
+								"inline": true
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"nickname": {
+				"embeds": [
+					{
+						"title": "Nickname Changed",
+						"description": "Nickname for {member.mention} was changed by {updated_by.mention}.",
+						"fields": [
+							{
+								"name": "Before",
+								"value": "`{before_nick}`",
+								"inline": true
+							},
+							{
+								"name": "After",
+								"value": "`{after_nick}`",
+								"inline": true
+							}
+						],
+						"color": 3447003
+					}
+				]
+			},
+			"timeout": {
+				"embeds": [
+					{
+						"title": "Member Timed Out",
+						"description": "{member.mention} was timed out by {timed_out_by.mention}.",
+						"fields": [
+							{
+								"name": "Until",
+								"value": "{until}",
+								"inline": true
+							},
+							{
+								"name": "Reason",
+								"value": "{reason}",
+								"inline": false
+							}
+						],
+						"color": 15105570
+					}
+				]
+			},
+			"timeout_removed": {
+				"embeds": [
+					{
+						"title": "Timeout Removed",
+						"description": "The timeout for {member.mention} was removed by {removed_by.mention}.",
+						"color": 5763719
+					}
+				]
+			},
+			"avatar": {
+				"embeds": [
+					{
+						"title": "Server Avatar Changed",
+						"description": "{member.mention} changed their server avatar.",
+						"color": 3447003,
+						"thumbnail": {
+							"url": "{member.avatar}"
+						}
+					}
+				]
+			}
+		},
+		"on_member_ban": {
+			"ban": {
+				"embeds": [
+					{
+						"title": "Member Banned",
+						"description": "{user.mention} (`{user.name}`) was banned by {banned_by.mention}.",
+						"fields": [
+							{
+								"name": "Reason",
+								"value": "{reason}",
+								"inline": false
+							}
+						],
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_member_unban": {
+			"unban": {
+				"embeds": [
+					{
+						"title": "Member Unbanned",
+						"description": "{user.mention} (`{user.name}`) was unbanned by {unbanned_by.mention}.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_voice_state_update": {
+			"join": {
+				"embeds": [
+					{
+						"title": "Voice Channel Join",
+						"description": "{member.mention} joined {channel.mention}.",
+						"color": 5763719
+					}
+				]
+			},
+			"leave": {
+				"embeds": [
+					{
+						"title": "Voice Channel Leave",
+						"description": "{member.mention} left {channel.mention}.",
+						"color": 15105570
+					}
+				]
+			},
+			"move": {
+				"embeds": [
+					{
+						"title": "Voice Channel Switch",
+						"description": "{member.mention} moved from {before_channel.mention} to {after_channel.mention}.",
+						"color": 3447003
+					}
+				]
+			},
+			"deafen": {
+				"embeds": [
+					{
+						"title": "Server Deafened",
+						"description": "{member.mention} was server deafened in {channel.mention}.",
+						"color": 15105570
+					}
+				]
+			},
+			"undeafen": {
+				"embeds": [
+					{
+						"title": "Server Undeafened",
+						"description": "{member.mention} was server undeafened in {channel.mention}.",
+						"color": 5763719
+					}
+				]
+			},
+			"mute": {
+				"embeds": [
+					{
+						"title": "Server Muted",
+						"description": "{member.mention} was server muted in {channel.mention}.",
+						"color": 15105570
+					}
+				]
+			},
+			"unmute": {
+				"embeds": [
+					{
+						"title": "Server Unmuted",
+						"description": "{member.mention} was server unmuted in {channel.mention}.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_guild_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Server Updated",
+						"description": "The server settings were updated by {updated_by.mention}.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_guild_emojis_update": {
+			"add": {
+				"embeds": [
+					{
+						"title": "Emoji Added",
+						"description": "{emojis}",
+						"color": 5763719
+					}
+				]
+			},
+			"remove": {
+				"embeds": [
+					{
+						"title": "Emoji Removed",
+						"description": "{emojis}",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_guild_stickers_update": {
+			"add": {
+				"embeds": [
+					{
+						"title": "Sticker Added",
+						"description": "{stickers}",
+						"color": 5763719
+					}
+				]
+			},
+			"remove": {
+				"embeds": [
+					{
+						"title": "Sticker Removed",
+						"description": "{stickers}",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_webhooks_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Webhooks Updated",
+						"description": "Webhooks in {channel.mention} were updated.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_guild_integrations_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Integrations Updated",
+						"description": "An integration was created, modified, or removed.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_raw_integration_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Integration Deleted",
+						"description": "Integration `{integration_id}` was deleted.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_thread_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Thread Created",
+						"description": "Thread {thread.mention} was created.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_thread_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Thread Deleted",
+						"description": "Thread `{thread.name}` was deleted.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_thread_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Thread Updated",
+						"description": "Thread {after.mention} was updated.",
+						"fields": [
+							{
+								"name": "Name",
+								"value": "`{before.name}` → `{after.name}`",
+								"inline": true
+							},
+							{
+								"name": "Archived",
+								"value": "{after.archived}",
+								"inline": true
+							},
+							{
+								"name": "Locked",
+								"value": "{after.locked}",
+								"inline": true
+							}
+						],
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_thread_join": {
+			"join": {
+				"embeds": [
+					{
+						"title": "Bot Joined Thread",
+						"description": "Joined thread {thread.mention}.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_thread_remove": {
+			"remove": {
+				"embeds": [
+					{
+						"title": "Thread Removed",
+						"description": "Thread `{thread.name}` was removed from cache.",
+						"color": 10070709
+					}
+				]
+			}
+		},
+		"on_thread_member_join": {
+			"join": {
+				"embeds": [
+					{
+						"title": "Thread Member Join",
+						"description": "<@{user_id}> joined thread {thread.mention}.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_thread_member_remove": {
+			"leave": {
+				"embeds": [
+					{
+						"title": "Thread Member Leave",
+						"description": "<@{user_id}> left thread {thread.mention}.",
+						"color": 15105570
+					}
+				]
+			}
+		},
+		"on_scheduled_event_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Scheduled Event Created",
+						"description": "Event **{event.name}** was created.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_scheduled_event_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Scheduled Event Deleted",
+						"description": "Event **{event.name}** was deleted.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_scheduled_event_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Scheduled Event Updated",
+						"description": "Event **{after.name}** was updated.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_soundboard_sound_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Soundboard Sound Created",
+						"description": "Sound **{sound.name}** was created.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_soundboard_sound_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Soundboard Sound Deleted",
+						"description": "Sound **{sound.name}** was deleted.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_soundboard_sound_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Soundboard Sound Updated",
+						"description": "Sound **{after.name}** was updated.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_stage_instance_create": {
+			"create": {
+				"embeds": [
+					{
+						"title": "Stage Started",
+						"description": "Stage with topic **{stage.topic}** was started.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_stage_instance_delete": {
+			"delete": {
+				"embeds": [
+					{
+						"title": "Stage Ended",
+						"description": "Stage with topic **{stage.topic}** has ended.",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_stage_instance_update": {
+			"update": {
+				"embeds": [
+					{
+						"title": "Stage Updated",
+						"description": "Stage topic changed from **{before.topic}** to **{after.topic}**.",
+						"color": 3447003
+					}
+				]
+			}
+		},
+		"on_reaction_add": {
+			"add": {
+				"embeds": [
+					{
+						"title": "Reaction Added",
+						"description": "{user.mention} reacted with {emoji} on a [message]({message_url}).",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_reaction_remove": {
+			"remove": {
+				"embeds": [
+					{
+						"title": "Reaction Removed",
+						"description": "{user.mention} removed reaction {emoji} from a [message]({message_url}).",
+						"color": 15105570
+					}
+				]
+			}
+		},
+		"on_reaction_clear": {
+			"clear": {
+				"embeds": [
+					{
+						"title": "Reactions Cleared",
+						"description": "All {count} reactions were cleared from a [message]({message_url}).",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_reaction_clear_emoji": {
+			"clear": {
+				"embeds": [
+					{
+						"title": "Reaction Emoji Cleared",
+						"description": "All {emoji} reactions were removed from a [message]({message_url}).",
+						"color": 15548997
+					}
+				]
+			}
+		},
+		"on_poll_vote_add": {
+			"add": {
+				"embeds": [
+					{
+						"title": "Poll Vote",
+						"description": "<@{user_id}> voted on answer `{answer_id}` in message `{message_id}`.",
+						"color": 5763719
+					}
+				]
+			}
+		},
+		"on_poll_vote_remove": {
+			"remove": {
+				"embeds": [
+					{
+						"title": "Poll Vote Removed",
+						"description": "<@{user_id}> removed their vote for answer `{answer_id}` in message `{message_id}`.",
+						"color": 15105570
+					}
+				]
+			}
 		}
 	},
 	"cogs": {
