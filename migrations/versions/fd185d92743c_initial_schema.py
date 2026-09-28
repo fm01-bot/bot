@@ -100,14 +100,7 @@ def upgrade() -> None:
 		sa.Column("is_on", sa.Boolean(), nullable=False, server_default=sa.text("true")),
 		sa.Column("webhook", sa.Text(), nullable=True),
 		sa.Column("channel", sa.Numeric(), nullable=True),
-		sa.Column(
-			"modules",
-			postgresql.ARRAY(sa.Text()),
-			nullable=True,
-			server_default=sa.text(
-				"ARRAY['*'::text]"
-			),
-		),
+		sa.Column("modules", postgresql.ARRAY(sa.Text()), nullable=True, server_default=sa.text("ARRAY['*'::text]")),
 		sa.UniqueConstraint("guild_id", name="log_pk"),
 	)
 
