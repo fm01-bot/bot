@@ -35,7 +35,10 @@ featuring moderation, utility, and fun commands.
 4. **Install PostgreSQL** (if not running with docker), then:
     - Create a user named `lumin` with the password you defined above
     - Create a database named `lumin`, preferably owned by the `lumin` user
-    - Optionally initialize tables by running the contents of `first_time.sql`
+    - Apply database migrations:
+      ```bash
+      uv run alembic upgrade head
+      ```
 
 5. **Run the bot**
    ```bash

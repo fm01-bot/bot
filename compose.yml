@@ -8,7 +8,6 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./first_time.sql:/docker-entrypoint-initdb.d/first_time.sql:ro
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lumin} -d ${DB_NAME:-lumin_beta}" ]
@@ -53,6 +52,7 @@ services:
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
     volumes:
       - .:/bot
+    command: sh -c "uv run alembic upgrade head && uv run --no-dev main.py"
 
 volumes:
   postgres_data:

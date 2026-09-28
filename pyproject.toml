@@ -27,6 +27,8 @@ dependencies = [
     "ty>=0.0.1a33",
     "wavelink>=3.5.2",
     "jishaku>=2.7.5",
+    "alembic>=1.20.0",
+    "greenlet>=3.5.6",
 ]
 
 [dependency-groups]
@@ -54,3 +56,4 @@ convention = "numpy"
 
 [tool.ty.rules]
 #invalid-method-override = "ignore"
+
