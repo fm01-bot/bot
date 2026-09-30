@@ -17,71 +17,61 @@ if TYPE_CHECKING:
 
 logger = getLogger(__name__)
 
-AVAILABLE_MODULES: dict[str, str] = {
-	# Message events
-	"on_message_delete": "Message deletions (includes author and deleter if identifiable)",
-	"on_bulk_message_delete": "Bulk message deletions",
-	"on_message_edit": "Message content, embed, attachment, and pin edits",
-	# Channel events
-	"on_guild_channel_create": "Channel creation",
-	"on_guild_channel_delete": "Channel deletion",
-	"on_guild_channel_update": "Channel updates (name, topic, nsfw, slowmode, overwrites, position)",
-	"on_guild_channel_pins_update": "Channel pinned messages updates",
-	# Role events
-	"on_guild_role_create": "Role creation",
-	"on_guild_role_update": "Role updates (name, color, permissions)",
-	"on_guild_role_delete": "Role deletion",
-	# Member events
-	"on_member_join": "Member joins",
-	"on_member_remove": "Member leaves and kicks",
-	"on_member_update": "Member updates (roles, nicknames, timeouts, server avatars)",
-	"on_member_ban": "Member bans",
-	"on_member_unban": "Member unbans",
-	# Voice events
-	"on_voice_state_update": "Voice join, leave, switch, deafen/undeafen, and mute/unmute",
-	# AutoMod events
-	"on_automod_rule_create": "AutoMod rule creation",
-	"on_automod_rule_update": "AutoMod rule updates",
-	"on_automod_rule_delete": "AutoMod rule deletion",
-	"on_automod_action": "AutoMod action executions",
-	# Guild events
-	"on_guild_update": "Server name and icon updates",
-	"on_guild_emojis_update": "Server emoji additions and removals",
-	"on_guild_stickers_update": "Server sticker additions and removals",
-	"on_invite_create": "Invite link creations",
-	"on_invite_delete": "Invite link deletions",
-	"on_webhooks_update": "Webhook updates",
-	"on_guild_integrations_update": "Server integration updates",
-	"on_raw_integration_delete": "Integration deletions",
-	# Thread events
-	"on_thread_create": "Thread creations",
-	"on_thread_delete": "Thread deletions",
-	"on_thread_update": "Thread updates (name, archive, lock)",
-	"on_thread_join": "Bot joins a thread",
-	"on_thread_remove": "Thread removed from cache",
-	"on_thread_member_join": "Thread member joins",
-	"on_thread_member_remove": "Thread member leaves",
-	# Scheduled events
-	"on_scheduled_event_create": "Scheduled event creations",
-	"on_scheduled_event_delete": "Scheduled event deletions",
-	"on_scheduled_event_update": "Scheduled event updates",
-	# Soundboard events
-	"on_soundboard_sound_create": "Soundboard sound creations",
-	"on_soundboard_sound_delete": "Soundboard sound deletions",
-	"on_soundboard_sound_update": "Soundboard sound updates",
-	# Stage events
-	"on_stage_instance_create": "Stage instance starts",
-	"on_stage_instance_delete": "Stage instance ends",
-	"on_stage_instance_update": "Stage instance topic updates",
-	# Reaction events
-	"on_reaction_add": "Reaction additions",
-	"on_reaction_remove": "Reaction removals",
-	"on_reaction_clear": "Reaction clears",
-	"on_reaction_clear_emoji": "Reaction specific emoji clears",
-	# Poll events
-	"on_poll_vote_add": "Poll vote additions",
-	"on_poll_vote_remove": "Poll vote removals",
-}
+LOG_MODULES: frozenset[str] = frozenset(
+	{
+		"on_message_delete",
+		"on_bulk_message_delete",
+		"on_message_edit",
+		"on_guild_channel_create",
+		"on_guild_channel_delete",
+		"on_guild_channel_update",
+		"on_guild_channel_pins_update",
+		"on_guild_role_create",
+		"on_guild_role_update",
+		"on_guild_role_delete",
+		"on_member_join",
+		"on_member_remove",
+		"on_member_update",
+		"on_member_ban",
+		"on_member_unban",
+		"on_voice_state_update",
+		"on_automod_rule_create",
+		"on_automod_rule_update",
+		"on_automod_rule_delete",
+		"on_automod_action",
+		"on_guild_update",
+		"on_guild_emojis_update",
+		"on_guild_stickers_update",
+		"on_invite_create",
+		"on_invite_delete",
+		"on_webhooks_update",
+		"on_guild_integrations_update",
+		"on_raw_integration_delete",
+		"on_thread_create",
+		"on_thread_delete",
+		"on_thread_update",
+		"on_thread_join",
+		"on_thread_remove",
+		"on_thread_member_join",
+		"on_thread_member_remove",
+		"on_scheduled_event_create",
+		"on_scheduled_event_delete",
+		"on_scheduled_event_update",
+		"on_soundboard_sound_create",
+		"on_soundboard_sound_delete",
+		"on_soundboard_sound_update",
+		"on_stage_instance_create",
+		"on_stage_instance_delete",
+		"on_stage_instance_update",
+		"on_reaction_add",
+		"on_reaction_remove",
+		"on_reaction_clear",
+		"on_reaction_clear_emoji",
+		"on_poll_vote_add",
+		"on_poll_vote_remove",
+	}
+)
+AVAILABLE_MODULES = LOG_MODULES
 
 
 class LogConfig:
@@ -224,11 +214,9 @@ class Logging(commands.Cog, name="Logging"):
 		"""Remove cached config so it gets re-fetched on next event."""
 		self._config_cache.pop(guild_id, None)
 
-	# ── database configuration helpers ────────────────────────
-
 	async def enable_log(self, guild_id: int, channel_id: int | None = None) -> LogConfig:
 		"""Enable logging for a guild, creating the DB row if not present."""
-		modules = list(AVAILABLE_MODULES.keys())
+		modules = list(LOG_MODULES)
 		row = await self.client.db.fetchrow(
 			"""
 			INSERT INTO log (guild_id, is_on, channel, modules, channels)
@@ -253,7 +241,7 @@ class Logging(commands.Cog, name="Logging"):
 
 	async def add_module(self, guild_id: int, module_name: str) -> bool:
 		"""Add an event module to the guild's active logging modules."""
-		if module_name not in AVAILABLE_MODULES:
+		if module_name not in LOG_MODULES:
 			return False
 		await self.client.db.execute(
 			"""
@@ -296,8 +284,6 @@ class Logging(commands.Cog, name="Logging"):
 		"""Set or clear the webhook URL for a guild."""
 		await self.client.db.execute("UPDATE log SET webhook = $1 WHERE guild_id = $2", webhook_url, guild_id)
 		self.invalidate_cache(guild_id)
-
-	# ── delivery ──────────────────────────────────────────────
 
 	async def _send(self, guild: discord.Guild, event_name: str, key: str, /, **kwargs: Any):
 		"""Resolve the localized payload and send it to the configured log channel.
@@ -346,8 +332,6 @@ class Logging(commands.Cog, name="Logging"):
 			await channel.send(**payload)
 		except (discord.Forbidden, discord.HTTPException):
 			logger.debug(f"Failed to send log in {channel_id} for guild {guild.id}")
-
-	# ── message events ────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_message_delete(self, message: discord.Message):
@@ -407,8 +391,6 @@ class Logging(commands.Cog, name="Logging"):
 			await self._send(
 				after.guild, "on_message_edit", "log.on_message_edit.pinned", before=before_msg, after=after_msg
 			)
-
-	# ── channel events ────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_guild_channel_create(self, channel: discord.abc.GuildChannel):
@@ -487,8 +469,6 @@ class Logging(commands.Cog, name="Logging"):
 			last_pin=last_pin_str,
 		)
 
-	# ── role events ───────────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_guild_role_create(self, role: discord.Role):
 		entry = await _find_audit_entry(role.guild, discord.AuditLogAction.role_create, role)
@@ -523,8 +503,6 @@ class Logging(commands.Cog, name="Logging"):
 		await self._send(
 			role.guild, "on_guild_role_delete", "log.on_guild_role_delete.delete", role=role, deleted_by=deleted_by
 		)
-
-	# ── member events ─────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
@@ -619,8 +597,6 @@ class Logging(commands.Cog, name="Logging"):
 		if before.guild_avatar != after.guild_avatar:
 			await self._send(guild, "on_member_update", "log.on_member_update.avatar", member=after)
 
-	# ── ban / unban ───────────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_member_ban(self, guild: discord.Guild, user: discord.User | discord.Member):
 		entry = await _find_audit_entry(guild, discord.AuditLogAction.ban, user)
@@ -642,8 +618,6 @@ class Logging(commands.Cog, name="Logging"):
 		unbanned_by = _user_arg(entry.user) if entry and entry.user else _UnknownActor()
 
 		await self._send(guild, "on_member_unban", "log.on_member_unban.unban", user=user, unbanned_by=unbanned_by)
-
-	# ── voice state ───────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_voice_state_update(
@@ -702,8 +676,6 @@ class Logging(commands.Cog, name="Logging"):
 				channel=convert_to_custom_channel(after.channel or before.channel),
 			)
 
-	# ── automod events ────────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_automod_rule_create(self, rule: discord.AutoModRule):
 		await self._send(
@@ -740,8 +712,6 @@ class Logging(commands.Cog, name="Logging"):
 			execution=AutoModAction.from_action(execution),
 		)
 
-	# ── guild update ──────────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
 		if before.name == after.name and before.icon == after.icon:
@@ -753,8 +723,6 @@ class Logging(commands.Cog, name="Logging"):
 		await self._send(
 			after, "on_guild_update", "log.on_guild_update.update", before=before, after=after, updated_by=updated_by
 		)
-
-	# ── emoji / sticker events ────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_guild_emojis_update(
@@ -806,8 +774,6 @@ class Logging(commands.Cog, name="Logging"):
 				stickers=", ".join(f"`{s.name}`" for s in removed),
 			)
 
-	# ── invite events ─────────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_invite_create(self, invite: discord.Invite):
 		if not invite.guild or not isinstance(invite.guild, discord.Guild):
@@ -826,8 +792,6 @@ class Logging(commands.Cog, name="Logging"):
 			invite.guild, "on_invite_delete", "log.on_invite_delete.delete", invite=Invite.from_invite(invite)
 		)
 
-	# ── webhook updates ───────────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_webhooks_update(self, channel: discord.abc.GuildChannel):
 		await self._send(
@@ -836,8 +800,6 @@ class Logging(commands.Cog, name="Logging"):
 			"log.on_webhooks_update.update",
 			channel=convert_to_custom_channel(channel),
 		)
-
-	# ── integration events ────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_guild_integrations_update(self, guild: discord.Guild):
@@ -855,8 +817,6 @@ class Logging(commands.Cog, name="Logging"):
 			integration_id=payload.integration_id,
 			application_id=payload.application_id,
 		)
-
-	# ── thread events ─────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_thread_create(self, thread: discord.Thread):
@@ -905,8 +865,6 @@ class Logging(commands.Cog, name="Logging"):
 			user_id=member.id,
 		)
 
-	# ── scheduled event events ────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_scheduled_event_create(self, event: discord.ScheduledEvent):
 		if not event.guild:
@@ -929,8 +887,6 @@ class Logging(commands.Cog, name="Logging"):
 		await self._send(
 			after.guild, "on_scheduled_event_update", "log.on_scheduled_event_update.update", before=before, after=after
 		)
-
-	# ── soundboard events ─────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_soundboard_sound_create(self, sound: discord.SoundboardSound):
@@ -960,8 +916,6 @@ class Logging(commands.Cog, name="Logging"):
 			after=after,
 		)
 
-	# ── stage instance events ─────────────────────────────────
-
 	@commands.Cog.listener()
 	async def on_stage_instance_create(self, stage: discord.StageInstance):
 		await self._send(stage.guild, "on_stage_instance_create", "log.on_stage_instance_create.create", stage=stage)
@@ -977,8 +931,6 @@ class Logging(commands.Cog, name="Logging"):
 		await self._send(
 			after.guild, "on_stage_instance_update", "log.on_stage_instance_update.update", before=before, after=after
 		)
-
-	# ── reaction events ───────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member | discord.User):
@@ -1029,8 +981,6 @@ class Logging(commands.Cog, name="Logging"):
 			emoji=str(reaction.emoji),
 			message_url=reaction.message.jump_url,
 		)
-
-	# ── poll events ───────────────────────────────────────────
 
 	@commands.Cog.listener()
 	async def on_poll_vote_add(self, payload: discord.RawPollVoteActionEvent):
