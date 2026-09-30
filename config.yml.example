@@ -17,9 +17,12 @@ modules:
   - admin
   - afk
   - basic
+  - config
   - economy
   - help
   - info
+  - join_leave
+  - log
   - mod
   - say
   - setup
