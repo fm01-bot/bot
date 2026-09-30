@@ -100,19 +100,37 @@ def upgrade() -> None:
 		sa.Column("is_on", sa.Boolean(), nullable=False, server_default=sa.text("true")),
 		sa.Column("webhook", sa.Text(), nullable=True),
 		sa.Column("channel", sa.Numeric(), nullable=True),
+		sa.Column("modules", postgresql.ARRAY(sa.Text()), nullable=True, server_default=sa.text("ARRAY['*'::text]")),
 		sa.Column(
-			"modules",
-			postgresql.ARRAY(sa.Text()),
-			nullable=True,
-			server_default=sa.text(
-				"ARRAY['*'::text]"
-			),
+			"channels", postgresql.JSONB(astext_type=sa.Text()), nullable=True, server_default=sa.text("'{}'::jsonb")
 		),
 		sa.UniqueConstraint("guild_id", name="log_pk"),
 	)
 
+	op.create_table(
+		"join_config",
+		sa.Column("id", sa.Integer(), autoincrement=True, primary_key=True),
+		sa.Column("guild_id", sa.Numeric(), nullable=False),
+		sa.Column("is_on", sa.Boolean(), nullable=False, server_default=sa.text("true")),
+		sa.Column("channel", sa.Numeric(), nullable=True),
+		sa.Column("message", sa.Text(), nullable=True),
+		sa.UniqueConstraint("guild_id", name="join_config_guild_pk"),
+	)
+
+	op.create_table(
+		"leave_config",
+		sa.Column("id", sa.Integer(), autoincrement=True, primary_key=True),
+		sa.Column("guild_id", sa.Numeric(), nullable=False),
+		sa.Column("is_on", sa.Boolean(), nullable=False, server_default=sa.text("true")),
+		sa.Column("channel", sa.Numeric(), nullable=True),
+		sa.Column("message", sa.Text(), nullable=True),
+		sa.UniqueConstraint("guild_id", name="leave_config_guild_pk"),
+	)
+
 
 def downgrade() -> None:
+	op.drop_table("leave_config")
+	op.drop_table("join_config")
 	op.drop_table("log")
 	op.drop_table("cases")
 	op.drop_table("snapshots")
