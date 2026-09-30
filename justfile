@@ -17,6 +17,9 @@ format:
 lint:
   uv run ruff check
 
+test *ARGS:
+  uv run pytest {{ARGS}}
+
 up *ARGS:
   docker compose up -d {{ARGS}}
 
@@ -49,3 +52,6 @@ debug:
   just up db
   just migrate
   just up
+
+destroy *ARGS:
+  docker compose down -v {{ARGS}}
