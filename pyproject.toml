@@ -32,7 +32,11 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.14.8"]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.14.8",
+]
 
 [tool.setuptools]
 packages = ["helpers"]
@@ -52,8 +56,12 @@ indent-style = "tab"
 skip-magic-trailing-comma = true
 
 [tool.ruff.lint.pydocstyle]
-convention = "numpy"
+convention = "google"
 
 [tool.ty.rules]
 #invalid-method-override = "ignore"
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
