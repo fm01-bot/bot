@@ -9,9 +9,13 @@ on:
     branches:
       - dev
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Lint, Format & Compile Check
+  lint-and-compile:
+    name: Lint, format & compile checks
     runs-on: ubuntu-latest
 
     steps:
@@ -38,4 +42,4 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Verify syntax and compilation
-        run: uv run python -m compileall -q core cogs helpers args
+        run: uv run python -m compileall -q core cogs helpers args tests
