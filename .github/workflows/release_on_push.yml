@@ -1,4 +1,4 @@
-name: 📰 Release on push
+name: Release on push
 on:
   push:
     branches:
@@ -37,10 +37,10 @@ jobs:
         run: |
           PY=${{ steps.pyproject.outputs.version }}
           REL=${{ steps.latest.outputs.latest }}
-          
+
           echo "pyproject.toml: $PY"
           echo "latest release: $REL"
-          
+
           if [ "$PY" = "$REL" ]; then
             echo "action=none" >> $GITHUB_OUTPUT
           elif dpkg --compare-versions "$PY" gt "$REL"; then
