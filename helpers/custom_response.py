@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-KWAG_MAPPING = {
+KWARG_MAPPING = {
 	discord.Guild: Guild.from_guild,
 	discord.Member: Member.from_member,
 	discord.User: User.from_user,
@@ -115,7 +115,12 @@ class CustomResponse:
 
 	def update_localizations(self, data: dict | str):
 		if isinstance(data, dict):
-			self.localizations.update(data)
+			for lang, translations in data.items():
+				if isinstance(translations, dict):
+					self.localizations.setdefault(lang, {}).update(translations)
+				else:
+					self.localizations[lang] = translations
+			self._localizer = localization.Localization(self.localizations, default_locale="en")
 		elif isinstance(data, str):
 			self.load_localizations(data)
 
@@ -199,7 +204,7 @@ class CustomResponse:
 
 		# these are kwargs that are passed in but they're converted into custom args
 		for key, value in kwargs.items():
-			for _type, converter in KWAG_MAPPING.items():
+			for _type, converter in KWARG_MAPPING.items():
 				if isinstance(value, _type):
 					kwargs[key] = converter(value)
 				elif isinstance(value, datetime.datetime):
