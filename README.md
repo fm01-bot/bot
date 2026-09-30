@@ -1,4 +1,4 @@
-# fm01 
+# fm01
 
 [![Crowdin](https://badges.crowdin.net/project-lumin/localized.svg)](https://crowdin.com/project/project-lumin)
 [![GitHub Release](https://img.shields.io/github/v/release/project-lumin/closed-beta)](https://github.com/project-lumin/closed-beta/releases/latest)
@@ -11,15 +11,7 @@
 **fm01** is a Discord bot built to replace and improve upon its predecessor, *FightMan01 bot*. It's a versatile bot
 featuring moderation, utility, and fun commands.
 
-## Running the Bot
-
-### Prerequisites
-
-- Python **3.12 or 3.13**
-- **PostgreSQL**
-- Recommended OS: **Linux** or **macOS** (for optimal compatibility with `uvloop`)
-- The `uv` package manager
-
+## Self-hosting
 ### Setup Steps
 
 1. **Clone the repository**
@@ -54,36 +46,6 @@ featuring moderation, utility, and fun commands.
 We've provided a Dockerfile and a compose file in the Github repo. You can simply run `docker compose up -d --build`
 to start the bot in a Docker container. Make sure to follow until step 3, because the bot still needs
 the `.env` and `config.yml` files to function properly.
-
-## Contributor Notice
-
-1. You're welcome to contribute via PRs - we’ll review and respond!
-
-2. We're subclassing `commands.Context`. You’ll find this in `core/context.py`:
-    - Import with `from core import Context`
-    - This makes localization easier - check the docstring for details
-
-3. The default language is **English**
-    - New commands/features must include English-localized messages
-
-4. Localization is handled via our custom package:  
-   👉 [`discord-localization`](https://pypi.org/project/discord-localization)
-    - Please check out our [Crowdin](https://crowdin.com/project/project-lumin) if you would like to add translations to
-      the bot!
-
-5. We use **NumPy-style docstrings**
-    - All non-command functions should have docstrings, unless clearly self-explanatory (e.g., `load_cogs`)
-
-6. **Helpers** are used for shared, reusable logic (e.g., `EconomyHelper` in `economy.py`)
-
-7. For formatting, we use **custom argument classes** (e.g., `args.User`):
-    - If you're adding a new argument class, please include a `from_X` classmethod (e.g., `User.from_user()`)
-    - These help ensure editable messages are safe and intuitive (e.g., `User.avatar` returns the URL, not the raw
-      asset)
-
-8. AI contributions are allowed, but only if you're not vibe-coding things. We don't recommend opening pull requests without understanding how Python, discord.py or this project specifically works. An `AGENTS.md` file has been provided though.
-
-9. Questions? DM **@pearoo** on Discord.
 
 ## Versioning & Releasing
 
