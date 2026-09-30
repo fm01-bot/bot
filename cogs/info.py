@@ -1,6 +1,5 @@
 import re
 
-import aiohttp
 import discord
 from args import Bot as BotArg
 from args import (
