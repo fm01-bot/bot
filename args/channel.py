@@ -9,9 +9,7 @@ from args.voice_channel import VoiceChannel
 Channel = TextChannel | VoiceChannel | StageChannel | ForumChannel | Category
 
 
-def convert_to_custom_channel(
-	channel: discord.abc.GuildChannel | discord.Thread | discord.abc.Messageable | None,
-):
+def convert_to_custom_channel(channel: discord.abc.GuildChannel | discord.Thread | discord.abc.Messageable | None):
 	if channel:
 		if isinstance(channel, discord.TextChannel):
 			return TextChannel.from_channel(channel)
