@@ -1,25 +1,14 @@
-import asyncio
 import logging
 import os
 
+import winuvloop
 from core.bot import Bot
 from core.config import Config
 from discord.utils import setup_logging
 from dotenv import load_dotenv
 
-setup_logging(level=logging.INFO, root=True)
-
 logger = logging.getLogger(__name__)
 
-try:
-	import uvloop  # type: ignore
-
-	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-except ImportError:
-	if os.name == "nt":
-		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-	else:
-		asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 client: Bot | None = None
 
@@ -49,7 +38,8 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+	setup_logging(level=logging.INFO, root=True)
 	try:
-		asyncio.run(main())
+		winuvloop.run(main())
 	except KeyboardInterrupt:
 		pass
