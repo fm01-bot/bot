@@ -918,5 +918,15 @@
 	"clear": {
 		"name": "töröl",
 		"desc": "Minden zenét kiszed a lejátszási sorból"
+	},
+	"config": {
+		"name": "config",
+		"desc": "Kezeld a botot, mintha egy parancssorból tennéd",
+		"args": {
+			"flags_and_args": {
+				"name": "flagek_és_paraméterek",
+				"desc": "Flagek és paraméterek a parancshoz, -h segítséghez"
+			}
+		}
 	}
 }

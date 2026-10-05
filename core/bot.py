@@ -51,6 +51,7 @@ class Bot(commands.AutoShardedBot):
 		)
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
+		self._error_webhook: discord.Webhook | None = None
 
 	async def fetch_prefix(self, message: discord.Message) -> str | list[str]:
 		if self.debug:
