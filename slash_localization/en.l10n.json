@@ -918,5 +918,15 @@
 	"clear": {
 		"name": "clear",
 		"desc": "Clear all tracks from the queue"
+	},
+	"config": {
+		"name": "config",
+		"desc": "Configure the bot with a command-line like interface",
+		"args": {
+			"flags_and_args": {
+				"name": "flags_and_args",
+				"desc": "Flags and arguments for the config command, -h for help"
+			}
+		}
 	}
 }
