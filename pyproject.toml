@@ -1,8 +1,8 @@
 [project]
 name = "fm01"
-version = "0.8.0"
+version = "0.9.0"
 description = "All-in-one Discord bot for general purposes"
-authors = [{ name = "Pearoo", email = "contact@pearoo.dev" }]
+authors = [{ name = "rnxm", email = "rnxm@playclan.org" }]
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 license = "MIT"
