@@ -49,18 +49,15 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 		logger.info("[Lavalink] ~> Connection closed.")
 
 	async def _init_lavalink(self) -> None:
-		node_uri = os.getenv("LAVALINK_URI")
-		node_password = os.getenv("LAVALINK_PASSWORD")
-		if not node_uri or not node_password:
-			logger.error("LAVALINK_URI or LAVALINK_PASSWORD not set")
-			return
+		node_uri = os.getenv("LAVALINK_URI", "")
+		node_password = os.getenv("LAVALINK_PASSWORD", "")
 		try:
 			nodes = [wavelink.Node(uri=node_uri, password=node_password)]
 			pool = await wavelink.Pool.connect(nodes=nodes, client=self.client)
 			self.client.lavalink = pool
 			logger.info(f"Connected to {node_uri}")
 		except Exception:
-			logger.exception("Connection failed")
+			logger.exception("Connection failed", stack_info=True)
 
 	async def _get_player(self, ctx: Context, *, connect: bool = False) -> LuminPlayer | None:
 		if not ctx.guild:

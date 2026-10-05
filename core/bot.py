@@ -16,6 +16,7 @@ import discord
 import wavelink
 from discord import app_commands
 from discord.ext import commands, localization
+from discord.utils import MISSING
 from helpers import custom_response, seconds_to_text
 
 from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
@@ -28,10 +29,10 @@ class Bot(commands.AutoShardedBot):
 		update_slash_localizations()
 		self.debug: bool = config.debug
 		self.logger = getLogger(__name__)
-		self.uptime: datetime.datetime | None = None
-		self.lavalink: dict[str, wavelink.Node] | None = None
+		self.uptime: datetime.datetime | MISSING = None
+		self.lavalink: dict[str, wavelink.Node] | MISSING = None
 		intents: discord.Intents = discord.Intents.all()
-		self.db: asyncpg.Pool = None
+		self.db: asyncpg.Pool | MISSING = None
 		self.session: aiohttp.ClientSession | None = None
 		self.owner_ids: set[int] = set(config.owner_ids)
 		super().__init__(
@@ -135,11 +136,9 @@ class Bot(commands.AutoShardedBot):
 		benchmark = perf_counter()
 		# Connects to database
 		self.db = await asyncpg.create_pool(
-			host=os.getenv("DB_HOST", "localhost"),
-			database=os.getenv("DB_NAME", "lumin_beta"),
-			# ! Replace with default database name when ran for the first time
-			# ! Any subsequent executions of this code must use `database="lumin"`
-			user="lumin",
+			host=os.getenv("DB_HOST"),
+			database=os.getenv("DB_NAME"),
+			user=os.getenv("DB_USER"),
 			password=os.getenv("DB_PASSWORD"),
 			port=os.getenv("DB_PORT"),
 			timeout=None,
