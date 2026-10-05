@@ -1,9 +1,6 @@
-import asyncio
 import re
 
 import discord
-import pypokedex
-import requests
 from args import Bot as BotArg
 from args import (
 	Category,
@@ -24,6 +21,22 @@ from core import Bot, Context, group
 from discord.ext import commands
 from emoji.unicode_codes import EMOJI_DATA
 from helpers.regex import DISCORD_TEMPLATE
+
+
+class PokemonStats:
+	def __init__(self, stats: dict[str, int]):
+		self.hp = stats.get("hp", 0)
+		self.attack = stats.get("attack", 0)
+		self.defense = stats.get("defense", 0)
+
+
+class PokemonInfo:
+	def __init__(self, dex: int, types: list[str], stats: dict[str, int], image: str):
+		self.dex = dex
+		self.types = types
+		self.type = "\n".join(types)
+		self.base_stats = PokemonStats(stats)
+		self.image = image
 
 
 class Info(commands.Cog, name="Information"):
@@ -116,17 +129,6 @@ class Info(commands.Cog, name="Information"):
 			await ctx.send("info.channel.stage", channel=StageChannel.from_channel(channel))
 		else:
 			raise commands.BadArgument("channel")
-
-	@info.command(l10n_key="pokeinfo")
-	async def pokemon(self, ctx: Context, pokemon_name: str):
-		try:
-			pokemon = await asyncio.get_event_loop().run_in_executor(None, lambda: pypokedex.get(name=pokemon_name))
-		except requests.HTTPError:
-			raise commands.BadArgument("pokemon")
-		pokemon.type = "\n".join(pokemon.types)
-		pokemon.image = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon.dex}.png"
-
-		await ctx.send("info.pokemon", pokemon=pokemon)
 
 	@info.command(l10n_key="tmplteinfo")
 	async def template(self, ctx: Context, template: str):

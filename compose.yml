@@ -2,16 +2,16 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: lumin
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME:-lumin_beta}
+      POSTGRES_USER: ${DB_USER:-fm01}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Please set a database password in .env}
+      POSTGRES_DB: ${DB_NAME:-fm01}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
     volumes:
-      - ./first_time.sql:/docker-entrypoint-initdb.d/first_time.sql:ro
       - postgres_data:/var/lib/postgresql/data
+    command: -p ${DB_PORT}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lumin} -d ${DB_NAME:-lumin_beta}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-fm01} -p ${DB_PORT}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     environment:
       _JAVA_OPTIONS: -Xmx512M -Duser.language=en -Duser.country=US
-      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:?Please set a Lavalink password in .env}
       LAVALINK_URI: ${LAVALINK_URI:-http://lavalink:2333}
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml:ro
@@ -44,15 +44,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      TOKEN: ${TOKEN}
-      DB_PASSWORD: ${DB_PASSWORD}
+      TOKEN: ${TOKEN:?Please set a bot token in .env}
+      DEBUG_TOKEN: ${DEBUG_TOKEN}
+      DB_PASSWORD: ${DB_PASSWORD:?Please set a database password in .env}
       DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-fm01}
       DB_HOST: ${DB_HOST:-db}
-      DB_NAME: ${DB_NAME:-lumin_beta}
+      DB_NAME: ${DB_NAME:-fm01}
       LAVALINK_URI: ${LAVALINK_URI:-http://lavalink:2333}
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
     volumes:
       - .:/bot
+    command: sh -c "uv run alembic upgrade head && uv run --no-dev main.py"
 
 volumes:
   postgres_data:

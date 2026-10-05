@@ -6,5 +6,5 @@ DISCORD_MESSAGE_URL = re.compile(
 	r"(?:https?://)?(?:www\.)?discord(?:app)?\.com/channels/(\d{17,19})/(\d{17,19})/(\d{17,19})"
 )
 TIME = re.compile(
-	r"(\d+)(y|yr|yrs|year|years|mo|mos|month|months|w|wk|wks|week|weeks|d|dy|dys|day|days|h|hr|hrs|hour|hours|m|mn|mns|min|mins|minutes|s|sc|scs|sec|secs|seconds)"
+	r"(\d+)(years|year|yrs|yr|y|months|month|mos|mo|weeks|week|wks|wk|w|days|day|dys|dy|d|hours|hour|hrs|hr|h|minutes|mins|min|mns|mn|m|seconds|secs|sec|scs|sc|s)"
 )

@@ -314,14 +314,14 @@ class Case:
 		Parameters
 		----------
 		db: `asyncpg.Pool`
-		        The database connection pool.
+			The database connection pool.
 
 		Returns
 		-------
 		`Case`
-		        The created case.
+			The created case.
 		"""
-		if self._user not in self._guild.members:
+		if self.type != CaseType.BAN and self._user not in self._guild.members:
 			return None
 
 		await self.before_creation()
@@ -336,7 +336,11 @@ class Case:
 			self.expires,
 			self.message,
 		)
-		await self.after_creation()
+		try:
+			await self.after_creation()
+		except Exception:
+			await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
+			raise
 		return self
 
 	@staticmethod
@@ -485,9 +489,13 @@ class Mute(Case):
 		self._custom_response = custom_response.CustomResponse(self.bot, "mod")
 		reason = await self._custom_response("mod.mute.reason", self._guild, mute=self)
 		if isinstance(self._user, discord.Member) and self.expires is not None:
-			await self._user.timeout(
-				self.expires.astimezone(datetime.UTC), reason=reason if isinstance(reason, str) else None
-			)
+			now = datetime.datetime.now(tz=datetime.UTC)
+			expires_utc = self.expires.astimezone(datetime.UTC)
+			max_timeout = now + datetime.timedelta(days=28)
+			expires_utc = min(expires_utc, max_timeout)
+			if expires_utc <= now:
+				return
+			await self._user.timeout(expires_utc, reason=reason if isinstance(reason, str) else None)
 
 	async def after_creation(self) -> None:
 		"""Notifies the user about the mute."""
@@ -585,6 +593,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 		for row in case_rows:
 			case = Case.from_dict(row, self.client, get_type=True)
 			if not case._guild:
+				await self.client.db.execute("DELETE FROM cases WHERE id = $1", row["id"])
 				continue
 
 			match case.type:
@@ -659,9 +668,13 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 	@command(user=False, permissions=["moderate_members"])
 	async def mute(self, ctx: Context, member: discord.Member, expires: str, *, reason: str | None = None):
 		try:
-			expiry_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=text_to_seconds(expires))
+			seconds = text_to_seconds(expires)
 		except (ValueError, TypeError):
 			raise commands.BadArgument
+		max_timeout = 28 * 24 * 60 * 60  # 28 days
+		if seconds <= 0 or seconds > max_timeout:
+			raise commands.BadArgument("Mute duration must be between 1 second and 28 days.")
+		expiry_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=seconds)
 		if member == ctx.me:
 			await ctx.send("mod.mute.errors.bot")
 			return

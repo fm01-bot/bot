@@ -1,29 +1,6 @@
 # Configuration file
 config.yml
 
-# For beta purposes
-cogs/fun.py
-cogs/images.py
-cogs/globalban.py
-cogs/globalban.i18n.json
-cogs/handlers.py
-cogs/ipc_server.py
-cogs/itdt.py
-cogs/join.i18n.json
-cogs/join.py
-cogs/nevnap.py
-cogs/poll.py
-cogs/raid.py
-cogs/report.py
-cogs/serverstats_v2.py
-cogs/setup.i18n.json
-cogs/tickets.py
-cogs/topgg_cog.py
-cogs/twitch.py
-cogs/valuta.py
-cogs/whitelist.i18n.json
-cogs/whitelist.py
-cogs/yt.py
 
 assets/*
 

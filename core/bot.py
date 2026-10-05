@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import json
 import os
@@ -17,8 +16,8 @@ import discord
 import wavelink
 from discord import app_commands
 from discord.ext import commands, localization
+from discord.utils import MISSING
 from helpers import custom_response, seconds_to_text
-from helpers.emojis import LOADING
 
 from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
 from core.config import Config
@@ -28,15 +27,14 @@ class Bot(commands.AutoShardedBot):
 	def __init__(self, config: Config):
 		self.config = config
 		update_slash_localizations()
-		self.debug: bool = self.config.get("debug")
+		self.debug: bool = config.debug
 		self.logger = getLogger(__name__)
-		self.uptime: datetime.datetime | None = None
-		self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-		self.lavalink: dict[str, wavelink.Node] | None = None
+		self.uptime: datetime.datetime | MISSING = None
+		self.lavalink: dict[str, wavelink.Node] | MISSING = None
 		intents: discord.Intents = discord.Intents.all()
-		self.db: asyncpg.Pool = None
+		self.db: asyncpg.Pool | MISSING = None
 		self.session: aiohttp.ClientSession | None = None
-		self.owner_ids: set[int] = set(self.config.get("owner_ids"))
+		self.owner_ids: set[int] = set(config.owner_ids)
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
 			heartbeat_timeout=150.0,
@@ -46,10 +44,10 @@ class Bot(commands.AutoShardedBot):
 			status=discord.Status.idle,
 			chunk_guilds_at_startup=False,
 			member_cache_flags=discord.MemberCacheFlags.from_intents(intents),
-			max_messages=20000,
-			allowed_contexts=app_commands.AppCommandContext(**self.config.get("allowed_contexts")),
-			allowed_installs=app_commands.AppInstallationType(**self.config.get("allowed_installs")),
-			allowed_mentions=discord.AllowedMentions(**self.config.get("allowed_mentions")),
+			max_messages=1000,
+			allowed_contexts=app_commands.AppCommandContext(**config.allowed_contexts),
+			allowed_installs=app_commands.AppInstallationType(**config.allowed_installs),
+			allowed_mentions=discord.AllowedMentions(**config.allowed_mentions),
 		)
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
 		self.custom_response = custom_response.CustomResponse(self)
@@ -138,11 +136,9 @@ class Bot(commands.AutoShardedBot):
 		benchmark = perf_counter()
 		# Connects to database
 		self.db = await asyncpg.create_pool(
-			host=os.getenv("DB_HOST", "localhost"),
-			database=os.getenv("DB_NAME", "lumin_beta"),
-			# ! Replace with default database name when ran for the first time
-			# ! Any subsequent executions of this code must use `database="lumin"`
-			user="lumin",
+			host=os.getenv("DB_HOST"),
+			database=os.getenv("DB_NAME"),
+			user=os.getenv("DB_USER"),
 			password=os.getenv("DB_PASSWORD"),
 			port=os.getenv("DB_PORT"),
 			timeout=None,
@@ -156,7 +152,7 @@ class Bot(commands.AutoShardedBot):
 		self.logger.info("Loading cogs...")
 		benchmark = perf_counter()
 
-		allowed: list[str] = self.config.get("modules")
+		allowed: list[str] = self.config.modules
 		self.logger.debug(f"Allowed cogs: {', '.join(allowed)}")
 
 		cogs = Path("cogs").glob("*.py")
@@ -254,7 +250,7 @@ class Bot(commands.AutoShardedBot):
 				channel = (
 					ctx.channel
 					if self.debug and ctx and ctx.channel
-					else await self.fetch_channel(self.config.get("log_channel_id"))
+					else await self.fetch_channel(self.config.log_channel_id)
 				)
 
 				if channel and isinstance(channel, discord.TextChannel):
@@ -279,22 +275,32 @@ class Bot(commands.AutoShardedBot):
 						file = discord.File(s, filename="error.txt")  # type: ignore # stringIO is supported
 						stack = "The stack trace was too long to send in a message, so it was saved as a file."
 
-					webhook = None
-					if self.user:
-						webhook = discord.utils.get(await channel.webhooks(), name=f"{self.user.display_name} Errors")
-						if not webhook:
-							webhook = await channel.create_webhook(
-								name=f"{self.user.display_name} Errors", avatar=await ctx.me.avatar.read()
-							)
+					webhook = self._error_webhook
+					if not webhook and self.user:
+						try:
+							webhooks = await channel.webhooks()
+							webhook = discord.utils.get(webhooks, name=f"{self.user.display_name} Errors")
+							if not webhook:
+								avatar = await ctx.me.avatar.read() if ctx.me.avatar else None
+								webhook = await channel.create_webhook(
+									name=f"{self.user.display_name} Errors", avatar=avatar
+								)
+							self._error_webhook = webhook
+						except discord.HTTPException as e:
+							self.logger.warning(f"Failed to fetch or create error webhook: {e}")
+							webhook = None
 					if webhook:
-						await webhook.send(
-							content=f"**ID:** {ctx.message.id}\n"
-							f"**Guild:** {ctx.guild.name if ctx.guild else 'DMs'} / {ctx.guild.id if ctx.guild else 0}\n"
-							f"**User:** {ctx.author} / {ctx.author.id}\n"
-							f"**Command:** {ctx.command}\n"
-							f"```{stack}```",
-							file=file if too_long and file else discord.abc.MISSING,
-						)
+						try:
+							await webhook.send(
+								content=f"**ID:** {ctx.message.id}\n"
+								f"**Guild:** {ctx.guild.name if ctx.guild else 'DMs'} / {ctx.guild.id if ctx.guild else 0}\n"
+								f"**User:** {ctx.author} / {ctx.author.id}\n"
+								f"**Command:** {ctx.command}\n"
+								f"```{stack}```",
+								file=file if too_long and file else discord.abc.MISSING,
+							)
+						except discord.HTTPException as e:
+							self.logger.warning(f"Failed to send error to webhook: {e}")
 					await ctx.reply(
 						content=f"An error has occured and has been reported to the developers. Report ID: `{ctx.message.id}`",
 						mention_author=False,
@@ -307,16 +313,17 @@ class Bot(commands.AutoShardedBot):
 		await self.handle_error(await Context.from_interaction(interaction), error)
 
 	async def before_invoke(self, ctx: Context):  # type: ignore
-		if ctx.guild:
+		if ctx.guild and ctx.guild.id not in self.prefix_cache:
 			is_set_up: bool = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", ctx.guild.id)
 			if not is_set_up:
 				await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", ctx.guild.id)
+				self.prefix_cache[ctx.guild.id] = ("?!", True)
 		try:
 			# Signals that the bot is still thinking / performing a task
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
 				await ctx.interaction.response.defer(thinking=True)
 			else:
-				await ctx.message.add_reaction(LOADING)
+				await ctx.message.add_reaction(self.config.emojis.get("loading"))
 		except discord.HTTPException:
 			pass
 
@@ -324,6 +331,6 @@ class Bot(commands.AutoShardedBot):
 		if ctx.interaction:
 			return
 		try:
-			await ctx.message.remove_reaction(LOADING, ctx.me)
+			await ctx.message.remove_reaction(self.config.emojis.get("loading"), ctx.me)
 		except discord.HTTPException:
 			pass

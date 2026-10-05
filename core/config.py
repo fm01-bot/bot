@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass
-from typing import Any
 
 import yaml
 
@@ -16,6 +15,7 @@ class Config:
 	allowed_contexts: dict[str, bool]
 	allowed_installs: dict[str, bool]
 	allowed_mentions: dict[str, bool]
+	emojis: dict[str, str]
 
 	@classmethod
 	def from_file(cls, file: str = "config.yml"):
@@ -26,6 +26,3 @@ class Config:
 			logger.warning("No config.yml file found, defaults are applied")
 			with open("config.yml.example", "r", encoding="utf-8") as f:
 				return cls(**yaml.safe_load(f))
-
-	def get(self, key: str, default: Any = None) -> Any:
-		return getattr(self, key, default)

@@ -1,5 +1,5 @@
 # Debug mode enables verbose error logging
-debug: true
+debug: false
 
 # This is a list of Discord user IDs, these people can execute administrative commands
 # to get your user ID:
@@ -17,16 +17,25 @@ modules:
   - admin
   - afk
   - basic
+  - config
   - economy
-  - giveaway
   - help
   - info
+  - join_leave
   - log
   - mod
   - say
   - setup
   - snapshot
   - status
+  - voice
+
+# Emojis used in bot responses
+# https://support.discord.com/hc/en-us/community/posts/360069335891-Get-Emoji-ID
+emojis:
+  check: <emoji_markdown>
+  x: <emoji_markdown>
+  loading: <emoji_markdown>
 
 # Channel ID where runtime errors will be sent to
 # make sure this channel isn't visible to the public as error messages

@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 from typing import Literal, cast
@@ -7,6 +8,8 @@ import wavelink
 from core import Bot, Context
 from core.hybrid import command
 from discord.ext import commands
+
+logger = logging.getLogger(__name__)
 
 
 class LuminPlayer(wavelink.Player):
@@ -43,18 +46,18 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 	async def cog_unload(self) -> None:
 		await wavelink.Pool.close()
 		self.client.lavalink = None
-		self.client.logger.info("[Lavalink] ~> Connection closed.")
+		logger.info("[Lavalink] ~> Connection closed.")
 
 	async def _init_lavalink(self) -> None:
-		node_uri = os.getenv("LAVALINK_URI", "http://localhost:2333")
-		node_password = os.getenv("LAVALINK_PASSWORD", "8pX3Mn9tLUvGwHVs")
+		node_uri = os.getenv("LAVALINK_URI", "")
+		node_password = os.getenv("LAVALINK_PASSWORD", "")
 		try:
 			nodes = [wavelink.Node(uri=node_uri, password=node_password)]
 			pool = await wavelink.Pool.connect(nodes=nodes, client=self.client)
 			self.client.lavalink = pool
-			self.client.logger.info(f"Connected to {node_uri}")
+			logger.info(f"Connected to {node_uri}")
 		except Exception:
-			self.client.logger.exception("Connection failed")
+			logger.exception("Connection failed", stack_info=True)
 
 	async def _get_player(self, ctx: Context, *, connect: bool = False) -> LuminPlayer | None:
 		if not ctx.guild:
@@ -93,15 +96,12 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 		if not member.guild or not member.guild.voice_client:
 			return
 		player = cast(LuminPlayer, member.guild.voice_client)
-		if not player or not player.playing or not player.channel:
+		if not player or not player.channel:
 			return
 
-		if (
-			before.channel
-			and after.channel is None
-			and player.channel.id == before.channel.id
-			and len(before.channel.members) <= 1
-		):
+		# Disconnect if no non-bot members remain in the bot's voice channel
+		non_bot_members = [m for m in player.channel.members if not m.bot]
+		if len(non_bot_members) == 0:
 			await player.disconnect()
 			if player.home:
 				ch = member.guild.get_channel(player.home)

@@ -4,6 +4,7 @@ import json
 import uuid
 from uuid import UUID
 
+import aiohttp
 import asyncpg
 import discord
 from core import Bot, Context, group
@@ -34,6 +35,13 @@ class Snapshot(commands.Cog, name="Snapshots"):
 		payload = {"roles": {}, "channels": {}}
 
 		for x in ctx.guild.roles:
+			icon_data = None
+			if x.display_icon:
+				if isinstance(x.display_icon, discord.Asset):
+					icon_data = {"type": "asset", "url": x.display_icon.url}
+				elif isinstance(x.display_icon, str):
+					icon_data = {"type": "unicode", "value": x.display_icon}
+
 			payload["roles"][x.id] = {
 				"perms": x.permissions.value,
 				"color": x.color.value,
@@ -41,11 +49,7 @@ class Snapshot(commands.Cog, name="Snapshots"):
 				"managable": x.managed,
 				"position": x.position,
 				"name": x.name,
-				"display_icon": (await x.display_icon.read()).decode("latin1")
-				if x.display_icon and x.display_icon is discord.Asset
-				else x.display_icon
-				if x.display_icon
-				else None,
+				"display_icon": icon_data,
 			}
 
 		for x in ctx.guild.channels:
@@ -54,7 +58,7 @@ class Snapshot(commands.Cog, name="Snapshots"):
 				"type": str(x.type),
 				"category": x.category.name if x.category else None,
 				"name": x.name,
-				"bitrate": x.bitrate if x.type == [discord.ChannelType.voice] else None,
+				"bitrate": x.bitrate if x.type == discord.ChannelType.voice else None,
 				"slowmode": x.slowmode_delay
 				if x.type
 				not in [discord.ChannelType.voice, discord.ChannelType.category, discord.ChannelType.stage_voice]
@@ -175,21 +179,33 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			else:
 				color = None
 			if payload["roles"][x]["name"] != "@everyone":
-				try:
-					dicon = (
-						payload["roles"][x]["display_icon"].encode("latin1")
-						if payload["roles"][x]["display_icon"]
-						else None
-					)
-				except (AttributeError, TypeError):
-					dicon = payload["roles"][x]["display_icon"] if payload["roles"][x]["display_icon"] else None
+				dicon = None
+				icon_val = payload["roles"][x].get("display_icon")
+				if isinstance(icon_val, dict):
+					if icon_val.get("type") == "unicode":
+						dicon = icon_val.get("value")
+					elif (
+						icon_val.get("type") == "asset"
+						and icon_val.get("url")
+						and "ROLE_ICONS" in ctx.guild.features
+						and self.client.session
+						and not self.client.session.closed
+					):
+						try:
+							async with self.client.session.get(icon_val["url"]) as resp:
+								if resp.status == 200:
+									dicon = await resp.read()
+						except (aiohttp.ClientError, TimeoutError):
+							dicon = None
+				elif isinstance(icon_val, str):
+					dicon = icon_val
 				role = await ctx.guild.create_role(
 					name=payload["roles"][x]["name"],
 					permissions=perms,
 					colour=color,
 					hoist=bool(payload["roles"][x]["hoist"]),
 					reason=await self.custom_response("snapshot.strings.save_load_reason", ctx),
-					display_icon=dicon if "ROLE_ICONS" in ctx.guild.features else None,
+					display_icon=dicon if ("ROLE_ICONS" in ctx.guild.features or isinstance(dicon, str)) else None,
 				)
 				await asyncio.sleep(0.5)
 		for y in sorted(payload["channels"], key=lambda x: payload["channels"][x]["type"]):
@@ -323,20 +339,59 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			await ctx.send("snapshot.not_found")
 			return
 
+		if not isinstance(payload, dict) or "roles" not in payload or "channels" not in payload:
+			await ctx.send("snapshot.not_found")
+			return
+
 		old = await self.create_snapshot(ctx)
+		current_channel_id = ctx.channel.id if ctx.channel else None
 
-		await self.delete_all_channels(ctx)
-		await self.delete_all_roles(ctx)
-		await self.load_snapshot(ctx, payload)
+		try:
+			# Delete other channels first
+			for x in list(ctx.guild.channels):
+				if x.id != current_channel_id:
+					try:
+						await x.delete(reason=await self.custom_response("snapshot.strings.save_load_reason", ctx))
+					except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+						continue
+					await asyncio.sleep(0.5)
 
-		if ctx.guild.owner_id != ctx.author.id:  # prevent griefs by sending the code to the owner
+			await self.delete_all_roles(ctx)
+			await self.load_snapshot(ctx, payload)
+
+			if current_channel_id:
+				old_ch = ctx.guild.get_channel(current_channel_id)
+				if old_ch:
+					try:
+						await old_ch.delete(reason=await self.custom_response("snapshot.strings.save_load_reason", ctx))
+					except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+						pass
+
+		except Exception as e:
+			self.client.logger.exception("Snapshot loading encountered an error")
+			if ctx.guild.owner:
+				try:
+					await ctx.guild.owner.send(
+						content=f"⚠️ An error occurred while restoring snapshot `{code}`: {e}. You can restore using the pre-snapshot backup code `{old}`."
+					)
+				except (discord.Forbidden, discord.HTTPException):
+					pass
+			return
+
+		if ctx.guild.owner_id != ctx.author.id and ctx.guild.owner:  # prevent griefs by sending the code to the owner
 			alert = await self.custom_response("snapshot.owner_alert", ctx, code=old)
 			alert.pop("reply", None)  # type: ignore
 			alert.pop("ephemeral", None)  # type: ignore
 			alert.pop("delete_after", None)  # type: ignore
-			await ctx.guild.owner.send(**alert)  # type: ignore
+			try:
+				await ctx.guild.owner.send(**alert)  # type: ignore
+			except (discord.Forbidden, discord.HTTPException):
+				pass
 
-		await ctx.send("snapshot.load")
+		try:
+			await ctx.send("snapshot.load")
+		except (discord.NotFound, discord.HTTPException):
+			pass
 
 
 async def setup(client: Bot):
