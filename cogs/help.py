@@ -347,7 +347,7 @@ class HelpCommand(commands.HelpCommand):
 					break
 				formatted = Localization.format_strings(template, command=Command.from_command(command, self.context))
 				embeds[0].add_field(**formatted)
-			message["embeds"] = CustomResponse.convert_embeds(embeds)  # type: ignore
+			message["embeds"] = self.custom_response.convert_embeds(embeds)  # type: ignore
 
 		await self.get_destination().send(**message)  # type: ignore
 
