@@ -1,4 +1,4 @@
-set windows-shell := ["pwsh", "-NoLogo", "-Command"]
+set windows-shell := ["powershell", "-NoLogo", "-Command"]
 set quiet
 set dotenv-load := true
 
