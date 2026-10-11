@@ -38,11 +38,11 @@ def get_url() -> str:
 			return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 		return database_url
 
-	user = os.getenv("DB_USER", "lumin")
+	user = os.getenv("DB_USER", "fm01")
 	password = os.getenv("DB_PASSWORD", "")
-	host = os.getenv("DB_HOST", "localhost")
+	host = os.getenv("DB_HOST", "db")
 	port = os.getenv("DB_PORT", "5432")
-	database = os.getenv("DB_NAME", "lumin_beta")
+	database = os.getenv("DB_NAME", "fm01")
 
 	auth = f"{quote_plus(user)}:{quote_plus(password)}"
 	return f"postgresql+asyncpg://{auth}@{host}:{port}/{database}"

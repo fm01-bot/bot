@@ -5,13 +5,14 @@ services:
       POSTGRES_USER: ${DB_USER:-fm01}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Please set a database password in .env}
       POSTGRES_DB: ${DB_NAME:-fm01}
+      DB_PORT: ${DB_PORT:-5432}
     ports:
       - "${DB_PORT:-5432}:${DB_PORT:-5432}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    command: -p ${DB_PORT}
+    command: -p ${DB_PORT:-5432}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-fm01} -p ${DB_PORT}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-fm01} -p ${DB_PORT:-5432}" ]
       interval: 5s
       timeout: 5s
       retries: 5
