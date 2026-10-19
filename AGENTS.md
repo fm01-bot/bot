@@ -46,6 +46,7 @@ Cogs are what regular users would call "modules". Each cog (each `.py` file in t
 - **Giveaway:** commands and event loops related to giveaways.
 - **Help:** contains the `?!help` command, a subclass of `discord.ext.commands.HelpCommand`.
 - **Info:** commands under the `?!info` group, such as `?!info @user`, `?!info server`, etc.
+- **Level:** leveling system with `?!level` card generation, `?!levels` leaderboard, message XP rewards, role rewards, and config subcommands.
 - **Log:** commands and listeners for server logging.
 - **Mod:** commands for server moderation and case management (each moderation action creates a case).
 - **Say:** commands under the `?!say` group.

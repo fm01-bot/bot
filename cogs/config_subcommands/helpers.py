@@ -25,3 +25,26 @@ def resolve_channel(guild: discord.Guild, value: str | int | None) -> discord.ab
 			return thread
 
 	return None
+
+
+def resolve_role(guild: discord.Guild, value: str | int | None) -> discord.Role | None:
+	"""Resolve a role from mention, ID, or name."""
+	if value is None:
+		return None
+
+	val_str = str(value).strip()
+	if val_str.startswith("<@&") and val_str.endswith(">"):
+		val_str = val_str[3:-1]
+	val_str = val_str.lstrip("@")
+
+	if val_str.isdigit():
+		role = guild.get_role(int(val_str))
+		if role:
+			return role
+
+	lower_val = val_str.lower()
+	for role in guild.roles:
+		if role.name.lower() == lower_val:
+			return role
+
+	return None

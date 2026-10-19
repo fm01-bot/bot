@@ -212,3 +212,158 @@ async def test_full_execution_flow():
 	check_code_block_response(ctx.send)
 	status_content = ctx.send.call_args[1].get("content")
 	assert "Hello {user}!" in status_content  # Template is not replaced in preview
+
+
+@pytest.mark.asyncio
+async def test_config_level_execution():
+	bot = MagicMock()
+	bot.db = MagicMock()
+	bot.db.execute = AsyncMock()
+	bot.db.fetch = AsyncMock(return_value=[])
+	bot.db.fetchrow = AsyncMock(return_value=None)
+	bot.get_cog.return_value = None
+
+	ctx = MagicMock()
+	ctx.bot = bot
+	ctx.send = AsyncMock()
+
+	guild = MagicMock()
+	guild.id = 12345
+	guild.name = "Test Guild"
+
+	test_channel = MagicMock(spec=discord.TextChannel)
+	test_channel.id = 555
+	test_channel.name = "general"
+	guild.channels = [test_channel]
+	guild.threads = []
+	guild.get_channel_or_thread.return_value = test_channel
+	guild.get_channel.return_value = test_channel
+
+	test_role = MagicMock(spec=discord.Role)
+	test_role.id = 777
+	test_role.name = "VIP"
+	guild.roles = [test_role]
+	guild.get_role.return_value = test_role
+
+	ctx.guild = guild
+	ctx.channel = test_channel
+
+	config_cog = Config(bot)
+
+	# 1. config level enable
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level enable")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[+] Leveling system enabled" in ctx.send.call_args[1]["content"]
+
+	# 2. config level disable
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level disable")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[-] Leveling system disabled" in ctx.send.call_args[1]["content"]
+
+	# 3. config level xp
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(
+		config_cog, ctx, flags_and_args="level xp --min 20 --max 30 --multiplier 1.5 --cooldown 45"
+	)
+	assert ctx.send.called
+	assert bot.db.execute.called
+	content = ctx.send.call_args[1]["content"]
+	assert "Minimum XP: 20" in content
+	assert "Maximum XP: 30" in content
+	assert "Multiplier: 1.5x" in content
+	assert "Cooldown: 45s" in content
+
+	# 4. config level message
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(
+		config_cog, ctx, flags_and_args='level message --mode channel --channel #general --template "Congrats {user}!"'
+	)
+	assert ctx.send.called
+	assert bot.db.execute.called
+	content = ctx.send.call_args[1]["content"]
+	assert "Mode: channel" in content
+	assert "Channel: #general" in content
+
+	# 5. config level rewards add
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards add 5 @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[+] Added reward: @VIP at Level 5" in ctx.send.call_args[1]["content"]
+
+	# 6. config level rewards remove
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards remove 5")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[-] Removed role reward(s) for Level 5" in ctx.send.call_args[1]["content"]
+
+	# 7. config level rewards stack
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards stack false")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Replace previous" in ctx.send.call_args[1]["content"]
+
+	# 8. config level channel ignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel ignore #general")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Ignored channel #general" in ctx.send.call_args[1]["content"]
+
+	# 9. config level channel unignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel unignore #general")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Unignored channel #general" in ctx.send.call_args[1]["content"]
+
+	# 10. config level channel multiplier
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel multiplier #general 2.0")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "set to 2.0x" in ctx.send.call_args[1]["content"]
+
+	# 11. config level role ignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role ignore @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Ignored role @VIP" in ctx.send.call_args[1]["content"]
+
+	# 12. config level role unignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role unignore @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Unignored role @VIP" in ctx.send.call_args[1]["content"]
+
+	# 13. config level role multiplier
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role multiplier @VIP 1.5")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "set to 1.5x" in ctx.send.call_args[1]["content"]
+
+	# 14. config level show
+	ctx.send.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level show")
+	assert ctx.send.called
+	assert "Leveling System Configuration" in ctx.send.call_args[1]["content"]

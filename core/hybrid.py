@@ -333,6 +333,7 @@ def command(
 	parent: HybridGroup | HybridCommand | None = None,
 	user: bool = True,
 	guild: bool = True,
+	aliases: list[str] | None = None,
 ) -> Callable[[CommandCallback], HybridCommand]:
 	def decorator(func: CommandCallback) -> HybridCommand:
 		if isinstance(func, commands.Command):
@@ -358,6 +359,7 @@ def command(
 			l10n_key=base,
 			user=user,
 			guild=guild,
+			aliases=aliases or [],
 		)
 
 		return cmd

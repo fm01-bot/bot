@@ -928,5 +928,27 @@
 				"desc": "Flags and arguments for the config command, -h for help"
 			}
 		}
+	},
+	"level": {
+		"name": "level",
+		"desc": "Check your or another member's level and rank",
+		"usage": "level (member)",
+		"args": {
+			"member": {
+				"name": "member",
+				"desc": "Member whose level to check"
+			}
+		}
+	},
+	"levels": {
+		"name": "levels",
+		"desc": "Display the server leveling leaderboard",
+		"usage": "levels (page)",
+		"args": {
+			"page": {
+				"name": "page",
+				"desc": "Leaderboard page number"
+			}
+		}
 	}
 }

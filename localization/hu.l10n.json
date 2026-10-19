@@ -283,6 +283,27 @@
 			}
 		]
 	},
+	"levels_leaderboard": {
+		"embeds": [
+			{
+				"title": "Szint ranglista",
+				"fields": [
+					{
+						"name": "#{number} {user}",
+						"value": "Szint: **{level}** | XP: `{xp}`",
+						"inline": false
+					},
+					{
+						"name": "Pssszt...",
+						"value": "Még senki sem szerzett XP-t. Kezdj el beszélgetni a szintlépéshez!",
+						"inline": false
+					}
+				],
+				"color": 6656243
+			}
+		]
+	},
+	"levelup_message": "Szép volt {user}, elérted a {level}. szintet!",
 	"shop": {
 		"list": {
 			"show": {

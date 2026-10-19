@@ -283,6 +283,27 @@
 			}
 		]
 	},
+	"levels_leaderboard": {
+		"embeds": [
+			{
+				"title": "Level Leaderboard",
+				"fields": [
+					{
+						"name": "#{number} {user}",
+						"value": "Level: **{level}** | XP: `{xp}`",
+						"inline": false
+					},
+					{
+						"name": "Psst...",
+						"value": "No one has earned any XP yet. Start chatting to gain XP!",
+						"inline": false
+					}
+				],
+				"color": 6656243
+			}
+		]
+	},
+	"levelup_message": "Hey {user}, you just advanced to level {level}!",
 	"shop": {
 		"list": {
 			"show": {

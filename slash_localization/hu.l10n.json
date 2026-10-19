@@ -928,5 +928,27 @@
 				"desc": "Flagek és paraméterek a parancshoz, -h segítséghez"
 			}
 		}
+	},
+	"level": {
+		"name": "szint",
+		"desc": "A saját vagy egy másik tag szintjének és rangjának megtekintése",
+		"usage": "szint (tag)",
+		"args": {
+			"member": {
+				"name": "tag",
+				"desc": "A tag, akinek a szintjét meg szeretnéd nézni"
+			}
+		}
+	},
+	"levels": {
+		"name": "ranglista",
+		"desc": "A szerver szintlépési ranglistájának megjelenítése",
+		"usage": "ranglista (oldal)",
+		"args": {
+			"page": {
+				"name": "oldal",
+				"desc": "A ranglista oldalszáma"
+			}
+		}
 	}
 }
