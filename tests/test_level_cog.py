@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import discord
 import pytest
 from cogs.level import Level
-from helpers.leveling import GuildLevelConfig
+from helpers.leveling import GuildLevelConfig, LevelupMessage
 
 
 @pytest.fixture
@@ -147,7 +147,7 @@ async def test_on_message_xp_levelup_and_rewards(level_cog):
 		cooldown=0,
 		min_xp=100,
 		max_xp=100,
-		message_mode="current",
+		message_mode=LevelupMessage.CURRENT,
 		levelup_message="GG {user}, you reached level {level}!",
 	)
 	level_cog.channel_overrides[(999, 444)] = (1.0, False)
@@ -190,7 +190,13 @@ async def test_on_message_xp_levelup_localized_default(level_cog):
 
 	# Config with levelup_message=None
 	level_cog.guild_configs[999] = GuildLevelConfig(
-		guild_id=999, is_on=True, cooldown=0, min_xp=100, max_xp=100, message_mode="current", levelup_message=None
+		guild_id=999,
+		is_on=True,
+		cooldown=0,
+		min_xp=100,
+		max_xp=100,
+		message_mode=LevelupMessage.CURRENT,
+		levelup_message=None,
 	)
 	level_cog.channel_overrides[(999, 444)] = (1.0, False)
 	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
@@ -200,6 +206,81 @@ async def test_on_message_xp_levelup_localized_default(level_cog):
 
 	level_cog.client.custom_response.get_message.assert_called_once()
 	msg.channel.send.assert_called_once_with("Localized GG!")
+
+
+@pytest.mark.asyncio
+async def test_on_message_xp_levelup_dict_payload_with_reply(level_cog):
+	msg = MagicMock(spec=discord.Message)
+	msg.guild.id = 999
+	msg.channel.id = 444
+	msg.author = MagicMock(spec=discord.Member)
+	msg.author.bot = False
+	msg.author.id = 111
+	msg.author.guild = msg.guild
+	msg.author.roles = []
+	msg.channel.send = AsyncMock()
+
+	level_cog.guild_configs[999] = GuildLevelConfig(
+		guild_id=999,
+		is_on=True,
+		cooldown=0,
+		min_xp=100,
+		max_xp=100,
+		message_mode=LevelupMessage.CURRENT,
+		levelup_message=None,
+	)
+	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
+
+	embed = MagicMock(spec=discord.Embed)
+	mentions = discord.AllowedMentions(users=True)
+	payload = {"content": "GG <@111>!", "embeds": [embed], "allowed_mentions": mentions, "reference": msg}
+	level_cog.client.custom_response.get_message.return_value = payload
+
+	await level_cog.on_message_xp(msg)
+
+	msg.channel.send.assert_called_once_with(
+		content="GG <@111>!", embeds=[embed], allowed_mentions=mentions, reference=msg
+	)
+
+
+@pytest.mark.asyncio
+async def test_on_message_xp_levelup_dict_payload_separate_channel_strips_reference(level_cog):
+	msg = MagicMock(spec=discord.Message)
+	msg.guild.id = 999
+	msg.channel.id = 444
+	msg.author = MagicMock(spec=discord.Member)
+	msg.author.bot = False
+	msg.author.id = 111
+	msg.author.guild = msg.guild
+	msg.author.roles = []
+
+	target_ch = MagicMock(spec=discord.TextChannel)
+	target_ch.id = 555
+	target_ch.send = AsyncMock()
+	msg.guild.get_channel.return_value = target_ch
+
+	level_cog.guild_configs[999] = GuildLevelConfig(
+		guild_id=999,
+		is_on=True,
+		cooldown=0,
+		min_xp=100,
+		max_xp=100,
+		message_mode=LevelupMessage.CHANNEL,
+		message_channel=555,
+		levelup_message=None,
+	)
+	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
+
+	embed = MagicMock(spec=discord.Embed)
+	mentions = discord.AllowedMentions(users=True)
+	payload = {"content": "GG <@111>!", "embeds": [embed], "allowed_mentions": mentions, "reference": msg}
+	level_cog.client.custom_response.get_message.return_value = payload
+
+	await level_cog.on_message_xp(msg)
+
+	target_ch.send.assert_called_once_with(content="GG <@111>!", embeds=[embed], allowed_mentions=mentions)
 
 
 @pytest.mark.asyncio

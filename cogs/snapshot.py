@@ -19,18 +19,14 @@ class Snapshot(commands.Cog, name="Snapshots"):
 
 	@staticmethod
 	async def save(ctx: Context) -> dict:
-		"""
-		Creates a snapshot of the server.
+		"""Creates a snapshot of the server.
 
-		Parameters
-		----------
-		ctx: `Context`
-		        The context to get the guild data from.
+		Args:
+			ctx (Context): The context to get the guild data from.
 
-		Returns
-		-------
-		`dict`
-		        The payload of the snapshot.
+		Returns:
+			dict: The payload of the snapshot.
+
 		"""
 		payload = {"roles": {}, "channels": {}}
 
@@ -86,18 +82,14 @@ class Snapshot(commands.Cog, name="Snapshots"):
 		return payload
 
 	async def create_snapshot(self, ctx: Context) -> UUID | None:
-		"""
-		Creates a snapshot and inserts it into the database.
+		"""Creates a snapshot and inserts it into the database.
 
-		Parameters
-		----------
-		ctx: `Context`
-		        The context to get the guild data from.
+		Args:
+			ctx (Context): The context to get the guild data from.
 
-		Returns
-		-------
-		`UUID`
-		        Code (`UUID`) if the snapshot was successful.
+		Returns:
+			UUID: Code (`UUID`) if the snapshot was successful.
+
 		"""
 		payload = await self.save(ctx)
 
@@ -120,18 +112,14 @@ class Snapshot(commands.Cog, name="Snapshots"):
 		return code
 
 	async def get_snapshot(self, code: str | UUID) -> dict | None:
-		"""
-		Gets a snapshot from the database.
+		"""Gets a snapshot from the database.
 
-		Parameters
-		----------
-		code: Union[`str`, `UUID`]
-		        The code of the snapshot.
+		Args:
+			code (Union[str, UUID]): The code of the snapshot.
 
-		Returns
-		-------
-		`dict`
-		        The snapshot's payload.
+		Returns:
+			dict: The snapshot's payload.
+
 		"""
 		payload = await self.connection.fetchval("SELECT payload FROM snapshots WHERE code = $1", code)
 		if payload:
@@ -140,13 +128,11 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			return None
 
 	async def delete_all_channels(self, ctx: Context):
-		"""
-		Deletes all channels in the server.
+		"""Deletes all channels in the server.
 
-		Parameters
-		----------
-		ctx: `Context`
-		        The context to get the guild data from.
+		Args:
+			ctx (Context): The context to get the guild data from.
+
 		"""
 		for x in ctx.guild.channels:
 			try:
@@ -156,13 +142,11 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			await asyncio.sleep(0.5)
 
 	async def delete_all_roles(self, ctx: Context):
-		"""
-		Deletes all roles in the server.
+		"""Deletes all roles in the server.
 
-		Parameters
-		----------
-		ctx: `Context`
-		        The context to get the guild data from.
+		Args:
+			ctx (Context): The context to get the guild data from.
+
 		"""
 		for x in ctx.guild.roles:
 			try:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass
 from typing import NamedTuple
 
@@ -14,7 +15,7 @@ class LevelProgress(NamedTuple):
 def xp_to_next_level(level: int) -> int:
 	"""Calculate how much XP is needed to advance from `level` to `level + 1`.
 
-	Formula: 5 * (level ^ 2) + (50 * level) + 100
+	```5 * (level ^ 2) + (50 * level) + 100```
 	"""
 	level = max(level, 0)
 	return 5 * (level**2) + (50 * level) + 100
@@ -27,8 +28,8 @@ def total_xp_for_level(level: int) -> int:
 	"""
 	if level <= 0:
 		return 0
-	# Sum of squares formula: (L-1)*L*(2L-1)/6
-	# Sum of integers formula: (L-1)*L/2
+	# Sum of squares: (L-1)*L*(2L-1)/6
+	# Sum of integers: (L-1)*L/2
 	# Sum of constants: 100 * L
 	n = level
 	sum_sq = (n - 1) * n * (2 * n - 1) // 6
@@ -62,6 +63,12 @@ def level_from_total_xp(total_xp: int) -> LevelProgress:
 	return LevelProgress(level=lvl, current_xp=current_xp, needed_xp=needed, remaining_xp=remaining)
 
 
+class LevelupMessage(str, enum.Enum):
+	DISABLED = "disabled"
+	CURRENT = "current"
+	CHANNEL = "channel"
+
+
 @dataclass
 class GuildLevelConfig:
 	guild_id: int
@@ -70,7 +77,7 @@ class GuildLevelConfig:
 	min_xp: int = 15
 	max_xp: int = 25
 	cooldown: int = 60
-	message_mode: str = "current"  # "current", "channel", "disabled"
+	message_mode: LevelupMessage = LevelupMessage.CURRENT
 	message_channel: int | None = None
 	levelup_message: str | None = None
 	stack_roles: bool = True

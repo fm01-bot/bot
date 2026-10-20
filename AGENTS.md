@@ -58,6 +58,12 @@ Cogs are what regular users would call "modules". Each cog (each `.py` file in t
 
 Because the bot uses localization, we need to provide a way to include variables within responses. Every file in `args/` is a dataclass that we can convert `discord.py` objects into so that we can later pass those objects into the custom response functions (usually as kwargs in `ctx.send()`).
 
+### Localization
+
+Every response (apart from admin-only commands) can be localized. You can use localized messages by using `ctx.send(key)`, where `key` is the localization key found in `localization/[lang].l10n.json`. Nested `key`s are separated using a period `.`, such as `key.nested`. Never use hardcoded responses in messages and database defaults - leave them in the localization files instead.
+
+Only add english (`en`) localizations to responses and refuse to add new languages as the project does not like AI localizations.
+
 ## 4. Response directives
 
 - Always give short, direct and concise answers to the user.

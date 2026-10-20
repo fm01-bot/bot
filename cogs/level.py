@@ -11,7 +11,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.localization import Localization
 from helpers.level_card import create_level_card
-from helpers.leveling import GuildLevelConfig, level_from_total_xp
+from helpers.leveling import GuildLevelConfig, LevelupMessage, level_from_total_xp
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class Level(commands.Cog, name="Level"):
 				min_xp=int(row["min_xp"]),
 				max_xp=int(row["max_xp"]),
 				cooldown=int(row["cooldown"]),
-				message_mode=str(row["message_mode"]),
+				message_mode=LevelupMessage(row["message_mode"]),
 				message_channel=int(row["message_channel"]) if row["message_channel"] else None,
 				levelup_message=str(row["levelup_message"]) if row and row["levelup_message"] else None,
 				stack_roles=bool(row["stack_roles"]),
@@ -176,7 +176,7 @@ class Level(commands.Cog, name="Level"):
 			new_ch,
 			new_tmpl,
 		)
-		cfg.message_mode = new_mode
+		cfg.message_mode = LevelupMessage(new_mode)
 		cfg.message_channel = new_ch
 		cfg.levelup_message = new_tmpl
 
@@ -440,17 +440,31 @@ class Level(commands.Cog, name="Level"):
 				.replace("{level}", str(new_level))
 				.replace("{xp}", f"{total_xp:,}")
 			)
-		else:
-			localized_msg = await self.client.custom_response.get_message(
-				"levelup_message", message.guild or "en", user=message.author, level=new_level, xp=f"{total_xp:,}"
-			)
-			text = str(localized_msg) if not isinstance(localized_msg, dict) else str(localized_msg.get("content", ""))
+			try:
+				await target_channel.send(text)
+			except (discord.Forbidden, discord.HTTPException):
+				guild_id = message.guild.id if message.guild else 0
+				logger.warning(f"Failed to send level-up message in guild {guild_id}")
+			return
 
-		try:
-			await target_channel.send(text)
-		except (discord.Forbidden, discord.HTTPException):
-			guild_id = message.guild.id if message.guild else 0
-			logger.warning(f"Failed to send level-up message in guild {guild_id}")
+		payload = await self.client.custom_response.get_message(
+			"levelup_message", message, user=message.author, level=new_level, xp=f"{total_xp:,}"
+		)
+		if isinstance(payload, dict):
+			send_kwargs = dict(payload)
+			if getattr(target_channel, "id", None) != getattr(message.channel, "id", None):
+				send_kwargs.pop("reference", None)
+			try:
+				await target_channel.send(**send_kwargs)
+			except (discord.Forbidden, discord.HTTPException):
+				guild_id = message.guild.id if message.guild else 0
+				logger.warning(f"Failed to send level-up message in guild {guild_id}")
+		else:
+			try:
+				await target_channel.send(str(payload))
+			except (discord.Forbidden, discord.HTTPException):
+				guild_id = message.guild.id if message.guild else 0
+				logger.warning(f"Failed to send level-up message in guild {guild_id}")
 
 	@commands.Cog.listener("on_message")
 	async def on_message_xp(self, message: discord.Message) -> None:

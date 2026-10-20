@@ -91,14 +91,11 @@ class Case:
 	def from_dict(cls, data: dict, client: discord.Client, get_type: bool = False) -> Self:
 		"""Create a `Case` from a dictionary.
 
-		Parameters
-		----------
-		data: `dict`
-		        The dictionary to create the `Case` from.
-		client: `discord.Client`
-		        The client to get the guilds with.
-		get_type: `bool`
-		        Whether to return the type of the case in the dictionary.
+		Args:
+			data (dict): The dictionary to create the `Case` from.
+			client (discord.Client): The client to get the guilds with.
+			get_type (bool): Whether to return the type of the case in the dictionary.
+
 		"""
 		data = dict(data)
 		data.pop("id", None)
@@ -126,25 +123,17 @@ class Case:
 	) -> list[Self]:
 		"""Generate a list of `Case`s from a user.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool
-		user: Union[`discord.Member`, `discord.User`]
-		        The user to get the cases from
-		client: `discord.Client`
-		        The client to get the guilds with
-		guild: `discord.Guild`
-		        The guild to get the cases from
-		limit: `int`
-		        The limit of cases to get. If None, it will get all cases
-		get_type: `bool`
-		        Whether to return the type of the case in the result dictionary
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+			user (Union[discord.Member, discord.User]): The user to get the cases from.
+			client (discord.Client): The client to get the guilds with.
+			guild (discord.Guild): The guild to get the cases from.
+			limit (int, optional): The limit of cases to get. If None, it will get all cases.
+			get_type (bool): Whether to return the type of the case in the result dictionary.
 
-		Returns
-		-------
-		list[`Case`]
-		        The list of cases.
+		Returns:
+			list[Case]: The list of cases.
+
 		"""
 		return await cls.from_db(db, client, guild, limit=limit, get_type=get_type, user=user)
 
@@ -159,23 +148,16 @@ class Case:
 	) -> list[Self]:
 		"""Generate a list of `Case`s given by a moderator.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool.
-		moderator: `discord.User`
-		        The moderator to get the cases from.
-		client: `discord.Client`
-		        The client to get the guilds with.
-		guild: `discord.Guild`
-		        The guild to get the cases from.
-		limit: `int`
-		        The limit of cases to get. If None, it will get all cases.
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+			moderator (discord.User): The moderator to get the cases from.
+			client (discord.Client): The client to get the guilds with.
+			guild (discord.Guild): The guild to get the cases from.
+			limit (int, optional): The limit of cases to get. If None, it will get all cases.
 
-		Returns
-		-------
-		list[`Case`]
-		        The list of cases.
+		Returns:
+			list[Case]: The list of cases.
+
 		"""
 		return await cls.from_db(db, client, guild, limit=limit, moderator=moderator)
 
@@ -185,23 +167,16 @@ class Case:
 	) -> Self | None:
 		"""Get a `Case` from an ID.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool.
-		client: `discord.Client`
-		        The client to get the guilds with.
-		guild: `discord.Guild`
-		        The guild to get the case from.
-		case_id: `int`
-		        The ID of the case.
-		get_type: `bool`
-		        Whether to return the type of the case in the result dictionary.
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+			client (discord.Client): The client to get the guilds with.
+			guild (discord.Guild): The guild to get the case from.
+			case_id (int): The ID of the case.
+			get_type (bool): Whether to return the type of the case in the result dictionary.
 
-		Returns
-		-------
-		Optional[`Case`]
-		        The case.
+		Returns:
+			Optional[Case]: The case.
+
 		"""
 		result = await db.fetch("SELECT * FROM cases WHERE case_id = $1 AND guild_id = $2", case_id, guild.id)
 		if not result:
@@ -219,28 +194,19 @@ class Case:
 		get_type: bool = False,
 		**filters: Any,
 	) -> list[Any]:
-		"""
-		Retrieve cases from the database based on the provided attributes.
+		"""Retrieve cases from the database based on the provided attributes.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool.
-		client: `discord.Client`
-		        The client instance.
-		guild: `discord.Guild`
-		        The guild to get the cases for. Defaults to None.
-		limit: `int`
-		        The limit of cases to retrieve. If None, retrieves all cases.
-		get_type: `bool`
-		        Set to true if you want a Case object. Set to false if you want a corresponding mod action object.
-		**filters: Any
-		        Additional filters for querying cases (e.g., user=..., moderator=...).
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+			client (discord.Client): The client instance.
+			guild (discord.Guild, optional): The guild to get the cases for. Defaults to None.
+			limit (int, optional): The limit of cases to retrieve. If None, retrieves all cases.
+			get_type (bool): Set to true if you want a Case object. Set to false if you want a corresponding mod action object.
+			**filters: Additional filters for querying cases (e.g., user=..., moderator=...).
 
-		Returns
-		-------
-		list[`Case`]
-		        A list of cases matching the filters.
+		Returns:
+			list[Case]: A list of cases matching the filters.
+
 		"""
 		query, query_parameters = convert_to_query("cases", guild, limit, **filters)
 
@@ -293,10 +259,9 @@ class Case:
 	async def delete(self, db: asyncpg.Pool) -> None:
 		"""Delete the case from the database. This will also call `before_deletion` and `after_deletion`.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool.
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+
 		"""
 		await self.before_deletion()
 		await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
@@ -311,15 +276,12 @@ class Case:
 	async def create(self, db: asyncpg.Pool) -> Self | None:
 		"""Create the case in the database.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-			The database connection pool.
+		Args:
+			db (asyncpg.Pool): The database connection pool.
 
-		Returns
-		-------
-		`Case`
-			The created case.
+		Returns:
+			Case: The created case.
+
 		"""
 		if self.type != CaseType.BAN and self._user not in self._guild.members:
 			return None
@@ -351,12 +313,10 @@ class Case:
 	async def edit(self, db: asyncpg.Pool, case: Self) -> None:
 		"""Edit the case in the database.
 
-		Parameters
-		----------
-		db: `asyncpg.Pool`
-		        The database connection pool.
-		case: `Case`
-		        The new case data; if something is not set in the new case, it will be set to the old case's data.
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+			case (Case): The new case data; if something is not set in the new case, it will be set to the old case's data.
+
 		"""
 		await db.execute(
 			"UPDATE cases SET user_id = $1, reason = $2, expires = $3, message = $4 WHERE case_id = $5",

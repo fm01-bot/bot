@@ -9,7 +9,7 @@ sync:
   uv sync
 
 migrate:
-  uv run alembic upgrade head
+  docker compose run --rm bot uv run alembic upgrade head
 
 format:
   uv run ruff format

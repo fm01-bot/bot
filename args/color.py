@@ -4,18 +4,17 @@ import discord
 class Color:
 	"""Custom colors for formatting purposes.
 
-	Operations
-	----------
-	`str(x)`: Returns the color in hex format.
+	Operations:
+		`str(x)`: Returns the color in hex format.
 
-	Examples
-	--------
-	>>> color = Color(discord.Color.red())
-	>>> color
-	#FF0000
+	Examples:
+		>>> color = Color(discord.Color.red())
+		>>> color
+		#FF0000
 
-	>>> color.image  # type: ignore
-	'https://dummyimage.com/500x500/FF0000/000000&text=+'
+		>>> color.image  # type: ignore
+		'https://dummyimage.com/500x500/FF0000/000000&text=+'
+
 	"""
 
 	def __init__(self, color: discord.Color | None):

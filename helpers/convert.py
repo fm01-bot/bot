@@ -6,51 +6,34 @@ from .regex import TIME
 
 
 def text_to_seconds(time: str, base: int = 0) -> int:
-	"""
-	Converts text into seconds.
+	"""Converts text into seconds.
 
-	Examples
-	--------
-	>>> text_to_seconds("5m")  # 300
-	>>> text_to_seconds("1d3min")  # 86400
+	Examples:
+		>>> text_to_seconds("5m")  # 300
+		>>> text_to_seconds("1d3min")  # 86400
 
-	Arguments
-	---------
-	time
-		String containing the time(s). Examples are:
+	Args:
+		time: String containing the time(s). Examples are:
+			- 3min2s (3 minutes and 2 seconds) = 182 seconds
+			- 5h30m (5 hours and 30 minutes) = 19000
 
-		- 3min2s (3 minutes and 2 seconds) = 182 seconds
+			Supported time units:
+			- years (365d)
+			- months (31d)
+			- weeks
+			- days
+			- hours
+			- minutes
+			- seconds
+		base: Base seconds to add the result to, or remove the result from, if ``time`` starts with a plus or minus sign
+			respectively.
 
-		- 5h30m (5 hours and 30 minutes) = 19000
+	Returns:
+		int: Seconds.
 
-		Supported time units:
+	Raises:
+		ValueError: If the string doesn't contain time units.
 
-		- years (365d)
-
-		- months (31d)
-
-		- weeks
-
-		- days
-
-		- hours
-
-		- minutes
-
-		- seconds
-	base
-	    Base seconds to add the result to, or remove the result from, if ``time`` starts with a plus or minus sign
-	    respectively.
-
-	Returns
-	-------
-	int
-	    Seconds.
-
-	Raises
-	------
-	ValueError
-	    If the string doesn't contain time units.
 	"""
 	time_units = {
 		"y": 60 * 60 * 24 * 365,
@@ -124,23 +107,18 @@ def text_to_seconds(time: str, base: int = 0) -> int:
 
 
 def seconds_to_text(seconds: int) -> str:
-	"""
-	Transforms seconds into an easily understandable representation.
+	"""Transforms seconds into an easily understandable representation.
 
-	Example
-	--------
-	>>> seconds_to_text(300)  # 5 minutes
-	>>> seconds_to_text(86400)  # 1 day
+	Examples:
+		>>> seconds_to_text(300)  # 5 minutes
+		>>> seconds_to_text(86400)  # 1 day
 
-	Arguments
-	---------
-	seconds
-		The number of seconds to be converted.
+	Args:
+		seconds: The number of seconds to be converted.
 
-	Returns
-	-------
-	str
-		A time format that is easy for humans to read.
+	Returns:
+		str: A time format that is easy for humans to read.
+
 	"""
 	if seconds == 0:
 		return "0s"
@@ -185,21 +163,15 @@ ALLOWED_TABLES = {
 def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int | None = None, **filters):
 	"""Converts a set of filters to an SQL query.
 
-	Parameters
-	----------
-	table
-		The table to get the results from.
-	guild
-		The guild to get the results from.
-	limit
-		The number of results to return. If ``None``, all results will be returned.
-	**filters
-		The conditions to filter the results by.
+	Args:
+		table: The table to get the results from.
+		guild: The guild to get the results from.
+		limit: The number of results to return. If ``None``, all results will be returned.
+		**filters: The conditions to filter the results by.
 
-	Returns
-	-------
-	(`str`, list[Any])
-	    The query string and the query parameters.
+	Returns:
+		tuple[str, list[Any]]: The query string and the query parameters.
+
 	"""
 	if table not in ALLOWED_TABLES:
 		raise ValueError(f"Disallowed or invalid table name: '{table}'")

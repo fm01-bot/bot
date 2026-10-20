@@ -14,10 +14,12 @@ class ShopItem:
 	def __init__(self, name: str, price: int, description: str, role: discord.Role | None):
 		"""Create a new shop item.
 
-		Parameters
-		----------
-		role
-			The role that is given to the user when they buy the item
+		Args:
+			name: The name of the item.
+			price: The price of the item.
+			description: The description of the item.
+			role: The role that is given to the user when they buy the item.
+
 		"""
 		self._name = name
 		self._price = price
@@ -64,24 +66,17 @@ class EconomyHelper:
 	async def add_money(
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
-		"""
-		Add money to a user's balance atomically.
+		"""Add money to a user's balance atomically.
 
-		Parameters
-		----------
-		user_id
-			The user's ID.
-		guild_id
-			The guild's ID.
-		amount
-			The amount to add to the user's balance.
-		wallet
-		        Whether to use the cash or bank wallet. Defaults to `cash`.
+		Args:
+			user_id: The user's ID.
+			guild_id: The guild's ID.
+			amount: The amount to add to the user's balance.
+			wallet: Whether to use the cash or bank wallet. Defaults to `cash`.
 
-		Returns
-		-------
-		int
-			The user's new balance.
+		Returns:
+			int: The user's new balance.
+
 		"""
 		async with self.client.db.acquire() as conn, conn.transaction():
 			row = await conn.fetchrow(
@@ -121,29 +116,20 @@ class EconomyHelper:
 	async def remove_money(
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
-		"""
-		Remove money from a user's balance atomically.
+		"""Remove money from a user's balance atomically.
 
-		Parameters
-		----------
-		user_id
-			The user's ID.
-		guild_id
-			The guild's ID.
-		amount
-			The amount to remove from the user's balance.
-		wallet
-			Whether to use the cash or bank wallet. Defaults to `cash`.
+		Args:
+			user_id: The user's ID.
+			guild_id: The guild's ID.
+			amount: The amount to remove from the user's balance.
+			wallet: Whether to use the cash or bank wallet. Defaults to `cash`.
 
-		Returns
-		-------
-		int
-			The user's new balance.
+		Returns:
+			int: The user's new balance.
 
-		Raises
-		------
-		ValueError
-			If the user doesn't have enough money in the cash wallet.
+		Raises:
+			ValueError: If the user doesn't have enough money in the cash wallet.
+
 		"""
 		async with self.client.db.acquire() as conn, conn.transaction():
 			row = await conn.fetchrow(
@@ -176,22 +162,16 @@ class EconomyHelper:
 	async def get_balance(
 		self, user_id: int, guild_id: int, wallet: Literal["cash", "bank"] | None = "cash"
 	) -> int | tuple[int, int]:
-		"""
-		Get a user's balance.
+		"""Get a user's balance.
 
-		Parameters
-		----------
-		user_id
-			The user's ID.
-		guild_id
-			The guild's ID.
-		wallet
-			Whether to get the cash or bank balance. Defaults to `cash`. If `None`, returns a tuple of both balances.
+		Args:
+			user_id: The user's ID.
+			guild_id: The guild's ID.
+			wallet: Whether to get the cash or bank balance. Defaults to `cash`. If `None`, returns a tuple of both balances.
 
-		Returns
-		-------
-		Union[int, tuple[int, int]]
-			The user's cash or bank balance, or a tuple of both balances.
+		Returns:
+			int | tuple[int, int]: The user's cash or bank balance, or a tuple of both balances.
+
 		"""
 		try:
 			await self.register_user(user_id, guild_id)
@@ -216,20 +196,15 @@ class EconomyHelper:
 		return int(balance)
 
 	async def register_user(self, user_id: int, guild_id: int) -> None:
-		"""
-		Registers a user in the database.
+		"""Registers a user in the database.
 
-		Parameters
-		----------
-		user_id
-			The user's ID.
-		guild_id
-			The guild's ID.
+		Args:
+			user_id: The user's ID.
+			guild_id: The guild's ID.
 
-		Raises
-		------
-		ValueError
-			If the user is already in the database.
+		Raises:
+			ValueError: If the user is already in the database.
+
 		"""
 		row = await self.client.db.fetchrow(
 			"SELECT * FROM economy WHERE user_id = $1 AND guild_id = $2", user_id, guild_id
@@ -242,24 +217,17 @@ class EconomyHelper:
 	async def set_balance(
 		self, user_id: int, guild_id: int, amount: int, wallet: Literal["cash", "bank"] = "cash"
 	) -> int:
-		"""
-		Sets the balance of a user atomically.
+		"""Sets the balance of a user atomically.
 
-		Parameters
-		----------
-		user_id
-			The user's ID.
-		guild_id
-			The guild's ID.
-		amount
-			The amount to set the user's balance to.
-		wallet
-			The wallet to set the balance of. Defaults to cash.
+		Args:
+			user_id: The user's ID.
+			guild_id: The guild's ID.
+			amount: The amount to set the user's balance to.
+			wallet: The wallet to set the balance of. Defaults to cash.
 
-		Returns
-		-------
-		int
-			The user's balance.
+		Returns:
+			int: The user's balance.
+
 		"""
 		async with self.client.db.acquire() as conn, conn.transaction():
 			row = await conn.fetchrow(
