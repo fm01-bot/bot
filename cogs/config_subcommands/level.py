@@ -1,3 +1,5 @@
+"""CLI subcommands for configuring the server leveling system."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -12,6 +14,14 @@ if TYPE_CHECKING:
 
 
 def setup_level_subcommands(parent_node: CLINode) -> CLINode:
+	"""Set up leveling configuration subcommands on the CLI parser root.
+
+	Args:
+		parent_node: The parent CLINode to attach the 'level' subcommand to.
+
+	Returns:
+		CLINode: The configured level CLINode.
+	"""
 	level_node = parent_node.create_subcommand("level", description="Configure server leveling system.")
 
 	# --- Enable ---
@@ -627,6 +637,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 		ch_obj = ctx.guild.get_channel(ch_id) if ch_id else None
 		ch_str = f"#{ch_obj.name}" if ch_obj else "(None)"
+		mode_str = mode.value if hasattr(mode, "value") else str(mode)
 
 		lines = [
 			"=== Leveling System Configuration ===",
@@ -634,7 +645,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 			f"XP Range:        {min_xp} - {max_xp} XP",
 			f"Global Mult:     {mult}x",
 			f"Cooldown:        {cooldown}s",
-			f"Level-up Mode:   {mode}",
+			f"Level-up Mode:   {mode_str}",
 			f"Target Channel:  {ch_str}",
 			f"Message:         {msg_tmpl}",
 			f"Role Stacking:   {'Enabled (stack)' if stack else 'Disabled (replace previous)'}",

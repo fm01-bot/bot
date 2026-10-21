@@ -7,7 +7,7 @@ import discord
 import pytest
 from helpers.level_card import create_level_card
 from helpers.leveling import GuildLevelConfig, level_from_total_xp, total_xp_for_level, xp_to_next_level
-from PIL import Image
+from PIL import Image, ImageFont
 
 
 def test_xp_to_next_level_formula():
@@ -144,3 +144,16 @@ async def test_create_level_card_with_avatar_fallback():
 
 	card_img = Image.open(buffer)
 	assert card_img.size == (1024, 266)
+
+
+def test_open_sans_font_weights():
+	"""Verify _get_font correctly loads Open Sans with all specified weight variants."""
+	from helpers.level_card import FONT_PATH, _get_font
+
+	weights = ["light", "regular", "semibold", "bold", "extrabold"]
+	for w in weights:
+		font = _get_font(24, weight=w)
+		assert font is not None
+		if FONT_PATH.exists() and isinstance(font, ImageFont.FreeTypeFont):
+			font_name, _ = font.getname()
+			assert font_name == "Open Sans"

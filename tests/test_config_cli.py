@@ -367,3 +367,96 @@ async def test_config_level_execution():
 	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level show")
 	assert ctx.send.called
 	assert "Leveling System Configuration" in ctx.send.call_args[1]["content"]
+
+
+def test_config_autocomplete_empty():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("")
+	values = [val for _, val in results]
+	assert "level " in values
+	assert "log " in values
+	assert "join " in values
+	assert "leave " in values
+	assert "prefix " in values
+
+
+def test_config_autocomplete_category_level():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("level ")
+	labels = {lbl for lbl, _ in results}
+	values = {val for _, val in results}
+
+	assert "level enable" in labels
+	assert "level enable" in values
+	assert "level disable" in labels
+	assert "level disable" in values
+	assert "level show" in labels
+	assert "level show" in values
+
+	# Subcommand with arguments includes category path in both label and value
+	assert "level rewards add <level> <role>" in labels
+	assert "level rewards add <level> <role>" in values
+	assert "level rewards remove <level> [role]" in labels
+	assert "level rewards remove <level> [role]" in values
+	assert "level rewards stack <true|false>" in labels
+	assert "level rewards stack <true|false>" in values
+
+
+def test_config_autocomplete_category_join():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("join")
+	assert any(
+		name == "join enable --channel <channel> --message <message>"
+		and val == "join enable --channel <channel> --message <message>"
+		for name, val in results
+	)
+	assert any(name == "join status" and val == "join status" for name, val in results)
+
+
+def test_config_autocomplete_flags():
+	config_cog = Config(MagicMock())
+
+	# 1. level xp
+	res_xp = config_cog.parser.autocomplete("level xp")
+	values_xp = [val for _, val in res_xp]
+	assert any("level xp --min <min> --max <max>" in val for val in values_xp)
+	assert "level xp --min <min>" in values_xp
+
+	# 2. level xp --
+	res_flags = config_cog.parser.autocomplete("level xp --")
+	values_flags = [val for _, val in res_flags]
+	assert "level xp --min <min>" in values_flags
+	assert "level xp --max <max>" in values_flags
+	assert "level xp --multiplier <multiplier>" in values_flags
+	assert "level xp --cooldown <cooldown>" in values_flags
+
+	# 3. level xp --min 10 -- (already used flag --min should be omitted as a candidate)
+	res_used = config_cog.parser.autocomplete("level xp --min 10 --")
+	values_used = [val for _, val in res_used]
+	assert not any(val.endswith("--min <min>") for val in values_used)
+	assert "level xp --min 10 --max <max>" in values_used
+	assert "level xp --min 10 --multiplier <multiplier>" in values_used
+	assert "level xp --min 10 --cooldown <cooldown>" in values_used
+
+
+def test_config_autocomplete_global_search():
+	config_cog = Config(MagicMock())
+	res = config_cog.parser.autocomplete("rew")
+	values = [val for _, val in res]
+	assert "level rewards add <level> <role>" in values
+	assert "level rewards list" in values
+
+
+@pytest.mark.asyncio
+async def test_config_autocomplete_cog_integration():
+	config_cog = Config(MagicMock())
+	mock_interaction = MagicMock(spec=discord.Interaction)
+
+	fn = getattr(config_cog, "config_" + "autocomplete")
+	choices = await fn(mock_interaction, "level rew")
+	assert len(choices) <= 25
+	assert all(isinstance(c, discord.app_commands.Choice) for c in choices)
+	assert all(len(c.name) <= 100 and len(c.value) <= 100 for c in choices)
+	assert any(
+		c.name == "level rewards add <level> <role>" and c.value == "level rewards add <level> <role>" for c in choices
+	)

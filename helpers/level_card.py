@@ -1,7 +1,10 @@
+"""Helper for generating rank and level cards using Pillow."""
+
 from __future__ import annotations
 
 import io
-import os
+import pathlib
+from typing import Literal
 
 import discord
 from PIL import Image, ImageDraw, ImageFont
@@ -15,39 +18,53 @@ COLOR_BLUE = (100, 144, 243, 255)
 COLOR_TRACK = (113, 113, 122, 255)
 COLOR_AVATAR_BG = (40, 42, 48, 255)
 
+type FontWeight = Literal["light", "regular", "medium", "semibold", "bold", "extrabold"]
 
-def _get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-	"""Load system font if available, otherwise fall back to Pillow default FreeType font."""
-	candidates: list[str] = []
-	if bold:
-		candidates = [
-			"C:/Windows/Fonts/segoeuib.ttf",
-			"C:/Windows/Fonts/arialbd.ttf",
-			"/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-			"/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
-		]
-	else:
-		candidates = [
-			"C:/Windows/Fonts/segoeui.ttf",
-			"C:/Windows/Fonts/arial.ttf",
-			"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-			"/usr/share/fonts/TTF/DejaVuSans.ttf",
-		]
+WEIGHT_MAP: dict[str, tuple[str, int]] = {
+	"light": ("Light", 300),
+	"regular": ("Regular", 400),
+	"medium": ("Medium", 500),
+	"semibold": ("SemiBold", 600),
+	"bold": ("Bold", 700),
+	"extrabold": ("ExtraBold", 800),
+}
 
-	for path in candidates:
-		if os.path.exists(path):
-			try:
-				return ImageFont.truetype(path, size)
-			except (OSError, ValueError):
-				continue
+FONT_PATH = pathlib.Path("/usr/share/fonts/truetype/open-sans/OpenSans-VariableFont_wdth,wght.ttf")
 
-	return ImageFont.load_default(size=size)
+
+def _get_font(size: int, weight: FontWeight | str = "regular") -> ImageFont.FreeTypeFont:
+	"""Load Open Sans font with specified weight and size.
+
+	Args:
+		size: Font size in pixels.
+		weight: Font weight variant ('light', 'regular', 'medium', 'semibold', 'bold', 'extrabold').
+
+	Returns:
+		ImageFont.FreeTypeFont: Loaded Pillow font instance.
+	"""
+	weight_key = str(weight).lower()
+	variation_name, _ = WEIGHT_MAP.get(weight_key, ("Regular", 400))
+
+	font = ImageFont.truetype(str(FONT_PATH), size)
+	font.set_variation_by_name(variation_name)
+
+	return font
 
 
 def _truncate_text(
 	text: str, font: ImageFont.ImageFont | ImageFont.FreeTypeFont, max_width: int, draw: ImageDraw.ImageDraw
 ) -> str:
-	"""Truncate text with ellipsis if it exceeds max_width."""
+	"""Truncate text with ellipsis if it exceeds max_width.
+
+	Args:
+		text: String to truncate.
+		font: Font used to calculate text length.
+		max_width: Maximum allowed width in pixels.
+		draw: ImageDraw context for measuring length.
+
+	Returns:
+		str: Original or truncated text with ellipsis.
+	"""
 	if draw.textlength(text, font=font) <= max_width:
 		return text
 
@@ -67,7 +84,19 @@ async def create_level_card(
 	needed_xp: int,
 	level_label: str = "lvl",
 ) -> io.BytesIO:
-	"""Generate a stylized rank/level card for a user."""
+	"""Generate a stylized rank/level card for a user.
+
+	Args:
+		user: The discord User or Member to generate the card for.
+		rank: The member's leaderboard position, or None if unranked.
+		level: The current level of the member.
+		current_xp: XP progress towards the next level.
+		needed_xp: XP required to reach the next level.
+		level_label: Label text displayed next to level number (e.g. 'lvl' or 'szint').
+
+	Returns:
+		io.BytesIO: PNG image buffer containing the generated card.
+	"""
 	width, height = 1024, 266
 	card = Image.new("RGBA", (width, height), COLOR_BG)
 	draw = ImageDraw.Draw(card)
@@ -77,7 +106,7 @@ async def create_level_card(
 	try:
 		avatar_bytes = await user.display_avatar.with_format("png").with_size(256).read()
 		avatar_image = Image.open(io.BytesIO(avatar_bytes)).convert("RGBA")
-	except (discord.DiscordException, OSError, ValueError):
+	except (discord.DiscordException, OSError, ValueError, TypeError, RuntimeError):
 		avatar_image = None
 
 	av_size = 160
@@ -91,7 +120,11 @@ async def create_level_card(
 		av_draw = ImageDraw.Draw(avatar_image)
 		initials = (user.display_name[:2] or "??").upper()
 		av_draw.text(
-			(av_size // 2, av_size // 2), initials, font=_get_font(48, True), fill=COLOR_TEXT_WHITE, anchor="mm"
+			(av_size // 2, av_size // 2),
+			initials,
+			font=_get_font(48, weight="bold"),
+			fill=COLOR_TEXT_WHITE,
+			anchor="mm",
 		)
 
 	# Apply rounded corners to avatar
@@ -103,15 +136,15 @@ async def create_level_card(
 	# Rank text on bottom-left
 	if rank is not None and rank > 0:
 		rank_str = f"#{rank}"
-		rank_font = _get_font(36, True)
+		rank_font = _get_font(36, weight="extrabold")
 		draw.text((av_x, 228), rank_str, font=rank_font, fill=COLOR_TEXT_WHITE, anchor="lm")
 
 	content_x = 240
 	right_margin = 989
 
 	# Level and level label on top-right
-	lvl_font = _get_font(52, True)
-	lvl_label_font = _get_font(20, False)
+	lvl_font = _get_font(52, weight="extrabold")
+	lvl_label_font = _get_font(20, weight="semibold")
 	lvl_num_str = f"{level}."
 	lbl_w = draw.textlength(level_label, font=lvl_label_font)
 	lvl_w = draw.textlength(lvl_num_str, font=lvl_font)
@@ -122,8 +155,8 @@ async def create_level_card(
 	draw.text((lbl_x, 105), level_label, font=lvl_label_font, fill=COLOR_TEXT_GRAY, anchor="lt")
 
 	# User display name and username tag
-	name_font = _get_font(44, True)
-	tag_font = _get_font(24, False)
+	name_font = _get_font(44, weight="bold")
+	tag_font = _get_font(24, weight="regular")
 
 	max_name_width = int(lvl_x - content_x - 20)
 	display_name = _truncate_text(user.display_name, name_font, max_name_width, draw)
@@ -135,7 +168,7 @@ async def create_level_card(
 
 	# XP text right above progress bar
 	xp_str = f"{current_xp}/{needed_xp} xp"
-	xp_font = _get_font(20, False)
+	xp_font = _get_font(20, weight="semibold")
 	draw.text((right_margin, 185), xp_str, font=xp_font, fill=COLOR_TEXT_LIGHT_GRAY, anchor="rs")
 
 	# Progress bar

@@ -2,7 +2,7 @@
 repo = "builtin"
 hooks = [
     { id = "trailing-whitespace" },
-    { id = "check-added-large-files" },
+    { id = "check-added-large-files", args = ["--maxkb=1024"] },
     { id = "check-illegal-windows-names" },
     { id = "end-of-file-fixer" },
     { id = "check-json" },

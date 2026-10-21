@@ -344,3 +344,49 @@ async def test_levels_command_leaderboard(level_cog):
 	assert embeds is not None and len(embeds) == 1
 	assert "Level Leaderboard" in embeds[0].title
 	assert len(embeds[0].fields) == 2
+
+
+@pytest.mark.asyncio
+async def test_levels_command_empty_leaderboard(level_cog):
+	ctx = MagicMock()
+	ctx.guild.id = 999
+	ctx.send = AsyncMock()
+
+	level_cog.client.db.fetchrow.return_value = {"count": 0}
+	level_cog.client.db.fetch.return_value = []
+
+	embed = discord.Embed(title="Level Leaderboard")
+	embed.add_field(name="#{number} {user}", value="Level: {level}")
+	embed.add_field(name="Psst...", value="No one has earned any XP (yet).")
+	level_cog.client.custom_response.get_message.return_value = {"embeds": [embed]}
+
+	await level_cog.levels_command.callback(level_cog, ctx, page=1)
+
+	assert ctx.send.called
+	call_kwargs = ctx.send.call_args[1]
+	embeds = call_kwargs.get("embeds")
+	assert len(embeds[0].fields) == 1
+	assert embeds[0].fields[0].name == "Psst..."
+	assert "Page 1/1" in embeds[0].footer.text
+
+
+@pytest.mark.asyncio
+async def test_role_overrides_caching_and_invalidation(level_cog):
+	guild_id = 999
+	level_cog.client.db.fetch.return_value = [{"role_id": 123, "multiplier": 1.5, "is_ignored": False}]
+
+	# First call -> fetches from DB
+	res1 = await level_cog.get_role_overrides(guild_id)
+	assert res1 == {123: (1.5, False)}
+	assert level_cog.client.db.fetch.call_count == 1
+
+	# Second call -> uses in-memory cache
+	res2 = await level_cog.get_role_overrides(guild_id)
+	assert res2 == {123: (1.5, False)}
+	assert level_cog.client.db.fetch.call_count == 1
+
+	# Invalidate cache
+	level_cog.invalidate_cache(guild_id)
+	res3 = await level_cog.get_role_overrides(guild_id)
+	assert res3 == {123: (1.5, False)}
+	assert level_cog.client.db.fetch.call_count == 2

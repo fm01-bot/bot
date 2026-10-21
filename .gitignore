@@ -3,6 +3,8 @@ config.yml
 
 
 assets/*
+!assets/fonts/
+!assets/fonts/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

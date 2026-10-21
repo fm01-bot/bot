@@ -1,11 +1,13 @@
 import logging
 import os
 
+import sentry_sdk
 import winuvloop
 from core.bot import Bot
 from core.config import Config
 from discord.utils import setup_logging
 from dotenv import load_dotenv
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,11 @@ async def main() -> None:
 		token = os.getenv("TOKEN")
 		client.logger.setLevel(logging.INFO)
 		client.logger.info("Running in production mode")
+
+	sentry_dsn = os.getenv("SENTRY_DSN")
+	if sentry_dsn and not client.debug:
+		sentry_sdk.init(dsn=sentry_dsn, integrations=[LoggingIntegration(level=logging.INFO, event_level=None)])
+		client._sentry_enabled = True
 
 	if not token:
 		raise ValueError("no token provided")

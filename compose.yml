@@ -54,6 +54,7 @@ services:
       DB_NAME: ${DB_NAME:-fm01}
       LAVALINK_URI: ${LAVALINK_URI:-http://lavalink:2333}
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+      SENTRY_DSN: ${SENTRY_DSN}
     volumes:
       - .:/bot
     command: sh -c "uv run alembic upgrade head && uv run --no-dev main.py"

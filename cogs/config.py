@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+import discord
 from core import command
+from discord import app_commands
 from discord.ext import commands
 from helpers.cli_parser import CLIParseError, CLIParser, HelpRequested
 
@@ -42,6 +44,13 @@ class Config(commands.Cog, name="Config"):
 		except Exception as e:
 			logger.exception(f"Unexpected error executing config command with args `{trimmed}`")
 			return await ctx.send(content=f"```ansi\nError: {e}\n```")
+
+	@config_command.autocomplete("flags_and_args")
+	async def config_autocomplete(
+		self, interaction: discord.Interaction, current: str
+	) -> list[app_commands.Choice[str]]:
+		choices = self.parser.autocomplete(current)
+		return [app_commands.Choice(name=name[:100], value=val[:100]) for name, val in choices[:25] if name and val]
 
 
 async def setup(client: Bot):
