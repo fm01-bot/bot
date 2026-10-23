@@ -24,7 +24,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	"""
 	level_node = parent_node.create_subcommand("level", description="Configure server leveling system.")
 
-	# --- Enable ---
 	enable_node = level_node.create_subcommand("enable", description="Enable leveling system.")
 
 	async def level_enable(ctx: Context, **kwargs: Any):
@@ -44,7 +43,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	enable_node.callback = level_enable
 
-	# --- Disable ---
 	disable_node = level_node.create_subcommand("disable", description="Disable leveling system.")
 
 	async def level_disable(ctx: Context, **kwargs: Any):
@@ -64,7 +62,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	disable_node.callback = level_disable
 
-	# --- XP Settings ---
 	xp_node = level_node.create_subcommand("xp", description="Configure XP gain rates, limits, and cooldown.")
 	xp_node.add_option("min", "n", help="Minimum XP per message (e.g. 15)")
 	xp_node.add_option("max", "x", help="Maximum XP per message (e.g. 25)")
@@ -163,7 +160,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	xp_node.callback = level_xp
 
-	# --- Level-up Message ---
 	msg_node = level_node.create_subcommand("message", description="Configure level-up announcements.")
 	msg_node.add_option("mode", "m", help="Delivery mode: `current`, `channel`, or `disabled`")
 	msg_node.add_option("channel", "c", help="Target channel when mode is `channel`")
@@ -228,10 +224,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	msg_node.callback = level_message
 
-	# --- Rewards ---
 	rewards_node = level_node.create_subcommand("rewards", description="Configure role rewards for reaching levels.")
 
-	# rewards add <level> <role>
 	rewards_add_node = rewards_node.create_subcommand("add", description="Add a role reward for a level.")
 	rewards_add_node.add_argument("level", required=True, help="Level required for the role reward")
 	rewards_add_node.add_argument("role", required=True, help="Target role mention, ID, or name")
@@ -270,7 +264,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	rewards_add_node.callback = rewards_add
 
-	# rewards remove <level> [role]
 	rewards_rm_node = rewards_node.create_subcommand("remove", description="Remove a role reward for a level.")
 	rewards_rm_node.add_argument("level", required=True, help="Level to remove role reward for")
 	rewards_rm_node.add_argument("role", required=False, help="Optional specific role to remove")
@@ -305,7 +298,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	rewards_rm_node.callback = rewards_remove
 
-	# rewards stack <true|false>
 	rewards_stack_node = rewards_node.create_subcommand(
 		"stack", description="Set whether role rewards stack or replace previous rewards."
 	)
@@ -339,7 +331,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	rewards_stack_node.callback = rewards_stack
 
-	# rewards list
 	rewards_list_node = rewards_node.create_subcommand("list", description="List all configured role rewards.")
 
 	async def rewards_list(ctx: Context, **kwargs: Any):
@@ -358,10 +349,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	rewards_list_node.callback = rewards_list
 
-	# --- Channel Overrides (Ignore / Multiplier) ---
 	channel_node = level_node.create_subcommand("channel", description="Configure channel XP ignores and multipliers.")
 
-	# channel ignore <channel>
 	ch_ignore_node = channel_node.create_subcommand("ignore", description="Ignore a channel from earning XP.")
 	ch_ignore_node.add_argument("channel", required=True, help="Target channel to ignore")
 
@@ -390,7 +379,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	ch_ignore_node.callback = channel_ignore
 
-	# channel unignore <channel>
 	ch_unignore_node = channel_node.create_subcommand("unignore", description="Allow a channel to earn XP again.")
 	ch_unignore_node.add_argument("channel", required=True, help="Target channel to unignore")
 
@@ -419,7 +407,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	ch_unignore_node.callback = channel_unignore
 
-	# channel multiplier <channel> <multiplier>
 	ch_mult_node = channel_node.create_subcommand("multiplier", description="Set a custom XP multiplier for a channel.")
 	ch_mult_node.add_argument("channel", required=True, help="Target channel")
 	ch_mult_node.add_argument("multiplier", required=True, help="XP multiplier for this channel (e.g. 1.5, 2.0)")
@@ -459,7 +446,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	ch_mult_node.callback = channel_multiplier
 
-	# channel list
 	ch_list_node = channel_node.create_subcommand("list", description="List channel XP overrides.")
 
 	async def channel_list(ctx: Context, **kwargs: Any):
@@ -483,10 +469,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	ch_list_node.callback = channel_list
 
-	# --- Role Overrides (Ignore / Multiplier) ---
 	role_node = level_node.create_subcommand("role", description="Configure role XP ignores and multipliers.")
 
-	# role ignore <role>
 	role_ignore_node = role_node.create_subcommand("ignore", description="Ignore members with a role from earning XP.")
 	role_ignore_node.add_argument("role", required=True, help="Target role")
 
@@ -515,7 +499,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	role_ignore_node.callback = role_ignore
 
-	# role unignore <role>
 	role_unignore_node = role_node.create_subcommand("unignore", description="Allow members with a role to earn XP.")
 	role_unignore_node.add_argument("role", required=True, help="Target role")
 
@@ -544,7 +527,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	role_unignore_node.callback = role_unignore
 
-	# role multiplier <role> <multiplier>
 	role_mult_node = role_node.create_subcommand("multiplier", description="Set a custom XP multiplier for a role.")
 	role_mult_node.add_argument("role", required=True, help="Target role")
 	role_mult_node.add_argument("multiplier", required=True, help="XP multiplier for this role (e.g. 1.5, 2.0)")
@@ -582,7 +564,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	role_mult_node.callback = role_multiplier
 
-	# role list
 	role_list_node = role_node.create_subcommand("list", description="List role XP overrides.")
 
 	async def role_list(ctx: Context, **kwargs: Any):
@@ -606,7 +587,6 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 
 	role_list_node.callback = role_list
 
-	# --- Show Full Config ---
 	show_node = level_node.create_subcommand("show", description="Show full leveling configuration for this server.")
 
 	async def level_show(ctx: Context, **kwargs: Any):

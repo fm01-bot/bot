@@ -413,7 +413,6 @@ class Level(commands.Cog, name="Level"):
 
 	@command(name="level", aliases=["rank"], user=False)
 	async def level_command(self, ctx: Context, member: discord.Member | None = None) -> None:
-		"""Check your or another member's level and rank."""
 		if not ctx.guild:
 			return
 
@@ -421,14 +420,12 @@ class Level(commands.Cog, name="Level"):
 		if not target:
 			return
 
-		# Fetch user XP and level
 		row = await self.client.db.fetchrow(
 			"SELECT xp, level FROM user_levels WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, target.id
 		)
 		total_xp = int(row["xp"]) if row else 0
 		progress = level_from_total_xp(total_xp)
 
-		# Fetch rank position
 		rank: int | None = None
 		if total_xp > 0:
 			rank_row = await self.client.db.fetchrow(
@@ -438,7 +435,6 @@ class Level(commands.Cog, name="Level"):
 		else:
 			rank = None
 
-		# Retrieve localized label for level badge
 		localized_label = await self.client.custom_response.get_message("level_card.label", ctx)
 		if isinstance(localized_label, str) and localized_label != "level_card.label":
 			level_label = localized_label
@@ -459,7 +455,6 @@ class Level(commands.Cog, name="Level"):
 
 	@command(name="levels", aliases=["top"], user=False)
 	async def levels_command(self, ctx: Context, page: int = 1) -> None:
-		"""Display the server leveling leaderboard."""
 		if not ctx.guild:
 			return
 
@@ -644,19 +639,16 @@ class Level(commands.Cog, name="Level"):
 		if not config.is_on:
 			return
 
-		# Check ignored channel
 		ch_override = await self.get_channel_override(guild_id, message.channel.id)
 		if ch_override and ch_override[1]:
 			return
 
-		# Check ignored roles
 		role_overrides = await self.get_role_overrides(guild_id)
 		member_role_ids = {r.id for r in message.author.roles}
 		for r_id in member_role_ids:
 			if r_id in role_overrides and role_overrides[r_id][1]:
 				return
 
-		# Check cooldown
 		now = time.time()
 		cd_key = (guild_id, message.author.id)
 		last_xp_time = self.cooldowns.get(cd_key, 0.0)
@@ -665,7 +657,6 @@ class Level(commands.Cog, name="Level"):
 
 		self.cooldowns[cd_key] = now
 
-		# Multipliers calculation
 		effective_mult = config.multiplier
 		if ch_override and ch_override[0] > 0:
 			effective_mult *= ch_override[0]
