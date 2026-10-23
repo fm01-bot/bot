@@ -48,3 +48,46 @@ def resolve_role(guild: discord.Guild, value: str | int | None) -> discord.Role 
 			return role
 
 	return None
+
+
+def resolve_category(guild: discord.Guild, value: str | int | None) -> discord.CategoryChannel | None:
+	"""Resolve a category from ID or name."""
+	if value is None:
+		return None
+
+	val_str = str(value).strip()
+	if val_str.isdigit():
+		cat = guild.get_channel(int(val_str))
+		if isinstance(cat, discord.CategoryChannel):
+			return cat
+
+	lower_val = val_str.lower()
+	for cat in guild.categories:
+		if cat.name.lower() == lower_val:
+			return cat
+
+	return None
+
+
+def resolve_member_or_user(guild: discord.Guild, value: str | int | None) -> discord.Member | discord.User | None:
+	"""Resolve a member or user from mention, ID, or username."""
+	if value is None:
+		return None
+
+	val_str = str(value).strip()
+	if val_str.startswith("<@") and val_str.endswith(">"):
+		val_str = val_str[2:-1].lstrip("!")
+
+	if val_str.isdigit():
+		user_id = int(val_str)
+		member = guild.get_member(user_id)
+		if member:
+			return member
+		return guild._state.get_user(user_id)
+
+	lower_val = val_str.lower().lstrip("@")
+	for member in guild.members:
+		if member.name.lower() == lower_val or (member.nick and member.nick.lower() == lower_val):
+			return member
+
+	return None

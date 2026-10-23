@@ -148,6 +148,7 @@ class Bot(commands.AutoShardedBot):
 			timeout=None,
 			init=self.db_connection_init,
 			max_inactive_connection_lifetime=120,  # timeout is 2 mins
+			max_size=50,
 		)
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Connected to database in {end:.2f}s")

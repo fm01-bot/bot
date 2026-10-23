@@ -32,6 +32,36 @@
   "allowance": {
     "content": "You received your daily allowance of **${amount}**."
   },
+  "automod": {
+    "reasons": {
+      "invite": "[AutoMod] Server invite link posted",
+      "lines": "[AutoMod] Excessive message line count",
+      "link": "[AutoMod] Unauthorized link posted",
+      "mention": "[AutoMod] Excessive mentions",
+      "phrase": "[AutoMod] Message contained forbidden phrase",
+      "spam": "[AutoMod] Message spam threshold exceeded"
+    },
+    "violation": {
+      "invite": {
+        "content": "***HEY*** {member.mention}! Discord server invites are not allowed on this server! :angry:"
+      },
+      "lines": {
+        "content": "***HEY*** {member.mention}! Your message exceeded the maximum allowed line count! :angry:"
+      },
+      "link": {
+        "content": "***HEY*** {member.mention}! Posting links is not allowed in this channel! :angry:"
+      },
+      "mention": {
+        "content": "***HEY*** {member.mention}! Don't mention so many people! :angry:"
+      },
+      "phrase": {
+        "content": "***HEY*** {member.mention}! Your message contained a forbidden phrase! :angry:"
+      },
+      "spam": {
+        "content": "***HEY*** {member.mention}! Spamming is not allowed on the server! :angry:"
+      }
+    }
+  },
   "balance": {
     "embeds": [
       {
@@ -59,6 +89,7 @@
   },
   "cogs": {
     "afk": "AFK",
+    "automod": "AutoMod",
     "basic": "Basic",
     "economy": "Economy",
     "giveaway": "Giveaway",

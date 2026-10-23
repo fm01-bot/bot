@@ -2668,5 +2668,35 @@
       "Elment\u00e9l a boltba zacsk\u00f3s levest venni, de a kassz\u00e1s t\u00f6bbet adott vissza. Szerezt\u00e9l **{amount} Ft-ot** \u00e9s egy csomag zacsk\u00f3s levest.",
       "Neh\u00e9z napod volt a mez\u0151n - kapt\u00e1l **{amount} Ft-ot**."
     ]
+  },
+  "automod": {
+    "reasons": {
+      "invite": "[AutoMod] Szervermeghívó",
+      "lines": "[AutoMod] Túl sok soros az üzeneted",
+      "link": "[AutoMod] Link van az üzenetedben",
+      "mention": "[AutoMod] Túl sok említés",
+      "phrase": "[AutoMod] Tiltott szavak az üzenetedben",
+      "spam": "[AutoMod] Spammelés"
+    },
+    "violation": {
+      "invite": {
+        "content": "***HÉ*** {member.mention}! Ezen a szerveren a Discord meghívók beküldése nem engedélyezett! :angry:"
+      },
+      "lines": {
+        "content": "***HÉ*** {member.mention}! Az üzeneted túl sok sorból áll! :angry:"
+      },
+      "link": {
+        "content": "***HÉ*** {member.mention}! Linkeket posztolni tilos ezen a szerveren! :angry:"
+      },
+      "mention": {
+        "content": "***HÉ*** {member.mention}! Túl sok embert említettél! :angry:"
+      },
+      "phrase": {
+        "content": "***HÉ*** {member.mention}! Az üzeneted tiltott szavakat tartalmaz! :angry:"
+      },
+      "spam": {
+        "content": "***HÉ*** {member.mention}! Ezen a szerveren tilos spammelni! :angry:"
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 import re
 
-__all__ = ("DISCORD_INVITE", "DISCORD_MESSAGE_URL", "DISCORD_TEMPLATE", "TIME")
+__all__ = ("DISCORD_INVITE", "DISCORD_MESSAGE_URL", "DISCORD_TEMPLATE", "TIME", "URL_REGEX")
 
 DISCORD_INVITE = re.compile(
 	r"(?:https?://)?(?:www\.)?(?:discord\.(?:gg|io|me|li)|discord(?:app)?\.com/invite)/[a-zA-Z0-9-]+"
@@ -11,4 +11,8 @@ DISCORD_MESSAGE_URL = re.compile(
 )
 TIME = re.compile(
 	r"(\d+)(years|year|yrs|yr|y|months|month|mos|mo|weeks|week|wks|wk|w|days|day|dys|dy|d|hours|hour|hrs|hr|h|minutes|mins|min|mns|mn|m|seconds|secs|sec|scs|sc|s)"
+)
+URL_REGEX = re.compile(
+	r"(?:https?://[^\s<>\"]+|www\.[^\s<>\"]+|\b[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:/[^\s<>\"]*)?)",
+	re.IGNORECASE,
 )
