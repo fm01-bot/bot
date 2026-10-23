@@ -162,3 +162,16 @@ class TestCustomResponseGetMessage:
 		assert mentions.users is True
 		assert mentions.roles is True
 		assert mentions.replied_user is True
+
+	@pytest.mark.asyncio
+	async def test_get_message_reply_with_message(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		cr.update_localizations({"en": {"test": {"reply_msg": {"content": "Reply test", "reply": True}}}})
+
+		msg = MagicMock(spec=discord.Message)
+		msg.guild = MagicMock(spec=discord.Guild)
+		msg.guild.preferred_locale = "en"
+
+		res = await cr.get_message("test.reply_msg", msg)
+		assert isinstance(res, dict)
+		assert res.get("reference") == msg

@@ -38,13 +38,16 @@ def get_url() -> str:
 			return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 		return database_url
 
-	user = os.getenv("DB_USER", "lumin")
-	password = os.getenv("DB_PASSWORD", "")
-	host = os.getenv("DB_HOST", "localhost")
+	user = os.getenv("DB_USER")
+	password = os.getenv("DB_PASSWORD")
+	host = os.getenv("DB_HOST")
 	port = os.getenv("DB_PORT", "5432")
-	database = os.getenv("DB_NAME", "lumin_beta")
+	database = os.getenv("DB_NAME")
 
-	auth = f"{quote_plus(user)}:{quote_plus(password)}"
+	if not all([user, password, host, port, database]):
+		raise ValueError("Missing database configuration")
+
+	auth = f"{quote_plus(user)}:{quote_plus(password)}"  # type: ignore
 	return f"postgresql+asyncpg://{auth}@{host}:{port}/{database}"
 
 

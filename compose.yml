@@ -5,13 +5,14 @@ services:
       POSTGRES_USER: ${DB_USER:-fm01}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Please set a database password in .env}
       POSTGRES_DB: ${DB_NAME:-fm01}
+      DB_PORT: ${DB_PORT:-5432}
     ports:
-      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
+      - "127.0.0.1:${DB_PORT:-5432}:${DB_PORT:-5432}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    command: -p ${DB_PORT}
+    command: -p ${DB_PORT:-5432}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-fm01} -p ${DB_PORT}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-fm01} -p ${DB_PORT:-5432}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,7 +28,7 @@ services:
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml:ro
     ports:
-      - "2333:2333"
+      - "127.0.0.1:2333:2333"
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- --header=\"Authorization: ${LAVALINK_PASSWORD}\" http://localhost:2333/version || exit 1" ]
       interval: 10s
@@ -53,6 +54,7 @@ services:
       DB_NAME: ${DB_NAME:-fm01}
       LAVALINK_URI: ${LAVALINK_URI:-http://lavalink:2333}
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+      SENTRY_DSN: ${SENTRY_DSN:-}
     volumes:
       - .:/bot
     command: sh -c "uv run alembic upgrade head && uv run --no-dev main.py"

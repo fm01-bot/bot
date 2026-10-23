@@ -22,11 +22,14 @@ from helpers import custom_response, seconds_to_text
 from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
 from core.config import Config
 
+__all__ = ("Bot",)
+
 
 class Bot(commands.AutoShardedBot):
 	def __init__(self, config: Config):
 		self.config = config
 		update_slash_localizations()
+		self._sentry_enabled = False
 		self.debug: bool = config.debug
 		self.logger = getLogger(__name__)
 		self.uptime: datetime.datetime | MISSING = None
@@ -145,6 +148,7 @@ class Bot(commands.AutoShardedBot):
 			timeout=None,
 			init=self.db_connection_init,
 			max_inactive_connection_lifetime=120,  # timeout is 2 mins
+			max_size=50,
 		)
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Connected to database in {end:.2f}s")
@@ -247,35 +251,71 @@ class Bot(commands.AutoShardedBot):
 			case _:
 				self.logger.error("An unknown error has occured", exc_info=error)
 
-				# if the error is unknown, log it
-				channel = (
-					ctx.channel
-					if self.debug and ctx and ctx.channel
-					else await self.fetch_channel(self.config.log_channel_id)
-				)
+				# show original error for chained exceptions
+				root_exc = getattr(error, "original", None) or error.__cause__
+				if not root_exc and error.__context__ and not error.__suppress_context__:
+					root_exc = error.__context__
+				target_exc = root_exc or error
 
+				stack = "".join(traceback.format_exception(type(target_exc), target_exc, target_exc.__traceback__))
+
+				# if stack is more than 1700 characters, make it a file
+				too_long = len(stack) > 1700
+				file: discord.File | None = None
+				if too_long:
+					s = StringIO()
+					s.write(stack)
+					s.seek(0)
+					file = discord.File(s, filename="error.txt")  # type: ignore # stringIO is supported
+					message_stack = "The stack trace was too long to send in a message, so it was saved as a file."
+				else:
+					message_stack = stack
+
+				# if debug is on, bypass Sentry entirely and send the error directly to the current channel
+				if self.debug:
+					await ctx.reply(
+						content=f"```{message_stack}```",
+						file=file if too_long and file else discord.abc.MISSING,
+						mention_author=False,
+					)
+					return
+
+				# if sentry is enabled, capture error with rich context and return Sentry event ID
+				if self._sentry_enabled:
+					import sentry_sdk
+
+					with sentry_sdk.new_scope() as scope:
+						if ctx.author:
+							scope.set_user({"id": str(ctx.author.id), "username": str(ctx.author)})
+						if ctx.command:
+							scope.set_tag("command", ctx.command.qualified_name)
+						if ctx.guild:
+							scope.set_tag("guild_id", str(ctx.guild.id))
+							scope.set_extra("guild_name", ctx.guild.name)
+						else:
+							scope.set_tag("guild_id", "DM")
+						if ctx.channel:
+							scope.set_tag("channel_id", str(ctx.channel.id))
+							scope.set_extra("channel_name", getattr(ctx.channel, "name", str(ctx.channel)))
+						if ctx.message:
+							scope.set_extra("message_id", ctx.message.id)
+						elif ctx.interaction:
+							scope.set_extra("interaction_id", ctx.interaction.id)
+
+						report_id = sentry_sdk.capture_exception(target_exc, scope=scope)
+
+					if not report_id:
+						report_id = ctx.message.id if ctx.message else (ctx.interaction.id if ctx.interaction else 0)
+
+					await ctx.reply(
+						content=f"An error has occured and has been reported to the developers. Report ID: `{report_id}`",
+						mention_author=False,
+					)
+					return
+
+				# old fashioned way: log via webhook if available
+				channel = await self.fetch_channel(self.config.log_channel_id)
 				if channel and isinstance(channel, discord.TextChannel):
-					# show original error for chained exceptions
-					root_exc = None
-					if error.__cause__:
-						root_exc = error.__cause__
-					elif error.__context__ and not error.__suppress_context__:
-						root_exc = error.__context__
-					if root_exc:
-						stack = "".join(traceback.format_exception(type(root_exc), root_exc, root_exc.__traceback__))
-					else:
-						stack = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-
-					# if stack is more than 1700 characters, make it a file
-					too_long = len(stack) > 1700
-					file: discord.File | None = None
-					if too_long:
-						s = StringIO()
-						s.write(stack)
-						s.seek(0)
-						file = discord.File(s, filename="error.txt")  # type: ignore # stringIO is supported
-						stack = "The stack trace was too long to send in a message, so it was saved as a file."
-
 					webhook = self._error_webhook
 					if not webhook and self.user:
 						try:
@@ -293,21 +333,21 @@ class Bot(commands.AutoShardedBot):
 					if webhook:
 						try:
 							await webhook.send(
-								content=f"**ID:** {ctx.message.id}\n"
+								content=f"**ID:** {ctx.message.id if ctx.message else 0}\n"
 								f"**Guild:** {ctx.guild.name if ctx.guild else 'DMs'} / {ctx.guild.id if ctx.guild else 0}\n"
-								f"**User:** {ctx.author} / {ctx.author.id}\n"
+								f"**User:** {ctx.author} / {ctx.author.id if ctx.author else 0}\n"
 								f"**Command:** {ctx.command}\n"
-								f"```{stack}```",
+								f"```{message_stack}```",
 								file=file if too_long and file else discord.abc.MISSING,
 							)
 						except discord.HTTPException as e:
 							self.logger.warning(f"Failed to send error to webhook: {e}")
-					await ctx.reply(
-						content=f"An error has occured and has been reported to the developers. Report ID: `{ctx.message.id}`",
-						mention_author=False,
-					)
+				await ctx.reply(
+					content=f"An error has occured and has been reported to the developers. Report ID: `{ctx.message.id if ctx.message else 0}`",
+					mention_author=False,
+				)
 
-	async def on_command_error(self, ctx: Context, error: commands.CommandError):
+	async def on_command_error(self, ctx: Context, error: commands.CommandError):  # type: ignore
 		await self.handle_error(ctx, error)
 
 	async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
@@ -324,7 +364,7 @@ class Bot(commands.AutoShardedBot):
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
 				await ctx.interaction.response.defer(thinking=True)
 			else:
-				await ctx.message.add_reaction(self.config.emojis.get("loading"))
+				await ctx.message.add_reaction(self.config.emojis.get("loading", ""))
 		except discord.HTTPException:
 			pass
 
@@ -332,6 +372,6 @@ class Bot(commands.AutoShardedBot):
 		if ctx.interaction:
 			return
 		try:
-			await ctx.message.remove_reaction(self.config.emojis.get("loading"), ctx.me)
+			await ctx.message.remove_reaction(self.config.emojis.get("loading", ""), ctx.me)
 		except discord.HTTPException:
 			pass

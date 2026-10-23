@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 from core import slash_localization
 
+__all__ = ("HybridCommand", "HybridGroup", "command", "group")
+
 T = TypeVar("T")
 CogT = TypeVar("CogT")
 
@@ -333,6 +335,7 @@ def command(
 	parent: HybridGroup | HybridCommand | None = None,
 	user: bool = True,
 	guild: bool = True,
+	aliases: list[str] | None = None,
 ) -> Callable[[CommandCallback], HybridCommand]:
 	def decorator(func: CommandCallback) -> HybridCommand:
 		if isinstance(func, commands.Command):
@@ -358,6 +361,7 @@ def command(
 			l10n_key=base,
 			user=user,
 			guild=guild,
+			aliases=aliases or [],
 		)
 
 		return cmd

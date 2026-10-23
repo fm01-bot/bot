@@ -6,6 +6,8 @@ import shlex
 from collections.abc import Callable, Sequence
 from typing import Any, NoReturn
 
+__all__ = ("CLINode", "CLIParseError", "CLIParser", "HelpRequested")
+
 
 class CLIParseError(Exception):
 	"""Raised when command-line arguments cannot be parsed."""
@@ -144,6 +146,41 @@ class CLINode(argparse.ArgumentParser):
 
 		return decorator
 
+	def get_positional_placeholders(self) -> list[str]:
+		"""Return formatted placeholder strings for positional arguments."""
+		parts: list[str] = []
+		for a in self._actions:
+			if a.option_strings or a.dest == "help" or a.dest.startswith("_") or a.dest.endswith("_pos"):
+				continue
+			if a.choices:
+				ph = f"<{'|'.join(str(c) for c in a.choices)}>"
+			elif a.dest == "stack":
+				ph = "<true|false>"
+			elif a.required:
+				ph = f"<{a.dest}...>" if a.nargs in ("+", "*") else f"<{a.dest}>"
+			else:
+				ph = f"[{a.dest}...]" if a.nargs in ("+", "*") else f"[{a.dest}]"
+			parts.append(ph)
+		return parts
+
+	def get_option_presets(self) -> list[tuple[str, str, str]]:
+		"""Return a list of (flag_with_placeholder, flag_name, help_text) for options/flags."""
+		res: list[tuple[str, str, str]] = []
+		for a in self._actions:
+			if not a.option_strings or a.dest == "help" or a.dest.startswith("_"):
+				continue
+			flag: str = str(max(a.option_strings, key=len))
+			help_text: str = str(getattr(a, "help", "") or "")
+			if isinstance(a, argparse._StoreTrueAction) or a.nargs == 0:
+				res.append((flag, flag, help_text))
+			else:
+				if a.choices:
+					ph = f"<{'|'.join(str(c) for c in a.choices)}>"
+				else:
+					ph = f"<{a.dest}>"
+				res.append((f"{flag} {ph}", flag, help_text))
+		return res
+
 
 class CLIParser:
 	"""Bash-like CLI argument parser wrapping argparse and shlex."""
@@ -193,3 +230,183 @@ class CLIParser:
 		if inspect.isawaitable(res):
 			return await res
 		return res
+
+	def collect_presets(
+		self, node: CLINode | None = None, prefix_path: list[str] | None = None
+	) -> list[tuple[list[str], str, CLINode]]:
+		"""Recursively collect all executable subcommand paths and argument presets."""
+		if node is None:
+			node = self.root
+		if prefix_path is None:
+			prefix_path = []
+
+		presets: list[tuple[list[str], str, CLINode]] = []
+		sub = getattr(node, "_subparsers_action", None)
+		choices: dict[str, CLINode] = sub.choices if sub else {}
+
+		pos = node.get_positional_placeholders()
+		opts = node.get_option_presets()
+
+		preset_parts: list[str] = []
+		if pos:
+			preset_parts.extend(pos)
+		if opts:
+			preset_parts.extend([o[0] for o in opts])
+		preset_str = " ".join(preset_parts)
+
+		if node.callback is not None or (not choices and prefix_path):
+			presets.append((prefix_path, preset_str, node))
+
+		for name, child in choices.items():
+			presets.extend(self.collect_presets(child, prefix_path + [name]))
+
+		return presets
+
+	def resolve_node(self, tokens: Sequence[str]) -> tuple[CLINode, list[str]]:
+		"""Resolve the deepest reachable CLINode for a sequence of tokens."""
+		curr = self.root
+		consumed: list[str] = []
+		for t in tokens:
+			sub = getattr(curr, "_subparsers_action", None)
+			if sub and t in sub.choices:
+				curr = sub.choices[t]
+				consumed.append(t)
+			else:
+				break
+		return curr, consumed
+
+	def autocomplete(self, current: str) -> list[tuple[str, str]]:
+		"""Generate (label, value) choices for slash command autocomplete presets."""
+		sub = getattr(self.root, "_subparsers_action", None)
+		root_choices: dict[str, CLINode] = sub.choices if sub else {}
+
+		clean = current.strip()
+		if clean.lower().startswith(self.root.prog.lower() + " "):
+			clean = clean[len(self.root.prog) :].lstrip()
+
+		parts = clean.split()
+
+		# 1. Empty or typing a single word without trailing space (not yet entered into category)
+		if not clean or (len(parts) == 1 and not current.endswith(" ")):
+			results: list[tuple[str, str]] = []
+			token = clean.lower()
+
+			cat_matches: list[tuple[str, str]] = []
+			for cat_name in root_choices:
+				if not token or cat_name.lower().startswith(token) or token in cat_name.lower():
+					cat_matches.append((cat_name[:100], f"{cat_name} "))
+
+			results.extend(cat_matches)
+
+			# If token doesn't match an exact category, also perform global search
+			if token and token not in root_choices:
+				all_presets = self.collect_presets(self.root, [])
+				for path, args, node in all_presets:
+					full_cmd = " ".join(path)
+					if args:
+						full_cmd += " " + args
+					if token in full_cmd.lower():
+						results.append((full_cmd[:100], full_cmd[:100]))
+
+			# Also if token exactly matches a category, include its subcommands
+			if token in root_choices:
+				cat_node = root_choices[token]
+				for path, args, node in self.collect_presets(cat_node, [token]):
+					rel_path = " ".join(path[1:])
+					full_rel = f"{rel_path} {args}".strip() if args else rel_path
+					full_val = f"{token} {full_rel}".strip()
+					results.append((full_val[:100], full_val[:100]))
+
+			seen: set[str] = set()
+			unique_results: list[tuple[str, str]] = []
+			for lbl, val in results:
+				if val not in seen and lbl and val:
+					seen.add(val)
+					unique_results.append((lbl, val))
+			return unique_results[:25]
+
+		# 2. Inside a command string (category entered with trailing space or args)
+		first_token = parts[0].lower() if parts else ""
+		if first_token in root_choices:
+			cat_node = root_choices[first_token]
+			cat_name = first_token
+			remainder = clean[len(parts[0]) :].lstrip()
+
+			# Flag typing: e.g. current ends with '--...' or previous ends with space and has '--'
+			last_token = parts[-1] if parts else ""
+			if last_token.startswith("--") or (current.endswith(" ") and "--" in current):
+				target_node, _ = self.resolve_node(parts)
+				opts = target_node.get_option_presets()
+				if opts:
+					flag_filter = last_token.lower() if last_token.startswith("--") else ""
+					if last_token.startswith("--"):
+						prefix_before_flag = current[: current.rfind(last_token)]
+						used_flags = {t.lower() for t in parts[:-1] if t.startswith("-")}
+					else:
+						prefix_before_flag = current if current.endswith(" ") else current + " "
+						used_flags = {t.lower() for t in parts if t.startswith("-")}
+
+					flag_results: list[tuple[str, str]] = []
+					for flag_with_ph, flag_name, _help_text in opts:
+						if flag_name.lower() in used_flags:
+							continue
+						if (
+							not flag_filter
+							or flag_name.lower().startswith(flag_filter)
+							or flag_filter in flag_name.lower()
+						):
+							val = f"{prefix_before_flag}{flag_with_ph}"
+							flag_results.append((val[:100], val[:100]))
+					if flag_results:
+						return flag_results[:25]
+
+			# Subcommands under category
+			cat_presets = self.collect_presets(cat_node, [cat_name])
+			sub_filter = remainder.lower().strip()
+
+			sub_results: list[tuple[str, str]] = []
+			for path, args, node in cat_presets:
+				rel_path = " ".join(path[1:])
+				full_rel = f"{rel_path} {args}".strip() if args else rel_path
+				full_val = f"{cat_name} {full_rel}".strip()
+
+				if not sub_filter or sub_filter in full_rel.lower() or sub_filter in full_val.lower():
+					sub_results.append((full_val[:100], full_val[:100]))
+
+			# Also if an active executable node has options, suggest individual flags
+			target_node, consumed = self.resolve_node(parts)
+			if target_node != self.root and target_node != cat_node:
+				opts = target_node.get_option_presets()
+				if opts and len(consumed) >= 2:
+					cmd_prefix = " ".join(consumed) + " "
+					for flag_with_ph, _flag_name, _help_text in opts:
+						val = f"{cmd_prefix}{flag_with_ph}"
+						if (val[:100], val[:100]) not in sub_results:
+							sub_results.append((val[:100], val[:100]))
+
+			seen_sub: set[str] = set()
+			unique_sub: list[tuple[str, str]] = []
+			for lbl, val in sub_results:
+				if val not in seen_sub and lbl and val:
+					seen_sub.add(val)
+					unique_sub.append((lbl, val))
+			return unique_sub[:25]
+
+		# 3. Not starting with category -> Global search
+		query = clean.lower()
+		all_presets = self.collect_presets(self.root, [])
+		global_results: list[tuple[str, str]] = []
+		for path, args, node in all_presets:
+			full_cmd = " ".join(path)
+			if args:
+				full_cmd += " " + args
+			if query in full_cmd.lower():
+				global_results.append((full_cmd[:100], full_cmd[:100]))
+
+		seen_global: set[str] = set()
+		unique_global: list[tuple[str, str]] = []
+		for lbl, val in global_results:
+			if val not in seen_global and lbl and val:
+				seen_global.add(val)
+				unique_global.append((lbl, val))
+		return unique_global[:25]

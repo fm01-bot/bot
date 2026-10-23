@@ -288,16 +288,12 @@ class Logging(commands.Cog, name="Logging"):
 	async def _send(self, guild: discord.Guild, event_name: str, key: str, /, **kwargs: Any):
 		"""Resolve the localized payload and send it to the configured log channel.
 
-		Parameters
-		----------
-		guild
-			The guild the event occurred in.
-		event_name
-			The event name as stored in the ``modules`` column (e.g. ``on_message_delete``).
-		key
-			The full localization key (e.g. ``log.on_message_delete.delete``).
-		**kwargs
-			Formatting variables, converted to custom args where applicable.
+		Args:
+			guild: The guild the event occurred in.
+			event_name: The event name as stored in the ``modules`` column (e.g. ``on_message_delete``).
+			key: The full localization key (e.g. ``log.on_message_delete.delete``).
+			**kwargs: Formatting variables, converted to custom args where applicable.
+
 		"""
 		cfg = await self._ensure_config(guild.id)
 		if not cfg or not cfg.is_enabled(event_name):

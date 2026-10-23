@@ -319,3 +319,115 @@ class TestSayCog:
 		qr_url = ctx.send.call_args[1]["qr"]
 		assert "https://api.qrserver.com/v1/create-qr-code/?data=" in qr_url
 		assert "https%3A%2F%2Fexample.com%2Ftest%3Fa%3D1%26b%3D2" in qr_url
+
+
+class TestBanCommand:
+	@pytest.mark.asyncio
+	async def test_ban_without_duration_only_reason(self, mock_bot):
+		from cogs.mod import Moderation
+
+		cog = Moderation(mock_bot)
+		ctx = MagicMock()
+		ctx.interaction = None
+		ctx.me = MagicMock()
+		target_user = MagicMock(spec=discord.User)
+		target_user.id = 999
+		ctx.guild.id = 123
+		ctx.author.id = 456
+		ctx.message.id = 789
+		ctx.message.reference = None
+		ctx.send = AsyncMock()
+
+		with patch("cogs.mod.Ban.create", new_callable=AsyncMock) as mock_create:
+			# Prefix command parser sends first word as expires, remainder as reason
+			await cog.ban.callback(cog, ctx, user=target_user, expires="Spamming", reason="in chat")
+			mock_create.assert_called_once()
+			ctx.send.assert_called_once()
+			ban_obj = ctx.send.call_args[1]["ban"]
+			assert ban_obj.reason == "Spamming in chat"
+			assert ban_obj.expires is None
+
+	@pytest.mark.asyncio
+	async def test_ban_without_duration_single_word_reason(self, mock_bot):
+		from cogs.mod import Moderation
+
+		cog = Moderation(mock_bot)
+		ctx = MagicMock()
+		ctx.interaction = None
+		ctx.me = MagicMock()
+		target_user = MagicMock(spec=discord.User)
+		target_user.id = 999
+		ctx.guild.id = 123
+		ctx.author.id = 456
+		ctx.message.id = 789
+		ctx.message.reference = None
+		ctx.send = AsyncMock()
+
+		with patch("cogs.mod.Ban.create", new_callable=AsyncMock) as mock_create:
+			await cog.ban.callback(cog, ctx, user=target_user, expires="Spamming", reason=None)
+			mock_create.assert_called_once()
+			ctx.send.assert_called_once()
+			ban_obj = ctx.send.call_args[1]["ban"]
+			assert ban_obj.reason == "Spamming"
+			assert ban_obj.expires is None
+
+	@pytest.mark.asyncio
+	async def test_ban_without_duration_and_without_reason(self, mock_bot):
+		from cogs.mod import Moderation
+
+		cog = Moderation(mock_bot)
+		ctx = MagicMock()
+		ctx.interaction = None
+		ctx.me = MagicMock()
+		target_user = MagicMock(spec=discord.User)
+		target_user.id = 999
+		ctx.guild.id = 123
+		ctx.author.id = 456
+		ctx.message.id = 789
+		ctx.message.reference = None
+		ctx.send = AsyncMock()
+
+		with patch("cogs.mod.Ban.create", new_callable=AsyncMock) as mock_create:
+			await cog.ban.callback(cog, ctx, user=target_user, expires=None, reason=None)
+			mock_create.assert_called_once()
+			ctx.send.assert_called_once()
+			ban_obj = ctx.send.call_args[1]["ban"]
+			assert ban_obj.reason is None
+			assert ban_obj.expires is None
+
+	@pytest.mark.asyncio
+	async def test_ban_with_duration_and_reason(self, mock_bot):
+		from cogs.mod import Moderation
+
+		cog = Moderation(mock_bot)
+		ctx = MagicMock()
+		ctx.interaction = None
+		ctx.me = MagicMock()
+		target_user = MagicMock(spec=discord.User)
+		target_user.id = 999
+		ctx.guild.id = 123
+		ctx.author.id = 456
+		ctx.message.id = 789
+		ctx.message.reference = None
+		ctx.send = AsyncMock()
+
+		with patch("cogs.mod.Ban.create", new_callable=AsyncMock) as mock_create:
+			await cog.ban.callback(cog, ctx, user=target_user, expires="1d", reason="Spamming")
+			mock_create.assert_called_once()
+			ctx.send.assert_called_once()
+			ban_obj = ctx.send.call_args[1]["ban"]
+			assert ban_obj.reason == "Spamming"
+			assert ban_obj.expires is not None
+
+	@pytest.mark.asyncio
+	async def test_ban_slash_command_invalid_duration_raises_bad_argument(self, mock_bot):
+		from cogs.mod import Moderation
+		from discord.ext import commands
+
+		cog = Moderation(mock_bot)
+		ctx = MagicMock()
+		ctx.interaction = MagicMock()
+		target_user = MagicMock(spec=discord.User)
+
+		with pytest.raises(commands.BadArgument):
+			await cog.ban.callback(cog, ctx, user=target_user, expires="invalid-duration", reason="Spamming")

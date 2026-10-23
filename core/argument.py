@@ -5,6 +5,8 @@ from discord.ext import commands
 
 from core.slash_localization import slash_command_localization
 
+__all__ = ("Argument",)
+
 
 @dataclass
 class Argument:

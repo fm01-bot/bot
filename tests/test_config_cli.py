@@ -212,3 +212,251 @@ async def test_full_execution_flow():
 	check_code_block_response(ctx.send)
 	status_content = ctx.send.call_args[1].get("content")
 	assert "Hello {user}!" in status_content  # Template is not replaced in preview
+
+
+@pytest.mark.asyncio
+async def test_config_level_execution():
+	bot = MagicMock()
+	bot.db = MagicMock()
+	bot.db.execute = AsyncMock()
+	bot.db.fetch = AsyncMock(return_value=[])
+	bot.db.fetchrow = AsyncMock(return_value=None)
+	bot.get_cog.return_value = None
+
+	ctx = MagicMock()
+	ctx.bot = bot
+	ctx.send = AsyncMock()
+
+	guild = MagicMock()
+	guild.id = 12345
+	guild.name = "Test Guild"
+
+	test_channel = MagicMock(spec=discord.TextChannel)
+	test_channel.id = 555
+	test_channel.name = "general"
+	guild.channels = [test_channel]
+	guild.threads = []
+	guild.get_channel_or_thread.return_value = test_channel
+	guild.get_channel.return_value = test_channel
+
+	test_role = MagicMock(spec=discord.Role)
+	test_role.id = 777
+	test_role.name = "VIP"
+	guild.roles = [test_role]
+	guild.get_role.return_value = test_role
+
+	ctx.guild = guild
+	ctx.channel = test_channel
+
+	config_cog = Config(bot)
+
+	# 1. config level enable
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level enable")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[+] Leveling system enabled" in ctx.send.call_args[1]["content"]
+
+	# 2. config level disable
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level disable")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[-] Leveling system disabled" in ctx.send.call_args[1]["content"]
+
+	# 3. config level xp
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(
+		config_cog, ctx, flags_and_args="level xp --min 20 --max 30 --multiplier 1.5 --cooldown 45"
+	)
+	assert ctx.send.called
+	assert bot.db.execute.called
+	content = ctx.send.call_args[1]["content"]
+	assert "Minimum XP: 20" in content
+	assert "Maximum XP: 30" in content
+	assert "Multiplier: 1.5x" in content
+	assert "Cooldown: 45s" in content
+
+	# 4. config level message
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(
+		config_cog, ctx, flags_and_args='level message --mode channel --channel #general --template "Congrats {user}!"'
+	)
+	assert ctx.send.called
+	assert bot.db.execute.called
+	content = ctx.send.call_args[1]["content"]
+	assert "Mode: channel" in content
+	assert "Channel: #general" in content
+
+	# 5. config level rewards add
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards add 5 @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[+] Added reward: @VIP at Level 5" in ctx.send.call_args[1]["content"]
+
+	# 6. config level rewards remove
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards remove 5")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "[-] Removed role reward(s) for Level 5" in ctx.send.call_args[1]["content"]
+
+	# 7. config level rewards stack
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level rewards stack false")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Replace previous" in ctx.send.call_args[1]["content"]
+
+	# 8. config level channel ignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel ignore #general")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Ignored channel #general" in ctx.send.call_args[1]["content"]
+
+	# 9. config level channel unignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel unignore #general")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Unignored channel #general" in ctx.send.call_args[1]["content"]
+
+	# 10. config level channel multiplier
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level channel multiplier #general 2.0")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "set to 2.0x" in ctx.send.call_args[1]["content"]
+
+	# 11. config level role ignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role ignore @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Ignored role @VIP" in ctx.send.call_args[1]["content"]
+
+	# 12. config level role unignore
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role unignore @VIP")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "Unignored role @VIP" in ctx.send.call_args[1]["content"]
+
+	# 13. config level role multiplier
+	ctx.send.reset_mock()
+	bot.db.execute.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level role multiplier @VIP 1.5")
+	assert ctx.send.called
+	assert bot.db.execute.called
+	assert "set to 1.5x" in ctx.send.call_args[1]["content"]
+
+	# 14. config level show
+	ctx.send.reset_mock()
+	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="level show")
+	assert ctx.send.called
+	assert "Leveling System Configuration" in ctx.send.call_args[1]["content"]
+
+
+def test_config_autocomplete_empty():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("")
+	values = [val for _, val in results]
+	assert "level " in values
+	assert "log " in values
+	assert "join " in values
+	assert "leave " in values
+	assert "prefix " in values
+
+
+def test_config_autocomplete_category_level():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("level ")
+	labels = {lbl for lbl, _ in results}
+	values = {val for _, val in results}
+
+	assert "level enable" in labels
+	assert "level enable" in values
+	assert "level disable" in labels
+	assert "level disable" in values
+	assert "level show" in labels
+	assert "level show" in values
+
+	# Subcommand with arguments includes category path in both label and value
+	assert "level rewards add <level> <role>" in labels
+	assert "level rewards add <level> <role>" in values
+	assert "level rewards remove <level> [role]" in labels
+	assert "level rewards remove <level> [role]" in values
+	assert "level rewards stack <true|false>" in labels
+	assert "level rewards stack <true|false>" in values
+
+
+def test_config_autocomplete_category_join():
+	config_cog = Config(MagicMock())
+	results = config_cog.parser.autocomplete("join")
+	assert any(
+		name == "join enable --channel <channel> --message <message>"
+		and val == "join enable --channel <channel> --message <message>"
+		for name, val in results
+	)
+	assert any(name == "join status" and val == "join status" for name, val in results)
+
+
+def test_config_autocomplete_flags():
+	config_cog = Config(MagicMock())
+
+	# 1. level xp
+	res_xp = config_cog.parser.autocomplete("level xp")
+	values_xp = [val for _, val in res_xp]
+	assert any("level xp --min <min> --max <max>" in val for val in values_xp)
+	assert "level xp --min <min>" in values_xp
+
+	# 2. level xp --
+	res_flags = config_cog.parser.autocomplete("level xp --")
+	values_flags = [val for _, val in res_flags]
+	assert "level xp --min <min>" in values_flags
+	assert "level xp --max <max>" in values_flags
+	assert "level xp --multiplier <multiplier>" in values_flags
+	assert "level xp --cooldown <cooldown>" in values_flags
+
+	# 3. level xp --min 10 -- (already used flag --min should be omitted as a candidate)
+	res_used = config_cog.parser.autocomplete("level xp --min 10 --")
+	values_used = [val for _, val in res_used]
+	assert not any(val.endswith("--min <min>") for val in values_used)
+	assert "level xp --min 10 --max <max>" in values_used
+	assert "level xp --min 10 --multiplier <multiplier>" in values_used
+	assert "level xp --min 10 --cooldown <cooldown>" in values_used
+
+
+def test_config_autocomplete_global_search():
+	config_cog = Config(MagicMock())
+	res = config_cog.parser.autocomplete("rew")
+	values = [val for _, val in res]
+	assert "level rewards add <level> <role>" in values
+	assert "level rewards list" in values
+
+
+@pytest.mark.asyncio
+async def test_config_autocomplete_cog_integration():
+	config_cog = Config(MagicMock())
+	mock_interaction = MagicMock(spec=discord.Interaction)
+
+	fn = getattr(config_cog, "config_" + "autocomplete")
+	choices = await fn(mock_interaction, "level rew")
+	assert len(choices) <= 25
+	assert all(isinstance(c, discord.app_commands.Choice) for c in choices)
+	assert all(len(c.name) <= 100 and len(c.value) <= 100 for c in choices)
+	assert any(
+		c.name == "level rewards add <level> <role>" and c.value == "level rewards add <level> <role>" for c in choices
+	)

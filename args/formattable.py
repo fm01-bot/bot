@@ -5,10 +5,10 @@ class Formattable:
 	def __init__(self, data, *, style: discord.utils.TimestampStyle):
 		"""A class that allows you to format a datetime object into a Discord timestamp.
 
-		Parameters
-		----------
-		data: `FormatDateTime`
-		        The datetime object to format.
+		Args:
+			data: The datetime object to format.
+			style: The timestamp style to use.
+
 		"""
 		self._parent_data = data
 		self._style = style

@@ -1,2646 +1,2702 @@
 {
-	"afk": {
-		"dnd": "Nincs gépnél",
-		"link": {
-			"content": "Az AFK státuszod nem tartalmazhat linkeket!"
-		},
-		"on": {
-			"content": "Mától AFK vagy."
-		},
-		"off": {
-			"content": "Mától nem vagy AFK."
-		},
-		"reason": {
-			"content": "**{user.name}** jelenleg AFK: `{reason}`"
-		},
-		"name": "[AFK] {nickname}"
-	},
-	"ping": {
-		"embeds": [
-			{
-				"title": "Pong!",
-				"fields": [
-					{
-						"name": "Bot válaszidő",
-						"value": "`{latency:.3f}s`",
-						"inline": false
-					},
-					{
-						"name": "Adatbázis ping",
-						"value": "`{db:.3f}s`",
-						"inline": false
-					}
-				],
-				"color": 6656243
-			}
-		],
-		"reply": false
-	},
-	"all": [
-		"mind",
-		"mind"
-	],
-	"work": {
-		"embeds": [
-			{
-				"title": "Munka",
-				"description": "{random}",
-				"color": 6656243
-			}
-		],
-		"random": [
-			"Hazaértél, és láttad, hogy **{amount} Ft-al** bővült a számlád egyenlege.",
-			"Egy nehéz nap után **{amount} Ft-ot** kaptál fizetségül!",
-			"Sikeresen teljesítetted az első napod az új melóban, így **{amount} Ft-ot** kaptál.",
-			"Cégbeli előléptetésed mellé kaptál egy **{amount} Ft-os** bónuszt!",
-			"Részvényeid után **{amount} Ft-ot** kaptál.",
-			"Előléptettek a munkahelyeden, így szereztél **{amount} Ft-ot**.",
-			"Taxisofőrként **{amount} Ft-ot** szereztél ma.",
-			"Elmentél a boltba zacskós levest venni, de a kasszás többet adott vissza. Szereztél **{amount} Ft-ot** és egy csomag zacskós levest.",
-			"Nehéz napod volt a mezőn - kaptál **{amount} Ft-ot**."
-		]
-	},
-	"crime": {
-		"embeds": [
-			{
-				"title": "Bűnözés",
-				"description": "{random}",
-				"color": 6656243
-			}
-		],
-		"random": [
-			"Kiraboltad a bankot, ezzel **{amount} Ft-ot** szerezve.",
-			"Megfenyegetted az utcai eladót, aki **{amount} Ft-ot** adott, hogy békén hagyd!",
-			"Kiraboltál egy akkumulátorgyárat, és a szerzeményt eladtad **{amount} Ft-ért**.",
-			"Kiraboltad a sarki boltot. Kaptál **{amount} Ft-t** és egy csomag rágógumit.",
-			"Rendszergazdai munkaköröd részeként kihívtak egy router lecserélésére, de te elloptad és eladtad az új routert, ezzel **{amount} Ft-ot** szereztél!"
-		]
-	},
-	"allowance": {
-		"content": "Megkaptad a napi jutalmad, **{amount} Ft-ot**."
-	},
-	"addmoney": {
-		"success": {
-			"content": "**{amount} Ft** hozzá lett adva {member.mention} fiókjához!"
-		},
-		"errors": {
-			"positive": {
-				"content": "Csak **pozitív** összeget lehet hozzáadni az egyenleghez!"
-			}
-		}
-	},
-	"removemoney": {
-		"success": {
-			"content": "**{amount} Ft** el lett távolítva {member.mention} fiókjából!"
-		},
-		"errors": {
-			"positive": {
-				"content": "Csak **pozitív** összeget lehet levonni az egyenlegből!"
-			},
-			"balance": {
-				"content": "Nem tudsz több pénzt levonni valaki egyenlegéből, mint amennyi van!"
-			}
-		}
-	},
-	"deposit": {
-		"all": [
-			"mind",
-			"mind"
-		],
-		"errors": {
-			"invalid_amount": {
-				"content": "Csak pozitív számot adhatsz meg!"
-			},
-			"balance": {
-				"content": "Nincs ennyi készpénzed!"
-			}
-		},
-		"success": {
-			"content": "Sikeresen betettél **{amount} Ft-ot** a bankba!"
-		}
-	},
-	"withdraw": {
-		"all": [
-			"mind",
-			"mind"
-		],
-		"errors": {
-			"invalid_amount": {
-				"content": "Csak pozitív számot adhatsz meg!"
-			},
-			"balance": {
-				"content": "Nincs ennyi pénz a bankodban!"
-			}
-		},
-		"success": {
-			"content": "Sikeresen jóváírtál **{amount} Ft-ot** a bankodból!"
-		}
-	},
-	"luck": {
-		"win": {
-			"embeds": [
-				{
-					"title": "Szerencse",
-					"description": "{random}",
-					"color": 6656243
-				}
-			],
-			"random": [
-				"Vettél egy lottószelvényt, és teli találatod lett! :tada: Szereztél **{amount} Ft-ot**.",
-				"Nagyot nyertél egy fogadáson - **{amount} Ft-ot**!",
-				"Első két kártyád összesen 21-es értékkel rendelkezett blackjackben, így nyertél **{amount} Ft-ot**.",
-				"Az utcán sétálva találtál **{amount} Ft-ot** a földön."
-			]
-		},
-		"lose": {
-			"embeds": [
-				{
-					"title": "Szerencse",
-					"description": "{random}",
-					"color": 13369344
-				}
-			],
-			"random": [
-				"Vettél egy lottószelvényt, de nem nyertél semmit :( Vesztettél **{amount} Ft-ot**.",
-				"Vesztettél **{amount} Ft-ot** egy fogadáson.",
-				"Loptál a munkahelyedről. A bíróság **{amount} Ft-ot** igényel kárpótlásként.",
-				"Sikkasztásért megbírságoltak **{amount} Ft-ra**."
-			]
-		},
-		"errors": {
-			"balance": {
-				"content": "Minimum **{amount} Ft-al** kell rendelkezned ehhez!"
-			}
-		}
-	},
-	"pay": {
-		"success": {
-			"content": "Sikeresen adtál **{amount} Ft-ot** {member.mention} tagnak!"
-		},
-		"errors": {
-			"positive": {
-				"content": "Csak pozitív értéket adhatsz meg!"
-			},
-			"balance": {
-				"content": "Nincs ennyi készpénzed!"
-			}
-		}
-	},
-	"balance": {
-		"embeds": [
-			{
-				"title": "Egyenleg",
-				"fields": [
-					{
-						"name": "Készpénz",
-						"value": "{cash} Ft",
-						"inline": true
-					},
-					{
-						"name": "Bank",
-						"value": "{bank} Ft",
-						"inline": true
-					},
-					{
-						"name": "⚠️ Adósságod van.",
-						"value": "További nyert pénzed az adósságod törlesztésére fog menni.",
-						"inline": false
-					}
-				],
-				"color": 6656243
-			}
-		]
-	},
-	"slots": {
-		"win": {
-			"embeds": [
-				{
-					"title": "Félkarú rabló",
-					"fields": [
-						{
-							"name": "Végeredmény",
-							"value": "{results}",
-							"inline": false
-						},
-						{
-							"name": "Nyerteség",
-							"value": "{amount} Ft",
-							"inline": false
-						}
-					],
-					"color": 6656243
-				}
-			]
-		},
-		"lose": {
-			"embeds": [
-				{
-					"title": "Félkarú rabló",
-					"fields": [
-						{
-							"name": "Végeredmény",
-							"value": "{results}",
-							"inline": false
-						},
-						{
-							"name": "Veszítettél",
-							"value": "{amount} Ft",
-							"inline": false
-						},
-						{
-							"name": "⚠️ Adósságod van.",
-							"value": "További nyert pénzed az adósságod törlesztésére fog menni.",
-							"inline": false
-						}
-					],
-					"color": 6656243
-				}
-			]
-		},
-		"errors": {
-			"balance": {
-				"content": "Nincs elég készpénzed!"
-			}
-		}
-	},
-	"leaderboard": {
-		"embeds": [
-			{
-				"title": "Ranglista",
-				"fields": [
-					{
-						"name": "#{number} {user}",
-						"value": "Készpénz: `{cash} Ft`\nBank: `{bank} Ft`",
-						"inline": false
-					},
-					{
-						"name": "Psszt...",
-						"value": "Úgy tűnik, még senki sem használta az economy rendszert. Légy te az első!",
-						"inline": false
-					}
-				],
-				"color": 6656243
-			}
-		]
-	},
-	"shop": {
-		"list": {
-			"show": {
-				"embeds": [
-					{
-						"title": "Bolt",
-						"fields": [
-							{
-								"name": "{item.name} ({item.price} Ft)",
-								"value": "{item.role.mention}: {item.description}",
-								"inline": false
-							}
-						],
-						"color": 6656243
-					}
-				]
-			},
-			"empty": {
-				"content": "Nincsenek termékek a boltban!"
-			}
-		},
-		"buy": {
-			"success": {
-				"content": "Megvetted a(z) **{item.name}** terméket **{item.price} Ft-ért**."
-			},
-			"errors": {
-				"balance": {
-					"content": "Nincs pénzed erre a termékre!"
-				},
-				"not_found": {
-					"content": "Nem létezik ilyen termék!"
-				},
-				"role_not_found": {
-					"content": "Törölték a termékhez tartozó rangot! Kérj meg egy admint, hogy távolítsa el a boltból."
-				}
-			}
-		},
-		"set": {
-			"success": {
-				"content": "A termék hozzá lett adva a bolthoz!"
-			},
-			"errors": {
-				"already_item": {
-					"content": "Már létezik ilyen termék a boltban!"
-				},
-				"role_higher": {
-					"content": "Ez a rang magasabban van, mint a te rangod!"
-				},
-				"limit": {
-					"content": "Elérted a maximum terméklimitet!"
-				}
-			}
-		},
-		"remove": {
-			"success": {
-				"content": "A termék el lett távolítva a boltból!"
-			},
-			"errors": {
-				"not_found": {
-					"content": "Ez a termék nem létezik!"
-				},
-				"role_higher": {
-					"content": "Ez a rang magasabban van, mint a te rangod!"
-				}
-			}
-		}
-	},
-	"mod": {
-		"warn": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Figyelmeztetés",
-						"description": "{warn.user.mention} figyelmeztetve.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{warn.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{warn.date}"
-							}
-						],
-						"footer": {
-							"text": "{warn.id}"
-						}
-					}
-				],
-				"ephemeral": true
-			},
-			"notify": {
-				"embeds": [
-					{
-						"title": "Figyelmeztetés",
-						"description": "Figyelmeztetve lettél a(z) **{warn.guild}** szerveren.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{warn.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{warn.length}"
-							}
-						],
-						"footer": {
-							"text": "{warn.id}"
-						},
-						"color": 13369344
-					}
-				]
-			},
-			"unwarned": {
-				"embeds": [
-					{
-						"title": "Figyelmeztetés eltávolítva",
-						"description": "A figyelmeztetésed a(z) **{warn.guild}** szerveren el lett távolítva.",
-						"fields": [
-							{
-								"name": "Eredeti indok",
-								"value": "{warn.reason}"
-							}
-						],
-						"color": 6656243
-					}
-				]
-			},
-			"errors": {
-				"bot": {
-					"content": "Engem nem figyelmeztethetsz!"
-				},
-				"hierarchy": {
-					"content": "Nem figyelmeztethetsz olyan tagot, akinek a rangja magasabb nálad!"
-				}
-			}
-		},
-		"slowmode": {
-			"reason": "Slowmode changed by {moderator.username}",
-			"response": {
-				"embeds": [
-					{
-						"title": "Slowmode changed",
-						"description": "Set slowmode in {channel.mention} to `{time}`.",
-						"color": 6656243,
-						"timestamp": "{now}"
-					}
-				]
-			},
-			"current_slowmode": {
-				"content": "The current slowmode in {channel.mention} is `{channel.slowmode}`."
-			}
-		},
-		"info": {
-			"response": {
-				"embeds": [
-					{
-						"title": "`{case.type.name}` információk",
-						"fields": [
-							{
-								"name": "Szankció ID",
-								"value": "{case.id}",
-								"inline": false
-							},
-							{
-								"name": "Szankcionált felhasználó",
-								"value": "{case.user.mention}",
-								"inline": false
-							},
-							{
-								"name": "Szankciót adta",
-								"value": "{case.moderator.mention}",
-								"inline": false
-							},
-							{
-								"name": "Indok",
-								"value": "{case.reason}",
-								"inline": false
-							},
-							{
-								"name": "Lejár",
-								"value": "{case.length}",
-								"inline": false
-							}
-						],
-						"footer": {
-							"text": "Szankció megnyitva ekkor"
-						},
-						"timestamp": "{case.created.timestamp}",
-						"color": 6656243
-					}
-				]
-			},
-			"errors": {
-				"not_found": {
-					"content": "Nem található ilyen szankció."
-				}
-			}
-		},
-		"delete": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Szankció",
-						"description": "`{case.id}` szankció törölve.",
-						"color": 6656243
-					}
-				]
-			},
-			"errors": {
-				"not_found": {
-					"content": "Nem található ilyen szankció."
-				}
-			}
-		},
-		"edit": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Szankció szerkesztve",
-						"description": "`{case.id}` szankció adatai szerkesztve.",
-						"color": 6656243,
-						"timestamp": "{now}"
-					}
-				]
-			},
-			"errors": {
-				"not_found": {
-					"content": "Nem található ilyen szankció."
-				},
-				"invalid_time": {
-					"content": "Hibás időformátum."
-				}
-			}
-		},
-		"list": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Szankció lista",
-						"fields": [
-							{
-								"name": "{case.id} `{case.type.name}`",
-								"value": "Adta: {case.moderator.mention}\nIndok: {case.reason}\nLejár: {case.length}",
-								"inline": false
-							},
-							{
-								"name": "Nincsenek szankciók",
-								"value": "Ennek a felhasználónak nincsenek szankciói.",
-								"inline": false
-							}
-						],
-						"color": 6656243
-					}
-				]
-			}
-		},
-		"mute": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Némítás",
-						"description": "{mute.user.mention} le lett némítva.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{mute.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{mute.length}"
-							}
-						],
-						"color": 6656243,
-						"footer": {
-							"text": "{mute.id}"
-						}
-					}
-				]
-			},
-			"unmuted": {
-				"embeds": [
-					{
-						"title": "Némítás feloldva",
-						"description": "Feloldották a némításod a(z) **{guild}** szerveren.",
-						"fields": [
-							{
-								"name": "Eredeti indok",
-								"value": "{mute.reason}"
-							}
-						],
-						"footer": {
-							"text": "{mute.id}"
-						},
-						"color": 6656243
-					}
-				]
-			},
-			"notify": {
-				"embeds": [
-					{
-						"title": "Némítás",
-						"description": "Le lettél némítva a(z) **{guild}** szerveren.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{mute.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{mute.length}"
-							}
-						],
-						"footer": {
-							"text": "{mute.id}"
-						},
-						"color": 13369344
-					}
-				]
-			},
-			"reason": "Némítás {moderator.name} által",
-			"errors": {
-				"bot": {
-					"content": "Engem nem némíthatsz le!"
-				},
-				"hierarchy": {
-					"content": "Nem némíthatsz le nálad magasabb rangú tagot!"
-				}
-			}
-		},
-		"unmute": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Némítás feloldva",
-						"description": "{user.mention} némítása el lett távolítva.",
-						"color": 6656243
-					}
-				]
-			},
-			"notify": {
-				"content": "Feloldották a némításod a(z) **{guild}** szerveren."
-			},
-			"errors": {
-				"hierarchy": {
-					"content": "Nem oldhatod fel egy nálad magasabb rangú tag némítását."
-				}
-			}
-		},
-		"kick": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Kirúgás",
-						"description": "{kick.user.mention} ki lett rúgva {kick.reason} indokkal.",
-						"color": 6656243,
-						"footer": {
-							"text": "{kick.id}"
-						}
-					}
-				]
-			},
-			"notify": {
-				"embeds": [
-					{
-						"title": "Kirúgás",
-						"description": "Ki lettél rúgva a(z) **{guild}** szerverről.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{kick.reason}"
-							}
-						],
-						"footer": {
-							"text": "{kick.id}"
-						},
-						"color": 13369344
-					}
-				]
-			},
-			"errors": {
-				"bot": {
-					"content": "Engem nem rúghatsz ki!"
-				}
-			}
-		},
-		"ban": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Kitiltás",
-						"description": "{ban.user.mention} ki lett tiltva.",
-						"color": 6656243,
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{ban.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{ban.length}"
-							}
-						],
-						"footer": {
-							"text": "{ban.id}"
-						}
-					}
-				]
-			},
-			"notify": {
-				"embeds": [
-					{
-						"title": "Kitiltás",
-						"description": "Ki lettél tiltva a(z) **{guild}** szerverről.",
-						"fields": [
-							{
-								"name": "Indok",
-								"value": "{ban.reason}"
-							},
-							{
-								"name": "Lejár",
-								"value": "{ban.length}"
-							}
-						],
-						"footer": {
-							"text": "{ban.id}"
-						},
-						"color": 13369344
-					}
-				]
-			},
-			"errors": {
-				"bot": {
-					"content": "Engem nem tilthatsz ki!"
-				},
-				"hierarchy": {
-					"content": "Nem tilthatsz ki nálad magasabb rangú tagot."
-				}
-			}
-		},
-		"unban": {
-			"response": {
-				"embeds": [
-					{
-						"title": "Kitiltás feloldása",
-						"description": "**{user.name}** kitiltása feloldva.",
-						"color": 6656243
-					}
-				]
-			},
-			"notify": {
-				"content": "Kitiltásod feloldották a(z) **{guild}** szerveren."
-			}
-		}
-	},
-	"info": {
-		"user": {
-			"member": {
-				"embeds": [
-					{
-						"title": "Tag információk",
-						"fields": [
-							{
-								"name": "Felhasználónév",
-								"value": "{member.username}",
-								"inline": true
-							},
-							{
-								"name": "Megjelenített név",
-								"value": "{member.display_name}",
-								"inline": true
-							},
-							{
-								"name": "Hashtag",
-								"value": "{member.discriminator}",
-								"inline": true
-							},
-							{
-								"name": "Becenév",
-								"value": "{member.nickname}",
-								"inline": true
-							},
-							{
-								"name": "ID",
-								"value": "{member.id}",
-								"inline": true
-							},
-							{
-								"name": "Bot?",
-								"value": "{member.bot}"
-							},
-							{
-								"name": "Fiók készült",
-								"value": "{member.created_at.long}"
-							},
-							{
-								"name": "Csatlakozott",
-								"value": "{member.joined_at.long}"
-							},
-							{
-								"name": "Rangok",
-								"value": "{member.roles}"
-							}
-						],
-						"author": {
-							"name": "{member}",
-							"icon_url": "{member.avatar}",
-							"url": "https://discord.com/users/{member.id}"
-						},
-						"timestamp": "{now}"
-					}
-				]
-			},
-			"not_member": {
-				"embeds": [
-					{
-						"title": "Felhasználó információk",
-						"fields": [
-							{
-								"name": "Felhasználónév",
-								"value": "{member.username}",
-								"inline": true
-							},
-							{
-								"name": "Megjelenített név",
-								"value": "{member.display_name}",
-								"inline": true
-							},
-							{
-								"name": "Hashtag",
-								"value": "{member.discriminator}",
-								"inline": true
-							},
-							{
-								"name": "ID",
-								"value": "{member.id}",
-								"inline": true
-							},
-							{
-								"name": "Bot?",
-								"value": "{member.bot}"
-							},
-							{
-								"name": "Fiók készült",
-								"value": "{member.created_at.long}"
-							}
-						],
-						"author": {
-							"name": "{member}",
-							"icon_url": "{member.avatar}",
-							"url": "https://discord.com/users/{member.id}"
-						},
-						"timestamp": "{now}"
-					}
-				]
-			}
-		},
-		"server": {
-			"embeds": [
-				{
-					"title": "Szerver információ",
-					"fields": [
-						{
-							"name": "Leírás",
-							"value": "{server.description}",
-							"inline": true
-						},
-						{
-							"name": "ID",
-							"value": "{server.id}",
-							"inline": true
-						},
-						{
-							"name": "Tulajdonos",
-							"value": "{server.owner.mention}",
-							"inline": true
-						},
-						{
-							"name": "Szerver készült",
-							"value": "{server.created_at.long}",
-							"inline": true
-						},
-						{
-							"name": "Nyelvezet",
-							"value": "{server.language}",
-							"inline": true
-						},
-						{
-							"name": "Örök meghívó",
-							"value": "{server.vanity_url}",
-							"inline": true
-						},
-						{
-							"name": "Gyorsítás fokozat",
-							"value": "{server.boost_tier}",
-							"inline": true
-						},
-						{
-							"name": "Gyorsítók száma",
-							"value": "{server.boosters}",
-							"inline": true
-						},
-						{
-							"name": "Gyorsító rang",
-							"value": "{server.boost_role}",
-							"inline": true
-						},
-						{
-							"name": "Rangok",
-							"value": "{server.roles}",
-							"inline": true
-						},
-						{
-							"name": "Emojik",
-							"value": "{server.emojis}",
-							"inline": true
-						},
-						{
-							"name": "Bitráta limit",
-							"value": "{server.bitrate_limit} kbps",
-							"inline": true
-						},
-						{
-							"name": "Feltöltési limit",
-							"value": "{server.upload_limit} MB"
-						}
-					],
-					"author": {
-						"name": "{server.name}",
-						"icon_url": "{server.icon}"
-					},
-					"image": {
-						"url": "{server.banner}"
-					},
-					"timestamp": "{now}"
-				}
-			]
-		},
-		"role": {
-			"embeds": [
-				{
-					"title": "Rang információk",
-					"fields": [
-						{
-							"name": "Név",
-							"value": "{role.name}",
-							"inline": true
-						},
-						{
-							"name": "ID",
-							"value": "{role.id}",
-							"inline": true
-						},
-						{
-							"name": "Pozíció",
-							"value": "{role.position}",
-							"inline": true
-						},
-						{
-							"name": "Külön megjelenített?",
-							"value": "{role.hoist}",
-							"inline": true
-						},
-						{
-							"name": "Integráció kezelt?",
-							"value": "{role.managed}",
-							"inline": true
-						},
-						{
-							"name": "Mindenki megemlítheti?",
-							"value": "{role.mentionable}",
-							"inline": true
-						},
-						{
-							"name": "Bot rang?",
-							"value": "{role.bot}",
-							"inline": true
-						},
-						{
-							"name": "Rang készült",
-							"value": "{role.created}",
-							"inline": true
-						},
-						{
-							"name": "Tagok száma",
-							"value": "{role.members}",
-							"inline": true
-						},
-						{
-							"name": "Jogok",
-							"value": "```{role.permissions}```",
-							"inline": false
-						}
-					]
-				}
-			]
-		},
-		"ip": {
-			"embeds": [
-				{
-					"title": "IP információk",
-					"fields": [
-						{
-							"name": "Hosztnév",
-							"value": "{ip.hostname}",
-							"inline": true
-						},
-						{
-							"name": "Város",
-							"value": "{ip.city}",
-							"inline": true
-						},
-						{
-							"name": "Irányítószám",
-							"value": "{ip.postal}",
-							"inline": true
-						},
-						{
-							"name": "Régió",
-							"value": "{ip.region}",
-							"inline": true
-						},
-						{
-							"name": "Ország",
-							"value": "{ip.country}",
-							"inline": true
-						},
-						{
-							"name": "Szolgáltató",
-							"value": "{ip.org}",
-							"inline": true
-						},
-						{
-							"name": "Időzóna",
-							"value": "{ip.timezone}",
-							"inline": true
-						}
-					]
-				}
-			]
-		},
-		"bot": {
-			"embeds": [
-				{
-					"title": "Bot információk",
-					"description": "Hívd be az **{bot.name}** botot a szerveredre [itt!](https://fm01.bot/invite)\nWeboldal: https://fm01.bot/",
-					"fields": [
-						{
-							"name": "VPS Szolgáltató",
-							"value": "{bot.provider}",
-							"inline": true
-						},
-						{
-							"name": "CPU",
-							"value": "{bot.processor}\nHasználat: {bot.processor.usage}%",
-							"inline": true
-						},
-						{
-							"name": "Memória használat",
-							"value": "{bot.memory}",
-							"inline": true
-						},
-						{
-							"name": "Tárhely",
-							"value": "{bot.disk}",
-							"inline": true
-						},
-						{
-							"name": "Hálózat (küldött/fogadott)",
-							"value": "{bot.network}",
-							"inline": true
-						},
-						{
-							"name": "discord.py",
-							"value": "v{bot.library_version}",
-							"inline": true
-						},
-						{
-							"name": "Boot ideje",
-							"value": "{bot.boot_time}"
-						}
-					],
-					"author": {
-						"name": "{bot.name}",
-						"icon_url": "{bot.avatar}",
-						"url": "https://fightman01bot.hu/"
-					},
-					"thumbnail": {
-						"url": "{bot.avatar}"
-					},
-					"timestamp": "{now}"
-				}
-			]
-		},
-		"emoji": {
-			"custom_emoji": {
-				"embeds": [
-					{
-						"title": "Emoji információk",
-						"fields": [
-							{
-								"name": "Név",
-								"value": "{emoji.name}",
-								"inline": true
-							},
-							{
-								"name": "ID",
-								"value": "{emoji.id}",
-								"inline": true
-							},
-							{
-								"name": "Animált?",
-								"value": "{emoji.animated}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{emoji.created}",
-								"inline": true
-							},
-							{
-								"name": "Ranghoz kötött?",
-								"value": "{emoji.roles}",
-								"inline": true
-							},
-							{
-								"name": "Szerver",
-								"value": "{emoji.guild}",
-								"inline": true
-							},
-							{
-								"name": "Bot kezeli?",
-								"value": "{emoji.bot_owned}",
-								"inline": true
-							}
-						],
-						"author": {
-							"name": "{emoji.name}",
-							"icon_url": "{emoji.url}"
-						}
-					}
-				]
-			},
-			"unicode_emoji": {
-				"embeds": [
-					{
-						"title": "Emoji információ",
-						"fields": [
-							{
-								"name": "Név",
-								"value": "{emoji.name}",
-								"inline": true
-							},
-							{
-								"name": "ID",
-								"value": "{emoji.id}",
-								"inline": true
-							},
-							{
-								"name": "Animált?",
-								"value": "{emoji.animated}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{emoji.created}",
-								"inline": true
-							}
-						],
-						"thumbnail": {
-							"url": "{emoji.url}"
-						}
-					}
-				]
-			}
-		},
-		"channel": {
-			"text": {
-				"embeds": [
-					{
-						"title": "Szöveges csatorna információk",
-						"fields": [
-							{
-								"name": "ID",
-								"value": "{channel.id}",
-								"inline": true
-							},
-							{
-								"name": "Téma",
-								"value": "{channel.topic}",
-								"inline": false
-							},
-							{
-								"name": "Kategória",
-								"value": "{channel.category.name}",
-								"inline": true
-							},
-							{
-								"name": "Lassítás (másodpercben)",
-								"value": "{channel.slowmode}",
-								"inline": true
-							},
-							{
-								"name": "NSFW?",
-								"value": "{channel.nsfw}",
-								"inline": true
-							},
-							{
-								"name": "Hozzáférő tagok",
-								"value": "{channel.members}",
-								"inline": true
-							},
-							{
-								"name": "Gondolatmenetek",
-								"value": "{channel.threads}",
-								"inline": true
-							},
-							{
-								"name": "Hírcsatorna?",
-								"value": "{channel.news}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{channel.created}",
-								"inline": true
-							},
-							{
-								"name": "Jogkezelések",
-								"value": "{channel.overwrites}",
-								"inline": true
-							},
-							{
-								"name": "Jogok szinkronizálva a kategóriával?",
-								"value": "{channel.permissions_synced}",
-								"inline": true
-							}
-						],
-						"author": {
-							"name": "#{channel.name}",
-							"url": "{channel.url}"
-						}
-					}
-				]
-			},
-			"voice": {
-				"embeds": [
-					{
-						"title": "Hangcsatorna információk",
-						"fields": [
-							{
-								"name": "ID",
-								"value": "{channel.id}",
-								"inline": true
-							},
-							{
-								"name": "Kategória",
-								"value": "{channel.category.name}",
-								"inline": true
-							},
-							{
-								"name": "Lassítás (másodpercben)",
-								"value": "{channel.slowmode}",
-								"inline": true
-							},
-							{
-								"name": "NSFW?",
-								"value": "{channel.nsfw}",
-								"inline": true
-							},
-							{
-								"name": "Régió",
-								"value": "{channel.region}",
-								"inline": true
-							},
-							{
-								"name": "Bitráta (kbps)",
-								"value": "{channel.bitrate}",
-								"inline": true
-							},
-							{
-								"name": "Taglimit",
-								"value": "{channel.user_limit}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{channel.created}",
-								"inline": true
-							},
-							{
-								"name": "Jogkezelések",
-								"value": "{channel.overwrites}",
-								"inline": true
-							},
-							{
-								"name": "Jogok kategóriához szinkronizálva?",
-								"value": "{channel.permissions_synced}",
-								"inline": true
-							},
-							{
-								"name": "Időzített események",
-								"value": "{channel.scheduled_events}",
-								"inline": true
-							},
-							{
-								"name": "Említés",
-								"value": "`{channel.mention}`",
-								"inline": true
-							}
-						],
-						"author": {
-							"name": "🔊 {channel.name}",
-							"url": "{channel.url}"
-						}
-					}
-				]
-			},
-			"stage": {
-				"embeds": [
-					{
-						"title": "Színpad információ",
-						"fields": [
-							{
-								"name": "ID",
-								"value": "{channel.id}",
-								"inline": true
-							},
-							{
-								"name": "Téma",
-								"value": "{channel.topic}",
-								"inline": false
-							},
-							{
-								"name": "Kategória",
-								"value": "{channel.category.name}",
-								"inline": true
-							},
-							{
-								"name": "Lassítás (másodperc)",
-								"value": "{channel.slowmode}",
-								"inline": true
-							},
-							{
-								"name": "NSFW?",
-								"value": "{channel.nsfw}",
-								"inline": true
-							},
-							{
-								"name": "Hozzáférő tagok",
-								"value": "{channel.members}",
-								"inline": true
-							},
-							{
-								"name": "Beszélők",
-								"value": "{channel.speakers}",
-								"inline": true
-							},
-							{
-								"name": "Hallgatók",
-								"value": "{channel.listeners}",
-								"inline": true
-							},
-							{
-								"name": "Szót kérnek",
-								"value": "{channel.requesting_to_speak}",
-								"inline": true
-							},
-							{
-								"name": "Színpadmoderátorok",
-								"value": "{channel.moderators}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{channel.created}",
-								"inline": true
-							},
-							{
-								"name": "Jogkezelések",
-								"value": "{channel.overwrites}",
-								"inline": true
-							},
-							{
-								"name": "Jogok kategóriához szinkronizálva?",
-								"value": "{channel.permissions_synced}",
-								"inline": true
-							}
-						],
-						"author": {
-							"name": "🎙️ {channel.name}",
-							"url": "{channel.url}"
-						}
-					}
-				]
-			},
-			"forum": {
-				"embeds": [
-					{
-						"title": "Fórum információk",
-						"fields": [
-							{
-								"name": "ID",
-								"value": "{channel.id}",
-								"inline": true
-							},
-							{
-								"name": "Topic",
-								"value": "{channel.topic}",
-								"inline": false
-							},
-							{
-								"name": "Kategória",
-								"value": "{channel.category.name}",
-								"inline": true
-							},
-							{
-								"name": "Lassítás (másodperc)",
-								"value": "{channel.slowmode}",
-								"inline": true
-							},
-							{
-								"name": "NSFW?",
-								"value": "{channel.nsfw}",
-								"inline": true
-							},
-							{
-								"name": "Hozzáférő tagok",
-								"value": "{channel.members}",
-								"inline": true
-							},
-							{
-								"name": "Posztok",
-								"value": "{channel.threads}",
-								"inline": true
-							},
-							{
-								"name": "Inaktivitás limit (percben)",
-								"value": "{channel.default_auto_archive_duration}",
-								"inline": true
-							},
-							{
-								"name": "Alapértelmezett lassítás (másodpercben)",
-								"value": "{channel.default_thread_slowmode_delay}",
-								"inline": true
-							},
-							{
-								"name": "Alapértelmezett reakció",
-								"value": "{channel.default_reaction_emoji}",
-								"inline": true
-							},
-							{
-								"name": "Média csatorna?",
-								"value": "{channel.media}",
-								"inline": true
-							},
-							{
-								"name": "Készült",
-								"value": "{channel.created}",
-								"inline": true
-							},
-							{
-								"name": "Jogkezelések",
-								"value": "{channel.overwrites}",
-								"inline": true
-							},
-							{
-								"name": "Jogok kategóriához szinkronizálva?",
-								"value": "{channel.permissions_synced}",
-								"inline": true
-							}
-						],
-						"author": {
-							"name": "#{channel.name}",
-							"url": "{channel.url}"
-						}
-					}
-				]
-			}
-		},
-		"pokemon": {
-			"embeds": [
-				{
-					"title": "Pokémon információ",
-					"fields": [
-						{
-							"name": "Dex",
-							"value": "{pokemon.dex}",
-							"inline": true
-						},
-						{
-							"name": "Típus(ok)",
-							"value": "{pokemon.type}",
-							"inline": true
-						},
-						{
-							"name": "Alap HP",
-							"value": "{pokemon.base_stats.hp}",
-							"inline": true
-						},
-						{
-							"name": "Alap támadás",
-							"value": "{pokemon.base_stats.attack}",
-							"inline": true
-						},
-						{
-							"name": "Alap védelem",
-							"value": "{pokemon.base_stats.defense}",
-							"inline": true
-						}
-					],
-					"thumbnail": {
-						"url": "{pokemon.image}"
-					}
-				}
-			]
-		},
-		"template": {
-			"embeds": [
-				{
-					"title": "Sablon információ",
-					"fields": [
-						{
-							"name": "Név",
-							"value": "{template.name}",
-							"inline": true
-						},
-						{
-							"name": "Szerver",
-							"value": "{template.guild.name}",
-							"inline": true
-						},
-						{
-							"name": "Készítette",
-							"value": "{template.author}",
-							"inline": true
-						},
-						{
-							"name": "Készült",
-							"value": "{template.created}",
-							"inline": true
-						},
-						{
-							"name": "Rangok száma",
-							"value": "{template.roles}",
-							"inline": true
-						},
-						{
-							"name": "Csatornák száma",
-							"value": "{template.channels}",
-							"inline": true
-						},
-						{
-							"name": "Használatok száma",
-							"value": "{template.uses}",
-							"inline": true
-						},
-						{
-							"name": "Frissítették",
-							"value": "{template.updated}",
-							"inline": true
-						},
-						{
-							"name": "Off-sync?",
-							"value": "{template.unsynced}"
-						},
-						{
-							"name": "Kód",
-							"value": "{template.code}",
-							"inline": true
-						},
-						{
-							"name": "Leírás",
-							"value": "{template.description}",
-							"inline": false
-						}
-					]
-				}
-			]
-		}
-	},
-	"permissions": {
-		"add_reactions": "Reakciók hozzáadása",
-		"administrator": "Adminisztrátor",
-		"attach_files": "Fájlok csatolása",
-		"ban_members": "Tagok kitiltása",
-		"change_nickname": "Becenév megváltoztatása",
-		"connect": "Csatlakozás",
-		"create_events": "Események létrehozása",
-		"create_expressions": "Kifejezések létrehozása",
-		"create_instant_invite": "Meghívó létrehozása",
-		"create_polls": "Szavazások létrehozása",
-		"create_private_threads": "Privát gondolatmenetek létrehozása",
-		"create_public_threads": "Nyilvános gondolatmenetek létrehozása",
-		"deafen_members": "Tagok süketítése",
-		"embed_links": "Hivatkozások beágyazása",
-		"external_emojis": "Külső emotikon használata",
-		"external_stickers": "Külső matricák használata",
-		"kick_members": "Tagok kirúgása, jóváhagyása és elutasítása",
-		"manage_channels": "Csatornák kezelése",
-		"manage_emojis": "Kifejezések létrehozása",
-		"manage_emojis_and_stickers": "Kifejezések és matricák kezelése",
-		"manage_guild": "Szerver kezelése",
-		"manage_messages": "Üzenetek kezelése",
-		"manage_nicknames": "Becenevek kezelése",
-		"manage_permissions": "Jogok kezelése",
-		"manage_roles": "Szerepek kezelése",
-		"manage_threads": "Gondolatmenetek kezelése",
-		"manage_webhooks": "Webhookok kezelése",
-		"mention_everyone": "@everyone, @here és minden rang megemlítése",
-		"moderate_members": "Tagok felfüggesztése",
-		"move_members": "Tagok áthelyezése",
-		"mute_members": "Tagok némítása",
-		"priority_speaker": "Elsőbbségi megszólaló",
-		"read_message_history": "Üzenetelőzmények visszaolvasása",
-		"read_messages": "Üzenetek olvasása",
-		"request_to_speak": "Szó kérése",
-		"send_messages": "Üzenetek küldése",
-		"send_messages_in_threads": "Üzenetek küldése gondolatmenetekben",
-		"send_polls": "Szavazások létrehozása",
-		"send_tts_messages": "Szövegfelolvasó üzenetek küldése",
-		"send_voice_messages": "Hangüzenetek küldése",
-		"speak": "Beszéd",
-		"stream": "Videó",
-		"use_application_commands": "Alkalmazásparancsok használata",
-		"use_embedded_activities": "Tevékenységek használata",
-		"use_external_apps": "Külső Alkalmazások Használata",
-		"use_external_emojis": "Külső emotikonok használata",
-		"use_external_sounds": "Külső hangok használata",
-		"use_external_stickers": "Külső matricák használata",
-		"use_soundboard": "A Soundboard használata",
-		"use_voice_activation": "Voice Activity használata",
-		"view_audit_log": "Tevékenységnapló megtekintése",
-		"view_channel": "Csatorna megtekintése",
-		"view_creator_monetization_analytics": "Készítői monetizációs analitikák megtekintése",
-		"view_guild_insights": "A Server Insights megtekintése"
-	},
-	"errors": {
-		"command_not_found": {
-			"embeds": [
-				{
-					"title": "Command not found",
-					"description": "The command you tried to run does not exist.",
-					"color": 13369344
-				}
-			]
-		},
-		"missing_required_argument": {
-			"embeds": [
-				{
-					"title": "Hiányzó paraméter",
-					"description": "Helyes használat:\n```{command.usage}```",
-					"timestamp": "{now}",
-					"fields": [
-						{
-							"name": "Leírás",
-							"value": "{command.description}",
-							"inline": false
-						}
-					],
-					"color": 13369344
-				}
-			]
-		},
-		"bot_missing_permissions": {
-			"embeds": [
-				{
-					"title": "Ehhez nincs jogom!",
-					"description": "A botnak kellenek még jogok, hogy ezt a parancsot végrehajthassa.",
-					"fields": [
-						{
-							"name": "Hiányzó jogok",
-							"value": "```{permissions}```",
-							"inline": false
-						}
-					],
-					"color": 13369344
-				}
-			]
-		},
-		"bad_argument": {
-			"embeds": [
-				{
-					"title": "Hibás paraméter",
-					"description": "Helyes használat:\n```{command.usage}```",
-					"timestamp": "{now}",
-					"fields": [
-						{
-							"name": "Leírás",
-							"value": "{command.description}",
-							"inline": false
-						}
-					],
-					"color": 13369344
-				}
-			]
-		},
-		"missing_permissions": {
-			"embeds": [
-				{
-					"title": "Nincs jogod ehhez!",
-					"description": "Egyéb jogok szükségesek a parancs lefuttatásához.",
-					"fields": [
-						{
-							"name": "Hiányzó jogok",
-							"value": "```{permissions}```",
-							"inline": false
-						}
-					],
-					"color": 13369344
-				}
-			]
-		},
-		"command_on_cooldown": {
-			"embeds": [
-				{
-					"title": "Egy picit lassíts!",
-					"description": "A **{command.name}** parancsot legközelebb `{retry_after}` idő múlva használhatod újra.",
-					"color": 13369344
-				}
-			]
-		},
-		"channel_not_found": {
-			"embeds": [
-				{
-					"title": "Nincs ilyen csatorna",
-					"description": "A megadott csatorna nem található.",
-					"color": 13369344
-				}
-			]
-		},
-		"emoji_not_found": {
-			"embeds": [
-				{
-					"title": "Nincs ilyen emoji",
-					"description": "A megadott emoji nem található.",
-					"color": 13369344
-				}
-			]
-		},
-		"member_not_found": {
-			"embeds": [
-				{
-					"title": "Nincs ilyen tag",
-					"description": "A megadott tag nem található.",
-					"color": 13369344
-				}
-			]
-		},
-		"user_not_found": {
-			"embeds": [
-				{
-					"title": "Nincs ilyen felhasználó",
-					"description": "A megadott felhasználó nem található.",
-					"color": 13369344
-				}
-			]
-		},
-		"role_not_found": {
-			"embeds": [
-				{
-					"title": "Nincs ilyen rang",
-					"description": "A megadott rang nem található.",
-					"color": 13369344
-				}
-			]
-		},
-		"forbidden": {
-			"embeds": [
-				{
-					"title": "Tiltott",
-					"description": "A bot 403-as (Forbidden) hibába ütközött. Kérlek, ellenőrizd a bot jogait és a rang hierarchiát.",
-					"color": 13369344
-				}
-			]
-		},
-		"not_owner": {
-			"embeds": [
-				{
-					"title": "Nem használhatod ezt a parancsot!",
-					"description": "Ezt a parancsot csak a bot tulajdonosai használhatják.",
-					"color": 13369344
-				}
-			]
-		}
-	},
-	"snapshot": {
-		"strings": {
-			"server_snapshot": "{guild.name} Snapshot-ja",
-			"save_load_reason": "fm01 Snapshot betöltés - {author.name}"
-		},
-		"create": {
-			"embeds": [
-				{
-					"title": "Snapshot",
-					"description": "A Snapshot sikeresen elkészült.\nKód: ```{code}```",
-					"color": 6656243
-				}
-			]
-		},
-		"load": {
-			"embeds": [
-				{
-					"title": "Snapshot",
-					"description": "A Snapshot sikeresen be lett töltve. A szerver előző állapotát a **/snapshot load** paranccsal tudod visszaállítani, ezzel a kóddal: ```{code}```.",
-					"color": 6656243
-				}
-			]
-		},
-		"owner_alert": {
-			"embeds": [
-				{
-					"title": "Snapshot betöltés",
-					"description": "{author.name} betöltött egy Snapshot-ot a(z) {guild.name} szerveren. A szerver előző állapotát a **/snapshot load** paranccsal tudod visszaállítani, ezzel a kóddal: ```{code}```.",
-					"color": 13369344
-				}
-			]
-		},
-		"not_found": {
-			"embeds": [
-				{
-					"title": "Hibás Snapshot",
-					"description": "Az általad megadott Snapshot nem található.",
-					"color": 13369344
-				}
-			]
-		}
-	},
-	"setup": {
-		"prefix": {
-			"set": {
-				"content": "A prefix mától `{prefix}`"
-			},
-			"errors": {
-				"long": {
-					"content": "A prefix maximum {limit} karakter hosszú lehet!"
-				}
-			}
-		}
-	},
-	"giveaway": {
-		"message": {
-			"button": "🎉 {participants}",
-			"ended": {
-				"content": "This giveaway has already ended!",
-				"ephemeral": true
-			},
-			"already_joined": {
-				"content": "You've already joined this giveaway!",
-				"ephemeral": true
-			},
-			"joined": {
-				"content": "You have joined the giveaway!",
-				"ephemeral": true
-			}
-		},
-		"end": {
-			"success": {
-				"content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
-			},
-			"no_winners": {
-				"content": "No one joined the giveaway..."
-			}
-		},
-		"start": {
-			"response": {
-				"embeds": [
-					{
-						"title": "🎉 Giveaway!",
-						"description": "{prize}",
-						"fields": [
-							{
-								"name": "Winners",
-								"value": "{winners}",
-								"inline": true
-							},
-							{
-								"name": "Ends",
-								"value": "{ends}",
-								"inline": true
-							}
-						],
-						"footer": {
-							"text": "Click the button below to enter!"
-						}
-					}
-				]
-			}
-		}
-	},
-	"say": {
-		"message": {
-			"content": "{message}"
-		},
-		"edit": {
-			"content": "Message edited successfully."
-		},
-		"ascii": {
-			"content": "```\n{ascii}```"
-		},
-		"emoji": {
-			"content": "{emoji}"
-		},
-		"achievement": {
-			"title": "Achievement Get!",
-			"response": {
-				"embeds": [
-					{
-						"title": "Achievement Get!",
-						"image": {
-							"url": "{achievement}"
-						}
-					}
-				]
-			}
-		},
-		"qr": {
-			"embeds": [
-				{
-					"title": "QR code",
-					"image": {
-						"url": "{qr}"
-					}
-				}
-			]
-		},
-		"reverse": {
-			"content": "{message}"
-		},
-		"clap": {
-			"content": "{message}"
-		}
-	},
-	"log": {
-		"toggle": {
-			"on": {
-				"content": "Logging is now enabled in {channel.mention}."
-			},
-			"off": {
-				"content": "Logging is now disabled."
-			}
-		},
-		"module": {
-			"add": {
-				"content": "Module `{module}` has been added to the logging system."
-			},
-			"remove": {
-				"content": "Module `{module}` has been removed from the logging system."
-			}
-		},
-		"on_invite_create": {
-			"create": {
-				"embeds": [
-					{
-						"title": "Invite Created",
-						"description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
-						"fields": [
-							{
-								"name": "Max Uses",
-								"value": "{invite.max_uses}",
-								"inline": true
-							},
-							{
-								"name": "Expires",
-								"value": "{invite.expires}",
-								"inline": true
-							},
-							{
-								"name": "Temporary membership",
-								"value": "{invite.temporary}",
-								"inline": true
-							}
-						],
-						"color": 5763719
-					}
-				]
-			}
-		},
-		"on_invite_delete": {
-			"delete": {
-				"embeds": [
-					{
-						"title": "Invite Deleted",
-						"description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
-						"color": 15548997
-					}
-				]
-			}
-		},
-		"on_guild_channel_create": {
-			"create": {
-				"embeds": [
-					{
-						"title": "Channel Created",
-						"description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
-						"color": 5763719
-					}
-				]
-			}
-		},
-		"on_guild_channel_delete": {
-			"delete": {
-				"embeds": [
-					{
-						"title": "Channel Deleted",
-						"description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
-						"color": 15548997
-					}
-				]
-			}
-		},
-		"on_guild_channel_pins_update": {
-			"pins": {
-				"embeds": [
-					{
-						"title": "Channel Pins Updated",
-						"description": "The pins in {channel.mention} were updated.",
-						"fields": [
-							{
-								"name": "Last pinned message",
-								"value": "{last_pin}",
-								"inline": true
-							}
-						],
-						"color": 2067276
-					}
-				]
-			}
-		},
-		"on_guild_channel_update": {
-			"name": {
-				"embeds": [
-					{
-						"title": "Channel Name Updated",
-						"description": "The name of {after.mention} was updated by {updated_by.mention}.",
-						"fields": [
-							{
-								"name": "Previous name",
-								"value": "`{before.name}`",
-								"inline": true
-							},
-							{
-								"name": "New name",
-								"value": "`{after.name}`",
-								"inline": true
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"topic": {
-				"embeds": [
-					{
-						"title": "Channel Topic Updated",
-						"description": "The topic of {after.mention} was updated {updated_by.mention}.",
-						"fields": [
-							{
-								"name": "Before",
-								"value": "```\n{before.topic}\n```",
-								"inline": false
-							},
-							{
-								"name": "After",
-								"value": "```\n{after.topic}\n```",
-								"inline": false
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"nsfw": {
-				"embeds": [
-					{
-						"title": "Channel NSFW Status Updated",
-						"description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
-						"fields": [
-							{
-								"name": "NSFW?",
-								"value": "{after.nsfw}",
-								"inline": false
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"slowmode_delay": {
-				"embeds": [
-					{
-						"title": "Channel Slowmode Updated",
-						"description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
-						"color": 3447003
-					}
-				]
-			},
-			"permissions": {
-				"embeds": [
-					{
-						"title": "Channel Permissions Updated",
-						"description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
-						"color": 3447003
-					}
-				]
-			},
-			"position": {
-				"embeds": [
-					{
-						"title": "Channel Position Updated",
-						"description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
-						"color": 3447003
-					}
-				]
-			}
-		},
-		"on_automod_rule_create": {
-			"create": {
-				"embeds": [
-					{
-						"title": "AutoMod Rule Created",
-						"color": 3066993,
-						"fields": [
-							{
-								"name": "Rule Name",
-								"value": "{rule.name}",
-								"inline": true
-							},
-							{
-								"name": "Rule ID",
-								"value": "`{rule.id}`",
-								"inline": true
-							},
-							{
-								"name": "Created By",
-								"value": "{rule.creator.mention}",
-								"inline": true
-							},
-							{
-								"name": "Trigger",
-								"value": "`{rule.trigger_type}`",
-								"inline": true
-							},
-							{
-								"name": "Actions",
-								"value": "{rule.actions}",
-								"inline": true
-							},
-							{
-								"name": "Enabled",
-								"value": "{rule.enabled}",
-								"inline": true
-							}
-						]
-					}
-				]
-			}
-		},
-		"on_automod_rule_update": {
-			"update": {
-				"embeds": [
-					{
-						"title": "AutoMod Rule Updated",
-						"color": 3447003,
-						"fields": [
-							{
-								"name": "Rule Name",
-								"value": "{rule.name}",
-								"inline": true
-							},
-							{
-								"name": "Rule ID",
-								"value": "`{rule.id}`",
-								"inline": true
-							},
-							{
-								"name": "Enabled",
-								"value": "{rule.enabled}",
-								"inline": true
-							},
-							{
-								"name": "Actions",
-								"value": "{rule.actions}",
-								"inline": true
-							},
-							{
-								"name": "Exempt Roles",
-								"value": "{rule.exempt_roles}"
-							},
-							{
-								"name": "Exempt Channels",
-								"value": "{rule.exempt_channels}"
-							}
-						]
-					}
-				]
-			}
-		},
-		"on_automod_rule_delete": {
-			"delete": {
-				"embeds": [
-					{
-						"title": "AutoMod Rule Deleted",
-						"color": 15158332,
-						"fields": [
-							{
-								"name": "Rule Name",
-								"value": "{rule.name}",
-								"inline": true
-							},
-							{
-								"name": "Rule ID",
-								"value": "`{rule.id}`",
-								"inline": true
-							},
-							{
-								"name": "Originally Created By",
-								"value": "{rule.creator.mention}",
-								"inline": true
-							}
-						]
-					}
-				]
-			}
-		},
-		"on_automod_action": {
-			"action": {
-				"embeds": [
-					{
-						"title": "AutoMod Action Executed",
-						"color": 15105570,
-						"description": "A message by {execution.member.mention} was flagged.",
-						"fields": [
-							{
-								"name": "Member",
-								"value": "{execution.member.mention} (`{execution.member.id}`)",
-								"inline": true
-							},
-							{
-								"name": "Action Taken",
-								"value": "`{execution.action_types}`",
-								"inline": true
-							},
-							{
-								"name": "In Channel",
-								"value": "{execution.channel}",
-								"inline": true
-							},
-							{
-								"name": "Triggered By",
-								"value": "`{execution.rule_trigger_type}`",
-								"inline": true
-							},
-							{
-								"name": "Matched Keyword",
-								"value": "```\n{execution.matched_keyword}\n```"
-							},
-							{
-								"name": "Full Matched Content",
-								"value": "```\n{execution.matched_content}\n```"
-							}
-						]
-					}
-				]
-			}
-		},
-		"on_message_edit": {
-			"content": {
-				"embeds": [
-					{
-						"title": "Message Edited",
-						"description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
-						"fields": [
-							{
-								"name": "Before",
-								"value": "```\n{before.content}\n```"
-							},
-							{
-								"name": "After",
-								"value": "```\n{after.content}\n```"
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"embeds": {
-				"embeds": [
-					{
-						"title": "Message Embeds Updated",
-						"description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
-						"fields": [
-							{
-								"name": "Number of embeds before",
-								"value": "{before.embeds}",
-								"inline": false
-							},
-							{
-								"name": "Number of embeds after",
-								"value": "{after.embeds}",
-								"inline": false
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"attachments": {
-				"embeds": [
-					{
-						"title": "Message Attachments Updated",
-						"description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
-						"fields": [
-							{
-								"name": "Number of attachments before",
-								"value": "{before.attachments}",
-								"inline": false
-							},
-							{
-								"name": "Number of attachments after",
-								"value": "{after.attachments}",
-								"inline": false
-							}
-						],
-						"color": 3447003
-					}
-				]
-			},
-			"pinned": {
-				"embeds": [
-					{
-						"title": "Message Pin Status Updated",
-						"description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
-						"fields": [
-							{
-								"name": "Pinned?",
-								"value": "{after.pinned}"
-							}
-						],
-						"color": 3447003
-					}
-				]
-			}
-		},
-		"on_message_delete": {
-			"delete": {
-				"embeds": [
-					{
-						"title": "Message Deleted",
-						"description": "A message by {message.author} was deleted in {message.channel.mention}.",
-						"fields": [
-							{
-								"name": "Message content",
-								"value": "```{message.content}```",
-								"inline": false
-							},
-							{
-								"name": "Number of embeds",
-								"value": "{message.embeds}",
-								"inline": true
-							},
-							{
-								"name": "Number of attachments",
-								"value": "{message.attachments}",
-								"inline": true
-							},
-							{
-								"name": "Deleted by",
-								"value": "{deleted_by.mention} (`{deleted_by.id}`)"
-							}
-						]
-					}
-				]
-			}
-		}
-	},
-	"cogs": {
-		"afk": "AFK",
-		"basic": "Basic",
-		"economy": "Economy",
-		"giveaway": "Giveaway",
-		"help": "Help",
-		"information": "Information",
-		"logging": "Logging",
-		"moderation": "Moderation",
-		"say": "Says",
-		"setup": "Setup",
-		"snapshot": "Snapshots",
-		"status": "Status"
-	},
-	"help": {
-		"bot": {
-			"embeds": [
-				{
-					"title": "Help",
-					"description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
-					"fields": [
-						{
-							"name": "{module}",
-							"value": "{commands} commands",
-							"inline": true
-						}
-					]
-				}
-			]
-		},
-		"cog": {
-			"embeds": [
-				{
-					"title": "{cog} Help",
-					"description": "This module contains {commands} commands.",
-					"fields": [
-						{
-							"name": "{command.usage}",
-							"value": "{command.description}"
-						}
-					]
-				}
-			]
-		},
-		"group": {
-			"embeds": [
-				{
-					"title": "{group.prefix}{group.name} Help",
-					"description": "This group contains {commands} commands.",
-					"fields": [
-						{
-							"name": "{command.usage}",
-							"value": "{command.description}"
-						}
-					]
-				}
-			]
-		},
-		"command": {
-			"embeds": [
-				{
-					"title": "{command.usage}",
-					"description": "{command.description}",
-					"fields": [
-						{
-							"name": "Aliases",
-							"value": "{command.aliases}"
-						}
-					]
-				}
-			]
-		}
-	},
-	"voice": {
-		"errors": {
-			"not_in_voice": {
-				"content": "Be kell lépned egy hangcsatornába a parancs használatához."
-			},
-			"not_connected": {
-				"content": "A bot nincs bent hangcsatornában."
-			},
-			"different_channel": {
-				"content": "Ugyan abban a hangcsatornában kell lenned, mint a botnak, hogy ezt a parancsot használhasd."
-			},
-			"no_results": {
-				"content": "Nincs találat a következőre: `{query}`"
-			},
-			"not_playing": {
-				"content": "Jelenleg nem szól zene."
-			},
-			"empty_queue": {
-				"content": "A lejátszási sor üres."
-			}
-		},
-		"play": {
-			"playlist_enqueued": {
-				"embeds": [
-					{
-						"title": "Lejátszási lista hozzáadva",
-						"description": "**[{name}]({url})**\n**{count}** zeneszám került a lejátszási sorhoz.",
-						"footer": {
-							"text": "{author.name}",
-							"icon_url": "{author.avatar}"
-						},
-						"color": 5793266
-					}
-				]
-			},
-			"track_enqueued": {
-				"embeds": [
-					{
-						"title": "Zeneszám hozzáadva",
-						"description": "**[{track.title}]({track.url})**",
-						"fields": [
-							{
-								"name": "Előadó",
-								"value": "{track.author}",
-								"inline": true
-							},
-							{
-								"name": "Hossz",
-								"value": "{track.duration}",
-								"inline": true
-							},
-							{
-								"name": "Pozíció a lejátszási sorban",
-								"value": "#{position}",
-								"inline": true
-							}
-						],
-						"footer": {
-							"text": "{author.name}",
-							"icon_url": "{author.avatar}"
-						},
-						"color": 5793266
-					}
-				]
-			},
-			"now_playing": {
-				"embeds": [
-					{
-						"title": "Most szól",
-						"description": "**[{track.title}]({track.url})**",
-						"fields": [
-							{
-								"name": "Előadó",
-								"value": "{track.author}",
-								"inline": true
-							},
-							{
-								"name": "Hossz",
-								"value": "{track.duration}",
-								"inline": true
-							},
-							{
-								"name": "Pozíció a lejátszási sorban",
-								"value": "Most",
-								"inline": true
-							}
-						],
-						"footer": {
-							"text": "Requested by {author.name}",
-							"icon_url": "{author.avatar}"
-						},
-						"color": 5793266
-					}
-				]
-			}
-		},
-		"pause": {
-			"already_paused": {
-				"content": "A lejátszás jelenleg is szünetelve van."
-			},
-			"success": {
-				"content": "Lejátszás megállítva."
-			}
-		},
-		"resume": {
-			"not_paused": {
-				"content": "A lejátszás nincs leállítva."
-			},
-			"success": {
-				"content": "Lejátszás folytatva."
-			}
-		},
-		"stop": {
-			"success": {
-				"content": "A bot kilépett, a lejátszási sor törölve."
-			}
-		},
-		"skip": {
-			"success_next": {
-				"content": "Átlépve erre: **[{track.title}]({track.url})**."
-			},
-			"success_empty": {
-				"content": "Átlépve. A lejátszási sor üres."
-			}
-		},
-		"volume": {
-			"current": {
-				"content": "🔊 Hangerő: **{volume}%**."
-			},
-			"set": {
-				"content": "Új hangerő: **{volume}%**."
-			}
-		},
-		"seek": {
-			"out_of_range": {
-				"content": "A tekerés túllóg a zeneszám hosszán."
-			},
-			"success": {
-				"content": "Áttekerve ide: {position}"
-			}
-		},
-		"shuffle": {
-			"success": {
-				"content": "🔀 **{count}** zeneszám összekeverve a lejátszási sorban."
-			}
-		},
-		"loop": {
-			"set": {
-				"content": "Ismétlési mód beállítva erre: **{mode}**"
-			}
-		},
-		"np": {
-			"embeds": [
-				{
-					"title": "Most szól",
-					"description": "**[{track.title}]({track.url})**\n{progress_bar}",
-					"fields": [
-						{
-							"name": "Előadó",
-							"value": "{track.author}",
-							"inline": true
-						},
-						{
-							"name": "Hangerő",
-							"value": "{volume}%",
-							"inline": true
-						},
-						{
-							"name": "Ismétlés",
-							"value": "{loop}",
-							"inline": true
-						}
-					],
-					"color": 5793266
-				}
-			]
-		},
-		"queue": {
-			"embeds": [
-				{
-					"title": "Lejátszási sor",
-					"description": "{tracks}",
-					"footer": {
-						"text": "{page}./{total_pages} oldal | {total_tracks} zene összesen"
-					},
-					"color": 5793266
-				}
-			]
-		},
-		"remove": {
-			"out_of_range": {
-				"content": "Túl nagy sorszám, a maximum `{max}`."
-			},
-			"success": {
-				"content": "**{track.title}** eltávolítva a lejátszási sorból."
-			}
-		},
-		"clear": {
-			"already_empty": {
-				"content": "A lejátszási sor már üres."
-			},
-			"success": {
-				"content": "**{count}** eltávolítva a lejátszási sorból."
-			}
-		},
-		"listener": {
-			"disconnected_empty": {
-				"content": "Nincsen több hallgató, a bot kilép."
-			}
-		}
-	}
+  "addmoney": {
+    "errors": {
+      "positive": {
+        "content": "Csak **pozit\u00edv** \u00f6sszeget lehet hozz\u00e1adni az egyenleghez!"
+      }
+    },
+    "success": {
+      "content": "**{amount} Ft** hozz\u00e1 lett adva {member.mention} fi\u00f3kj\u00e1hoz!"
+    }
+  },
+  "afk": {
+    "dnd": "Nincs g\u00e9pn\u00e9l",
+    "link": {
+      "content": "Az AFK st\u00e1tuszod nem tartalmazhat linkeket!"
+    },
+    "name": "[AFK] {nickname}",
+    "off": {
+      "content": "M\u00e1t\u00f3l nem vagy AFK."
+    },
+    "on": {
+      "content": "M\u00e1t\u00f3l AFK vagy."
+    },
+    "reason": {
+      "content": "**{user.name}** jelenleg AFK: `{reason}`"
+    }
+  },
+  "all": [
+    "mind",
+    "mind"
+  ],
+  "allowance": {
+    "content": "Megkaptad a napi jutalmad, **{amount} Ft-ot**."
+  },
+  "balance": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "fields": [
+          {
+            "inline": true,
+            "name": "K\u00e9szp\u00e9nz",
+            "value": "{cash} Ft"
+          },
+          {
+            "inline": true,
+            "name": "Bank",
+            "value": "{bank} Ft"
+          },
+          {
+            "inline": false,
+            "name": "\u26a0\ufe0f Ad\u00f3ss\u00e1god van.",
+            "value": "Tov\u00e1bbi nyert p\u00e9nzed az ad\u00f3ss\u00e1god t\u00f6rleszt\u00e9s\u00e9re fog menni."
+          }
+        ],
+        "title": "Egyenleg"
+      }
+    ]
+  },
+  "cogs": {
+    "afk": "AFK",
+    "basic": "Basic",
+    "economy": "Economy",
+    "giveaway": "Giveaway",
+    "help": "Help",
+    "information": "Information",
+    "logging": "Logging",
+    "moderation": "Moderation",
+    "say": "Says",
+    "setup": "Setup",
+    "snapshot": "Snapshots",
+    "status": "Status"
+  },
+  "crime": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "description": "{random}",
+        "title": "B\u0171n\u00f6z\u00e9s"
+      }
+    ],
+    "random": [
+      "Kiraboltad a bankot, ezzel **{amount} Ft-ot** szerezve.",
+      "Megfenyegetted az utcai elad\u00f3t, aki **{amount} Ft-ot** adott, hogy b\u00e9k\u00e9n hagyd!",
+      "Kirabolt\u00e1l egy akkumul\u00e1torgy\u00e1rat, \u00e9s a szerzem\u00e9nyt eladtad **{amount} Ft-\u00e9rt**.",
+      "Kiraboltad a sarki boltot. Kapt\u00e1l **{amount} Ft-t** \u00e9s egy csomag r\u00e1g\u00f3gumit.",
+      "Rendszergazdai munkak\u00f6r\u00f6d r\u00e9szek\u00e9nt kih\u00edvtak egy router lecser\u00e9l\u00e9s\u00e9re, de te elloptad \u00e9s eladtad az \u00faj routert, ezzel **{amount} Ft-ot** szerezt\u00e9l!"
+    ]
+  },
+  "deposit": {
+    "all": [
+      "mind",
+      "mind"
+    ],
+    "errors": {
+      "balance": {
+        "content": "Nincs ennyi k\u00e9szp\u00e9nzed!"
+      },
+      "invalid_amount": {
+        "content": "Csak pozit\u00edv sz\u00e1mot adhatsz meg!"
+      }
+    },
+    "success": {
+      "content": "Sikeresen betett\u00e9l **{amount} Ft-ot** a bankba!"
+    }
+  },
+  "errors": {
+    "bad_argument": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "Helyes haszn\u00e1lat:\n```{command.usage}```",
+          "fields": [
+            {
+              "inline": false,
+              "name": "Le\u00edr\u00e1s",
+              "value": "{command.description}"
+            }
+          ],
+          "timestamp": "{now}",
+          "title": "Hib\u00e1s param\u00e9ter"
+        }
+      ]
+    },
+    "bot_missing_permissions": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A botnak kellenek m\u00e9g jogok, hogy ezt a parancsot v\u00e9grehajthassa.",
+          "fields": [
+            {
+              "inline": false,
+              "name": "Hi\u00e1nyz\u00f3 jogok",
+              "value": "```{permissions}```"
+            }
+          ],
+          "title": "Ehhez nincs jogom!"
+        }
+      ]
+    },
+    "channel_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A megadott csatorna nem tal\u00e1lhat\u00f3.",
+          "title": "Nincs ilyen csatorna"
+        }
+      ]
+    },
+    "command_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "The command you tried to run does not exist.",
+          "title": "Command not found"
+        }
+      ]
+    },
+    "command_on_cooldown": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A **{command.name}** parancsot legk\u00f6zelebb `{retry_after}` id\u0151 m\u00falva haszn\u00e1lhatod \u00fajra.",
+          "title": "Egy picit lass\u00edts!"
+        }
+      ]
+    },
+    "emoji_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A megadott emoji nem tal\u00e1lhat\u00f3.",
+          "title": "Nincs ilyen emoji"
+        }
+      ]
+    },
+    "forbidden": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A bot 403-as (Forbidden) hib\u00e1ba \u00fctk\u00f6z\u00f6tt. K\u00e9rlek, ellen\u0151rizd a bot jogait \u00e9s a rang hierarchi\u00e1t.",
+          "title": "Tiltott"
+        }
+      ]
+    },
+    "member_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A megadott tag nem tal\u00e1lhat\u00f3.",
+          "title": "Nincs ilyen tag"
+        }
+      ]
+    },
+    "missing_permissions": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "Egy\u00e9b jogok sz\u00fcks\u00e9gesek a parancs lefuttat\u00e1s\u00e1hoz.",
+          "fields": [
+            {
+              "inline": false,
+              "name": "Hi\u00e1nyz\u00f3 jogok",
+              "value": "```{permissions}```"
+            }
+          ],
+          "title": "Nincs jogod ehhez!"
+        }
+      ]
+    },
+    "missing_required_argument": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "Helyes haszn\u00e1lat:\n```{command.usage}```",
+          "fields": [
+            {
+              "inline": false,
+              "name": "Le\u00edr\u00e1s",
+              "value": "{command.description}"
+            }
+          ],
+          "timestamp": "{now}",
+          "title": "Hi\u00e1nyz\u00f3 param\u00e9ter"
+        }
+      ]
+    },
+    "not_owner": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "Ezt a parancsot csak a bot tulajdonosai haszn\u00e1lhatj\u00e1k.",
+          "title": "Nem haszn\u00e1lhatod ezt a parancsot!"
+        }
+      ]
+    },
+    "role_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A megadott rang nem tal\u00e1lhat\u00f3.",
+          "title": "Nincs ilyen rang"
+        }
+      ]
+    },
+    "user_not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "A megadott felhaszn\u00e1l\u00f3 nem tal\u00e1lhat\u00f3.",
+          "title": "Nincs ilyen felhaszn\u00e1l\u00f3"
+        }
+      ]
+    }
+  },
+  "giveaway": {
+    "end": {
+      "no_winners": {
+        "content": "No one joined the giveaway..."
+      },
+      "success": {
+        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
+      }
+    },
+    "message": {
+      "already_joined": {
+        "content": "You've already joined this giveaway!",
+        "ephemeral": true
+      },
+      "button": "\ud83c\udf89 {participants}",
+      "ended": {
+        "content": "This giveaway has already ended!",
+        "ephemeral": true
+      },
+      "joined": {
+        "content": "You have joined the giveaway!",
+        "ephemeral": true
+      }
+    },
+    "start": {
+      "response": {
+        "embeds": [
+          {
+            "description": "{prize}",
+            "fields": [
+              {
+                "inline": true,
+                "name": "Winners",
+                "value": "{winners}"
+              },
+              {
+                "inline": true,
+                "name": "Ends",
+                "value": "{ends}"
+              }
+            ],
+            "footer": {
+              "text": "Click the button below to enter!"
+            },
+            "title": "\ud83c\udf89 Giveaway!"
+          }
+        ]
+      }
+    }
+  },
+  "help": {
+    "bot": {
+      "embeds": [
+        {
+          "description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
+          "fields": [
+            {
+              "inline": true,
+              "name": "{module}",
+              "value": "{commands} commands"
+            }
+          ],
+          "title": "Help"
+        }
+      ]
+    },
+    "cog": {
+      "embeds": [
+        {
+          "description": "This module contains {commands} commands.",
+          "fields": [
+            {
+              "name": "{command.usage}",
+              "value": "{command.description}"
+            }
+          ],
+          "title": "{cog} Help"
+        }
+      ]
+    },
+    "command": {
+      "embeds": [
+        {
+          "description": "{command.description}",
+          "fields": [
+            {
+              "name": "Aliases",
+              "value": "{command.aliases}"
+            }
+          ],
+          "title": "{command.usage}"
+        }
+      ]
+    },
+    "group": {
+      "embeds": [
+        {
+          "description": "This group contains {commands} commands.",
+          "fields": [
+            {
+              "name": "{command.usage}",
+              "value": "{command.description}"
+            }
+          ],
+          "title": "{group.prefix}{group.name} Help"
+        }
+      ]
+    }
+  },
+  "info": {
+    "bot": {
+      "embeds": [
+        {
+          "author": {
+            "icon_url": "{bot.avatar}",
+            "name": "{bot.name}",
+            "url": "https://fightman01bot.hu/"
+          },
+          "description": "H\u00edvd be az **{bot.name}** botot a szerveredre [itt!](https://fm01.bot/invite)\nWeboldal: https://fm01.bot/",
+          "fields": [
+            {
+              "inline": true,
+              "name": "VPS Szolg\u00e1ltat\u00f3",
+              "value": "{bot.provider}"
+            },
+            {
+              "inline": true,
+              "name": "CPU",
+              "value": "{bot.processor}\nHaszn\u00e1lat: {bot.processor.usage}%"
+            },
+            {
+              "inline": true,
+              "name": "Mem\u00f3ria haszn\u00e1lat",
+              "value": "{bot.memory}"
+            },
+            {
+              "inline": true,
+              "name": "T\u00e1rhely",
+              "value": "{bot.disk}"
+            },
+            {
+              "inline": true,
+              "name": "H\u00e1l\u00f3zat (k\u00fcld\u00f6tt/fogadott)",
+              "value": "{bot.network}"
+            },
+            {
+              "inline": true,
+              "name": "discord.py",
+              "value": "v{bot.library_version}"
+            },
+            {
+              "name": "Boot ideje",
+              "value": "{bot.boot_time}"
+            }
+          ],
+          "thumbnail": {
+            "url": "{bot.avatar}"
+          },
+          "timestamp": "{now}",
+          "title": "Bot inform\u00e1ci\u00f3k"
+        }
+      ]
+    },
+    "channel": {
+      "forum": {
+        "embeds": [
+          {
+            "author": {
+              "name": "#{channel.name}",
+              "url": "{channel.url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{channel.id}"
+              },
+              {
+                "inline": false,
+                "name": "Topic",
+                "value": "{channel.topic}"
+              },
+              {
+                "inline": true,
+                "name": "Kateg\u00f3ria",
+                "value": "{channel.category.name}"
+              },
+              {
+                "inline": true,
+                "name": "Lass\u00edt\u00e1s (m\u00e1sodperc)",
+                "value": "{channel.slowmode}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{channel.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "Hozz\u00e1f\u00e9r\u0151 tagok",
+                "value": "{channel.members}"
+              },
+              {
+                "inline": true,
+                "name": "Posztok",
+                "value": "{channel.threads}"
+              },
+              {
+                "inline": true,
+                "name": "Inaktivit\u00e1s limit (percben)",
+                "value": "{channel.default_auto_archive_duration}"
+              },
+              {
+                "inline": true,
+                "name": "Alap\u00e9rtelmezett lass\u00edt\u00e1s (m\u00e1sodpercben)",
+                "value": "{channel.default_thread_slowmode_delay}"
+              },
+              {
+                "inline": true,
+                "name": "Alap\u00e9rtelmezett reakci\u00f3",
+                "value": "{channel.default_reaction_emoji}"
+              },
+              {
+                "inline": true,
+                "name": "M\u00e9dia csatorna?",
+                "value": "{channel.media}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{channel.created}"
+              },
+              {
+                "inline": true,
+                "name": "Jogkezel\u00e9sek",
+                "value": "{channel.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Jogok kateg\u00f3ri\u00e1hoz szinkroniz\u00e1lva?",
+                "value": "{channel.permissions_synced}"
+              }
+            ],
+            "title": "F\u00f3rum inform\u00e1ci\u00f3k"
+          }
+        ]
+      },
+      "stage": {
+        "embeds": [
+          {
+            "author": {
+              "name": "\ud83c\udf99\ufe0f {channel.name}",
+              "url": "{channel.url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{channel.id}"
+              },
+              {
+                "inline": false,
+                "name": "T\u00e9ma",
+                "value": "{channel.topic}"
+              },
+              {
+                "inline": true,
+                "name": "Kateg\u00f3ria",
+                "value": "{channel.category.name}"
+              },
+              {
+                "inline": true,
+                "name": "Lass\u00edt\u00e1s (m\u00e1sodperc)",
+                "value": "{channel.slowmode}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{channel.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "Hozz\u00e1f\u00e9r\u0151 tagok",
+                "value": "{channel.members}"
+              },
+              {
+                "inline": true,
+                "name": "Besz\u00e9l\u0151k",
+                "value": "{channel.speakers}"
+              },
+              {
+                "inline": true,
+                "name": "Hallgat\u00f3k",
+                "value": "{channel.listeners}"
+              },
+              {
+                "inline": true,
+                "name": "Sz\u00f3t k\u00e9rnek",
+                "value": "{channel.requesting_to_speak}"
+              },
+              {
+                "inline": true,
+                "name": "Sz\u00ednpadmoder\u00e1torok",
+                "value": "{channel.moderators}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{channel.created}"
+              },
+              {
+                "inline": true,
+                "name": "Jogkezel\u00e9sek",
+                "value": "{channel.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Jogok kateg\u00f3ri\u00e1hoz szinkroniz\u00e1lva?",
+                "value": "{channel.permissions_synced}"
+              }
+            ],
+            "title": "Sz\u00ednpad inform\u00e1ci\u00f3"
+          }
+        ]
+      },
+      "text": {
+        "embeds": [
+          {
+            "author": {
+              "name": "#{channel.name}",
+              "url": "{channel.url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{channel.id}"
+              },
+              {
+                "inline": false,
+                "name": "T\u00e9ma",
+                "value": "{channel.topic}"
+              },
+              {
+                "inline": true,
+                "name": "Kateg\u00f3ria",
+                "value": "{channel.category.name}"
+              },
+              {
+                "inline": true,
+                "name": "Lass\u00edt\u00e1s (m\u00e1sodpercben)",
+                "value": "{channel.slowmode}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{channel.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "Hozz\u00e1f\u00e9r\u0151 tagok",
+                "value": "{channel.members}"
+              },
+              {
+                "inline": true,
+                "name": "Gondolatmenetek",
+                "value": "{channel.threads}"
+              },
+              {
+                "inline": true,
+                "name": "H\u00edrcsatorna?",
+                "value": "{channel.news}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{channel.created}"
+              },
+              {
+                "inline": true,
+                "name": "Jogkezel\u00e9sek",
+                "value": "{channel.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Jogok szinkroniz\u00e1lva a kateg\u00f3ri\u00e1val?",
+                "value": "{channel.permissions_synced}"
+              }
+            ],
+            "title": "Sz\u00f6veges csatorna inform\u00e1ci\u00f3k"
+          }
+        ]
+      },
+      "voice": {
+        "embeds": [
+          {
+            "author": {
+              "name": "\ud83d\udd0a {channel.name}",
+              "url": "{channel.url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{channel.id}"
+              },
+              {
+                "inline": true,
+                "name": "Kateg\u00f3ria",
+                "value": "{channel.category.name}"
+              },
+              {
+                "inline": true,
+                "name": "Lass\u00edt\u00e1s (m\u00e1sodpercben)",
+                "value": "{channel.slowmode}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{channel.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "R\u00e9gi\u00f3",
+                "value": "{channel.region}"
+              },
+              {
+                "inline": true,
+                "name": "Bitr\u00e1ta (kbps)",
+                "value": "{channel.bitrate}"
+              },
+              {
+                "inline": true,
+                "name": "Taglimit",
+                "value": "{channel.user_limit}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{channel.created}"
+              },
+              {
+                "inline": true,
+                "name": "Jogkezel\u00e9sek",
+                "value": "{channel.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Jogok kateg\u00f3ri\u00e1hoz szinkroniz\u00e1lva?",
+                "value": "{channel.permissions_synced}"
+              },
+              {
+                "inline": true,
+                "name": "Id\u0151z\u00edtett esem\u00e9nyek",
+                "value": "{channel.scheduled_events}"
+              },
+              {
+                "inline": true,
+                "name": "Eml\u00edt\u00e9s",
+                "value": "`{channel.mention}`"
+              }
+            ],
+            "title": "Hangcsatorna inform\u00e1ci\u00f3k"
+          }
+        ]
+      }
+    },
+    "emoji": {
+      "custom_emoji": {
+        "embeds": [
+          {
+            "author": {
+              "icon_url": "{emoji.url}",
+              "name": "{emoji.name}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "N\u00e9v",
+                "value": "{emoji.name}"
+              },
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{emoji.id}"
+              },
+              {
+                "inline": true,
+                "name": "Anim\u00e1lt?",
+                "value": "{emoji.animated}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{emoji.created}"
+              },
+              {
+                "inline": true,
+                "name": "Ranghoz k\u00f6t\u00f6tt?",
+                "value": "{emoji.roles}"
+              },
+              {
+                "inline": true,
+                "name": "Szerver",
+                "value": "{emoji.guild}"
+              },
+              {
+                "inline": true,
+                "name": "Bot kezeli?",
+                "value": "{emoji.bot_owned}"
+              }
+            ],
+            "title": "Emoji inform\u00e1ci\u00f3k"
+          }
+        ]
+      },
+      "unicode_emoji": {
+        "embeds": [
+          {
+            "fields": [
+              {
+                "inline": true,
+                "name": "N\u00e9v",
+                "value": "{emoji.name}"
+              },
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{emoji.id}"
+              },
+              {
+                "inline": true,
+                "name": "Anim\u00e1lt?",
+                "value": "{emoji.animated}"
+              },
+              {
+                "inline": true,
+                "name": "K\u00e9sz\u00fclt",
+                "value": "{emoji.created}"
+              }
+            ],
+            "thumbnail": {
+              "url": "{emoji.url}"
+            },
+            "title": "Emoji inform\u00e1ci\u00f3"
+          }
+        ]
+      }
+    },
+    "ip": {
+      "embeds": [
+        {
+          "fields": [
+            {
+              "inline": true,
+              "name": "Hosztn\u00e9v",
+              "value": "{ip.hostname}"
+            },
+            {
+              "inline": true,
+              "name": "V\u00e1ros",
+              "value": "{ip.city}"
+            },
+            {
+              "inline": true,
+              "name": "Ir\u00e1ny\u00edt\u00f3sz\u00e1m",
+              "value": "{ip.postal}"
+            },
+            {
+              "inline": true,
+              "name": "R\u00e9gi\u00f3",
+              "value": "{ip.region}"
+            },
+            {
+              "inline": true,
+              "name": "Orsz\u00e1g",
+              "value": "{ip.country}"
+            },
+            {
+              "inline": true,
+              "name": "Szolg\u00e1ltat\u00f3",
+              "value": "{ip.org}"
+            },
+            {
+              "inline": true,
+              "name": "Id\u0151z\u00f3na",
+              "value": "{ip.timezone}"
+            }
+          ],
+          "title": "IP inform\u00e1ci\u00f3k"
+        }
+      ]
+    },
+    "pokemon": {
+      "embeds": [
+        {
+          "fields": [
+            {
+              "inline": true,
+              "name": "Dex",
+              "value": "{pokemon.dex}"
+            },
+            {
+              "inline": true,
+              "name": "T\u00edpus(ok)",
+              "value": "{pokemon.type}"
+            },
+            {
+              "inline": true,
+              "name": "Alap HP",
+              "value": "{pokemon.base_stats.hp}"
+            },
+            {
+              "inline": true,
+              "name": "Alap t\u00e1mad\u00e1s",
+              "value": "{pokemon.base_stats.attack}"
+            },
+            {
+              "inline": true,
+              "name": "Alap v\u00e9delem",
+              "value": "{pokemon.base_stats.defense}"
+            }
+          ],
+          "thumbnail": {
+            "url": "{pokemon.image}"
+          },
+          "title": "Pok\u00e9mon inform\u00e1ci\u00f3"
+        }
+      ]
+    },
+    "role": {
+      "embeds": [
+        {
+          "fields": [
+            {
+              "inline": true,
+              "name": "N\u00e9v",
+              "value": "{role.name}"
+            },
+            {
+              "inline": true,
+              "name": "ID",
+              "value": "{role.id}"
+            },
+            {
+              "inline": true,
+              "name": "Poz\u00edci\u00f3",
+              "value": "{role.position}"
+            },
+            {
+              "inline": true,
+              "name": "K\u00fcl\u00f6n megjelen\u00edtett?",
+              "value": "{role.hoist}"
+            },
+            {
+              "inline": true,
+              "name": "Integr\u00e1ci\u00f3 kezelt?",
+              "value": "{role.managed}"
+            },
+            {
+              "inline": true,
+              "name": "Mindenki megeml\u00edtheti?",
+              "value": "{role.mentionable}"
+            },
+            {
+              "inline": true,
+              "name": "Bot rang?",
+              "value": "{role.bot}"
+            },
+            {
+              "inline": true,
+              "name": "Rang k\u00e9sz\u00fclt",
+              "value": "{role.created}"
+            },
+            {
+              "inline": true,
+              "name": "Tagok sz\u00e1ma",
+              "value": "{role.members}"
+            },
+            {
+              "inline": false,
+              "name": "Jogok",
+              "value": "```{role.permissions}```"
+            }
+          ],
+          "title": "Rang inform\u00e1ci\u00f3k"
+        }
+      ]
+    },
+    "server": {
+      "embeds": [
+        {
+          "author": {
+            "icon_url": "{server.icon}",
+            "name": "{server.name}"
+          },
+          "fields": [
+            {
+              "inline": true,
+              "name": "Le\u00edr\u00e1s",
+              "value": "{server.description}"
+            },
+            {
+              "inline": true,
+              "name": "ID",
+              "value": "{server.id}"
+            },
+            {
+              "inline": true,
+              "name": "Tulajdonos",
+              "value": "{server.owner.mention}"
+            },
+            {
+              "inline": true,
+              "name": "Szerver k\u00e9sz\u00fclt",
+              "value": "{server.created_at.long}"
+            },
+            {
+              "inline": true,
+              "name": "Nyelvezet",
+              "value": "{server.language}"
+            },
+            {
+              "inline": true,
+              "name": "\u00d6r\u00f6k megh\u00edv\u00f3",
+              "value": "{server.vanity_url}"
+            },
+            {
+              "inline": true,
+              "name": "Gyors\u00edt\u00e1s fokozat",
+              "value": "{server.boost_tier}"
+            },
+            {
+              "inline": true,
+              "name": "Gyors\u00edt\u00f3k sz\u00e1ma",
+              "value": "{server.boosters}"
+            },
+            {
+              "inline": true,
+              "name": "Gyors\u00edt\u00f3 rang",
+              "value": "{server.boost_role}"
+            },
+            {
+              "inline": true,
+              "name": "Rangok",
+              "value": "{server.roles}"
+            },
+            {
+              "inline": true,
+              "name": "Emojik",
+              "value": "{server.emojis}"
+            },
+            {
+              "inline": true,
+              "name": "Bitr\u00e1ta limit",
+              "value": "{server.bitrate_limit} kbps"
+            },
+            {
+              "name": "Felt\u00f6lt\u00e9si limit",
+              "value": "{server.upload_limit} MB"
+            }
+          ],
+          "image": {
+            "url": "{server.banner}"
+          },
+          "timestamp": "{now}",
+          "title": "Szerver inform\u00e1ci\u00f3"
+        }
+      ]
+    },
+    "template": {
+      "embeds": [
+        {
+          "fields": [
+            {
+              "inline": true,
+              "name": "N\u00e9v",
+              "value": "{template.name}"
+            },
+            {
+              "inline": true,
+              "name": "Szerver",
+              "value": "{template.guild.name}"
+            },
+            {
+              "inline": true,
+              "name": "K\u00e9sz\u00edtette",
+              "value": "{template.author}"
+            },
+            {
+              "inline": true,
+              "name": "K\u00e9sz\u00fclt",
+              "value": "{template.created}"
+            },
+            {
+              "inline": true,
+              "name": "Rangok sz\u00e1ma",
+              "value": "{template.roles}"
+            },
+            {
+              "inline": true,
+              "name": "Csatorn\u00e1k sz\u00e1ma",
+              "value": "{template.channels}"
+            },
+            {
+              "inline": true,
+              "name": "Haszn\u00e1latok sz\u00e1ma",
+              "value": "{template.uses}"
+            },
+            {
+              "inline": true,
+              "name": "Friss\u00edtett\u00e9k",
+              "value": "{template.updated}"
+            },
+            {
+              "name": "Off-sync?",
+              "value": "{template.unsynced}"
+            },
+            {
+              "inline": true,
+              "name": "K\u00f3d",
+              "value": "{template.code}"
+            },
+            {
+              "inline": false,
+              "name": "Le\u00edr\u00e1s",
+              "value": "{template.description}"
+            }
+          ],
+          "title": "Sablon inform\u00e1ci\u00f3"
+        }
+      ]
+    },
+    "user": {
+      "member": {
+        "embeds": [
+          {
+            "author": {
+              "icon_url": "{member.avatar}",
+              "name": "{member}",
+              "url": "https://discord.com/users/{member.id}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "Felhaszn\u00e1l\u00f3n\u00e9v",
+                "value": "{member.username}"
+              },
+              {
+                "inline": true,
+                "name": "Megjelen\u00edtett n\u00e9v",
+                "value": "{member.display_name}"
+              },
+              {
+                "inline": true,
+                "name": "Hashtag",
+                "value": "{member.discriminator}"
+              },
+              {
+                "inline": true,
+                "name": "Becen\u00e9v",
+                "value": "{member.nickname}"
+              },
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{member.id}"
+              },
+              {
+                "name": "Bot?",
+                "value": "{member.bot}"
+              },
+              {
+                "name": "Fi\u00f3k k\u00e9sz\u00fclt",
+                "value": "{member.created_at.long}"
+              },
+              {
+                "name": "Csatlakozott",
+                "value": "{member.joined_at.long}"
+              },
+              {
+                "name": "Rangok",
+                "value": "{member.roles}"
+              }
+            ],
+            "timestamp": "{now}",
+            "title": "Tag inform\u00e1ci\u00f3k"
+          }
+        ]
+      },
+      "not_member": {
+        "embeds": [
+          {
+            "author": {
+              "icon_url": "{member.avatar}",
+              "name": "{member}",
+              "url": "https://discord.com/users/{member.id}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "Felhaszn\u00e1l\u00f3n\u00e9v",
+                "value": "{member.username}"
+              },
+              {
+                "inline": true,
+                "name": "Megjelen\u00edtett n\u00e9v",
+                "value": "{member.display_name}"
+              },
+              {
+                "inline": true,
+                "name": "Hashtag",
+                "value": "{member.discriminator}"
+              },
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{member.id}"
+              },
+              {
+                "name": "Bot?",
+                "value": "{member.bot}"
+              },
+              {
+                "name": "Fi\u00f3k k\u00e9sz\u00fclt",
+                "value": "{member.created_at.long}"
+              }
+            ],
+            "timestamp": "{now}",
+            "title": "Felhaszn\u00e1l\u00f3 inform\u00e1ci\u00f3k"
+          }
+        ]
+      }
+    }
+  },
+  "leaderboard": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "fields": [
+          {
+            "inline": false,
+            "name": "#{number} {user}",
+            "value": "K\u00e9szp\u00e9nz: `{cash} Ft`\nBank: `{bank} Ft`"
+          },
+          {
+            "inline": false,
+            "name": "Psszt...",
+            "value": "\u00dagy t\u0171nik, m\u00e9g senki sem haszn\u00e1lta az economy rendszert. L\u00e9gy te az els\u0151!"
+          }
+        ],
+        "title": "Ranglista"
+      }
+    ]
+  },
+  "levels_leaderboard": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "fields": [
+          {
+            "inline": false,
+            "name": "#{number} {user}",
+            "value": "Szint: **{level}** | XP: `{xp}`"
+          },
+          {
+            "inline": false,
+            "name": "Pssszt...",
+            "value": "M\u00e9g senki sem szerzett XP-t. Kezdj el besz\u00e9lgetni a szintl\u00e9p\u00e9shez!"
+          }
+        ],
+        "title": "Szint ranglista"
+      }
+    ]
+  },
+  "levelup_message": {
+    "allowed_mentions": {
+      "users": true
+    },
+    "content": "Sz\u00e9p volt {user.mention}, el\u00e9rted a {level}. szintet!"
+  },
+  "log": {
+    "module": {
+      "add": {
+        "content": "Module `{module}` has been added to the logging system."
+      },
+      "remove": {
+        "content": "Module `{module}` has been removed from the logging system."
+      }
+    },
+    "on_automod_action": {
+      "action": {
+        "embeds": [
+          {
+            "color": 15105570,
+            "description": "A message by {execution.member.mention} was flagged.",
+            "fields": [
+              {
+                "inline": true,
+                "name": "Member",
+                "value": "{execution.member.mention} (`{execution.member.id}`)"
+              },
+              {
+                "inline": true,
+                "name": "Action Taken",
+                "value": "`{execution.action_types}`"
+              },
+              {
+                "inline": true,
+                "name": "In Channel",
+                "value": "{execution.channel}"
+              },
+              {
+                "inline": true,
+                "name": "Triggered By",
+                "value": "`{execution.rule_trigger_type}`"
+              },
+              {
+                "name": "Matched Keyword",
+                "value": "```\n{execution.matched_keyword}\n```"
+              },
+              {
+                "name": "Full Matched Content",
+                "value": "```\n{execution.matched_content}\n```"
+              }
+            ],
+            "title": "AutoMod Action Executed"
+          }
+        ]
+      }
+    },
+    "on_automod_rule_create": {
+      "create": {
+        "embeds": [
+          {
+            "color": 3066993,
+            "fields": [
+              {
+                "inline": true,
+                "name": "Rule Name",
+                "value": "{rule.name}"
+              },
+              {
+                "inline": true,
+                "name": "Rule ID",
+                "value": "`{rule.id}`"
+              },
+              {
+                "inline": true,
+                "name": "Created By",
+                "value": "{rule.creator.mention}"
+              },
+              {
+                "inline": true,
+                "name": "Trigger",
+                "value": "`{rule.trigger_type}`"
+              },
+              {
+                "inline": true,
+                "name": "Actions",
+                "value": "{rule.actions}"
+              },
+              {
+                "inline": true,
+                "name": "Enabled",
+                "value": "{rule.enabled}"
+              }
+            ],
+            "title": "AutoMod Rule Created"
+          }
+        ]
+      }
+    },
+    "on_automod_rule_delete": {
+      "delete": {
+        "embeds": [
+          {
+            "color": 15158332,
+            "fields": [
+              {
+                "inline": true,
+                "name": "Rule Name",
+                "value": "{rule.name}"
+              },
+              {
+                "inline": true,
+                "name": "Rule ID",
+                "value": "`{rule.id}`"
+              },
+              {
+                "inline": true,
+                "name": "Originally Created By",
+                "value": "{rule.creator.mention}"
+              }
+            ],
+            "title": "AutoMod Rule Deleted"
+          }
+        ]
+      }
+    },
+    "on_automod_rule_update": {
+      "update": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "fields": [
+              {
+                "inline": true,
+                "name": "Rule Name",
+                "value": "{rule.name}"
+              },
+              {
+                "inline": true,
+                "name": "Rule ID",
+                "value": "`{rule.id}`"
+              },
+              {
+                "inline": true,
+                "name": "Enabled",
+                "value": "{rule.enabled}"
+              },
+              {
+                "inline": true,
+                "name": "Actions",
+                "value": "{rule.actions}"
+              },
+              {
+                "name": "Exempt Roles",
+                "value": "{rule.exempt_roles}"
+              },
+              {
+                "name": "Exempt Channels",
+                "value": "{rule.exempt_channels}"
+              }
+            ],
+            "title": "AutoMod Rule Updated"
+          }
+        ]
+      }
+    },
+    "on_guild_channel_create": {
+      "create": {
+        "embeds": [
+          {
+            "color": 5763719,
+            "description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
+            "title": "Channel Created"
+          }
+        ]
+      }
+    },
+    "on_guild_channel_delete": {
+      "delete": {
+        "embeds": [
+          {
+            "color": 15548997,
+            "description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
+            "title": "Channel Deleted"
+          }
+        ]
+      }
+    },
+    "on_guild_channel_pins_update": {
+      "pins": {
+        "embeds": [
+          {
+            "color": 2067276,
+            "description": "The pins in {channel.mention} were updated.",
+            "fields": [
+              {
+                "inline": true,
+                "name": "Last pinned message",
+                "value": "{last_pin}"
+              }
+            ],
+            "title": "Channel Pins Updated"
+          }
+        ]
+      }
+    },
+    "on_guild_channel_update": {
+      "name": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "The name of {after.mention} was updated by {updated_by.mention}.",
+            "fields": [
+              {
+                "inline": true,
+                "name": "Previous name",
+                "value": "`{before.name}`"
+              },
+              {
+                "inline": true,
+                "name": "New name",
+                "value": "`{after.name}`"
+              }
+            ],
+            "title": "Channel Name Updated"
+          }
+        ]
+      },
+      "nsfw": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
+            "fields": [
+              {
+                "inline": false,
+                "name": "NSFW?",
+                "value": "{after.nsfw}"
+              }
+            ],
+            "title": "Channel NSFW Status Updated"
+          }
+        ]
+      },
+      "permissions": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
+            "title": "Channel Permissions Updated"
+          }
+        ]
+      },
+      "position": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
+            "title": "Channel Position Updated"
+          }
+        ]
+      },
+      "slowmode_delay": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
+            "title": "Channel Slowmode Updated"
+          }
+        ]
+      },
+      "topic": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "The topic of {after.mention} was updated {updated_by.mention}.",
+            "fields": [
+              {
+                "inline": false,
+                "name": "Before",
+                "value": "```\n{before.topic}\n```"
+              },
+              {
+                "inline": false,
+                "name": "After",
+                "value": "```\n{after.topic}\n```"
+              }
+            ],
+            "title": "Channel Topic Updated"
+          }
+        ]
+      }
+    },
+    "on_invite_create": {
+      "create": {
+        "embeds": [
+          {
+            "color": 5763719,
+            "description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
+            "fields": [
+              {
+                "inline": true,
+                "name": "Max Uses",
+                "value": "{invite.max_uses}"
+              },
+              {
+                "inline": true,
+                "name": "Expires",
+                "value": "{invite.expires}"
+              },
+              {
+                "inline": true,
+                "name": "Temporary membership",
+                "value": "{invite.temporary}"
+              }
+            ],
+            "title": "Invite Created"
+          }
+        ]
+      }
+    },
+    "on_invite_delete": {
+      "delete": {
+        "embeds": [
+          {
+            "color": 15548997,
+            "description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
+            "title": "Invite Deleted"
+          }
+        ]
+      }
+    },
+    "on_message_delete": {
+      "delete": {
+        "embeds": [
+          {
+            "description": "A message by {message.author} was deleted in {message.channel.mention}.",
+            "fields": [
+              {
+                "inline": false,
+                "name": "Message content",
+                "value": "```{message.content}```"
+              },
+              {
+                "inline": true,
+                "name": "Number of embeds",
+                "value": "{message.embeds}"
+              },
+              {
+                "inline": true,
+                "name": "Number of attachments",
+                "value": "{message.attachments}"
+              },
+              {
+                "name": "Deleted by",
+                "value": "{deleted_by.mention} (`{deleted_by.id}`)"
+              }
+            ],
+            "title": "Message Deleted"
+          }
+        ]
+      }
+    },
+    "on_message_edit": {
+      "attachments": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
+            "fields": [
+              {
+                "inline": false,
+                "name": "Number of attachments before",
+                "value": "{before.attachments}"
+              },
+              {
+                "inline": false,
+                "name": "Number of attachments after",
+                "value": "{after.attachments}"
+              }
+            ],
+            "title": "Message Attachments Updated"
+          }
+        ]
+      },
+      "content": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
+            "fields": [
+              {
+                "name": "Before",
+                "value": "```\n{before.content}\n```"
+              },
+              {
+                "name": "After",
+                "value": "```\n{after.content}\n```"
+              }
+            ],
+            "title": "Message Edited"
+          }
+        ]
+      },
+      "embeds": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
+            "fields": [
+              {
+                "inline": false,
+                "name": "Number of embeds before",
+                "value": "{before.embeds}"
+              },
+              {
+                "inline": false,
+                "name": "Number of embeds after",
+                "value": "{after.embeds}"
+              }
+            ],
+            "title": "Message Embeds Updated"
+          }
+        ]
+      },
+      "pinned": {
+        "embeds": [
+          {
+            "color": 3447003,
+            "description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
+            "fields": [
+              {
+                "name": "Pinned?",
+                "value": "{after.pinned}"
+              }
+            ],
+            "title": "Message Pin Status Updated"
+          }
+        ]
+      }
+    },
+    "toggle": {
+      "off": {
+        "content": "Logging is now disabled."
+      },
+      "on": {
+        "content": "Logging is now enabled in {channel.mention}."
+      }
+    }
+  },
+  "luck": {
+    "errors": {
+      "balance": {
+        "content": "Minimum **{amount} Ft-al** kell rendelkezned ehhez!"
+      }
+    },
+    "lose": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "{random}",
+          "title": "Szerencse"
+        }
+      ],
+      "random": [
+        "Vett\u00e9l egy lott\u00f3szelv\u00e9nyt, de nem nyert\u00e9l semmit :( Vesztett\u00e9l **{amount} Ft-ot**.",
+        "Vesztett\u00e9l **{amount} Ft-ot** egy fogad\u00e1son.",
+        "Lopt\u00e1l a munkahelyedr\u0151l. A b\u00edr\u00f3s\u00e1g **{amount} Ft-ot** ig\u00e9nyel k\u00e1rp\u00f3tl\u00e1sk\u00e9nt.",
+        "Sikkaszt\u00e1s\u00e9rt megb\u00edrs\u00e1goltak **{amount} Ft-ra**."
+      ]
+    },
+    "win": {
+      "embeds": [
+        {
+          "color": 6656243,
+          "description": "{random}",
+          "title": "Szerencse"
+        }
+      ],
+      "random": [
+        "Vett\u00e9l egy lott\u00f3szelv\u00e9nyt, \u00e9s teli tal\u00e1latod lett! :tada: Szerezt\u00e9l **{amount} Ft-ot**.",
+        "Nagyot nyert\u00e9l egy fogad\u00e1son - **{amount} Ft-ot**!",
+        "Els\u0151 k\u00e9t k\u00e1rty\u00e1d \u00f6sszesen 21-es \u00e9rt\u00e9kkel rendelkezett blackjackben, \u00edgy nyert\u00e9l **{amount} Ft-ot**.",
+        "Az utc\u00e1n s\u00e9t\u00e1lva tal\u00e1lt\u00e1l **{amount} Ft-ot** a f\u00f6ld\u00f6n."
+      ]
+    }
+  },
+  "mod": {
+    "ban": {
+      "errors": {
+        "bot": {
+          "content": "Engem nem tilthatsz ki!"
+        },
+        "hierarchy": {
+          "content": "Nem tilthatsz ki n\u00e1lad magasabb rang\u00fa tagot."
+        }
+      },
+      "notify": {
+        "embeds": [
+          {
+            "color": 13369344,
+            "description": "Ki lett\u00e9l tiltva a(z) **{guild}** szerverr\u0151l.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{ban.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{ban.length}"
+              }
+            ],
+            "footer": {
+              "text": "{ban.id}"
+            },
+            "title": "Kitilt\u00e1s"
+          }
+        ]
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "{ban.user.mention} ki lett tiltva.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{ban.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{ban.length}"
+              }
+            ],
+            "footer": {
+              "text": "{ban.id}"
+            },
+            "title": "Kitilt\u00e1s"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "errors": {
+        "not_found": {
+          "content": "Nem tal\u00e1lhat\u00f3 ilyen szankci\u00f3."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "`{case.id}` szankci\u00f3 t\u00f6r\u00f6lve.",
+            "title": "Szankci\u00f3"
+          }
+        ]
+      }
+    },
+    "edit": {
+      "errors": {
+        "invalid_time": {
+          "content": "Hib\u00e1s id\u0151form\u00e1tum."
+        },
+        "not_found": {
+          "content": "Nem tal\u00e1lhat\u00f3 ilyen szankci\u00f3."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "`{case.id}` szankci\u00f3 adatai szerkesztve.",
+            "timestamp": "{now}",
+            "title": "Szankci\u00f3 szerkesztve"
+          }
+        ]
+      }
+    },
+    "info": {
+      "errors": {
+        "not_found": {
+          "content": "Nem tal\u00e1lhat\u00f3 ilyen szankci\u00f3."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Szankci\u00f3 ID",
+                "value": "{case.id}"
+              },
+              {
+                "inline": false,
+                "name": "Szankcion\u00e1lt felhaszn\u00e1l\u00f3",
+                "value": "{case.user.mention}"
+              },
+              {
+                "inline": false,
+                "name": "Szankci\u00f3t adta",
+                "value": "{case.moderator.mention}"
+              },
+              {
+                "inline": false,
+                "name": "Indok",
+                "value": "{case.reason}"
+              },
+              {
+                "inline": false,
+                "name": "Lej\u00e1r",
+                "value": "{case.length}"
+              }
+            ],
+            "footer": {
+              "text": "Szankci\u00f3 megnyitva ekkor"
+            },
+            "timestamp": "{case.created.timestamp}",
+            "title": "`{case.type.name}` inform\u00e1ci\u00f3k"
+          }
+        ]
+      }
+    },
+    "kick": {
+      "errors": {
+        "bot": {
+          "content": "Engem nem r\u00faghatsz ki!"
+        }
+      },
+      "notify": {
+        "embeds": [
+          {
+            "color": 13369344,
+            "description": "Ki lett\u00e9l r\u00fagva a(z) **{guild}** szerverr\u0151l.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{kick.reason}"
+              }
+            ],
+            "footer": {
+              "text": "{kick.id}"
+            },
+            "title": "Kir\u00fag\u00e1s"
+          }
+        ]
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "{kick.user.mention} ki lett r\u00fagva {kick.reason} indokkal.",
+            "footer": {
+              "text": "{kick.id}"
+            },
+            "title": "Kir\u00fag\u00e1s"
+          }
+        ]
+      }
+    },
+    "list": {
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "{case.id} `{case.type.name}`",
+                "value": "Adta: {case.moderator.mention}\nIndok: {case.reason}\nLej\u00e1r: {case.length}"
+              },
+              {
+                "inline": false,
+                "name": "Nincsenek szankci\u00f3k",
+                "value": "Ennek a felhaszn\u00e1l\u00f3nak nincsenek szankci\u00f3i."
+              }
+            ],
+            "title": "Szankci\u00f3 lista"
+          }
+        ]
+      }
+    },
+    "mute": {
+      "errors": {
+        "bot": {
+          "content": "Engem nem n\u00e9m\u00edthatsz le!"
+        },
+        "hierarchy": {
+          "content": "Nem n\u00e9m\u00edthatsz le n\u00e1lad magasabb rang\u00fa tagot!"
+        }
+      },
+      "notify": {
+        "embeds": [
+          {
+            "color": 13369344,
+            "description": "Le lett\u00e9l n\u00e9m\u00edtva a(z) **{guild}** szerveren.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{mute.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{mute.length}"
+              }
+            ],
+            "footer": {
+              "text": "{mute.id}"
+            },
+            "title": "N\u00e9m\u00edt\u00e1s"
+          }
+        ]
+      },
+      "reason": "N\u00e9m\u00edt\u00e1s {moderator.name} \u00e1ltal",
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "{mute.user.mention} le lett n\u00e9m\u00edtva.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{mute.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{mute.length}"
+              }
+            ],
+            "footer": {
+              "text": "{mute.id}"
+            },
+            "title": "N\u00e9m\u00edt\u00e1s"
+          }
+        ]
+      },
+      "unmuted": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "Feloldott\u00e1k a n\u00e9m\u00edt\u00e1sod a(z) **{guild}** szerveren.",
+            "fields": [
+              {
+                "name": "Eredeti indok",
+                "value": "{mute.reason}"
+              }
+            ],
+            "footer": {
+              "text": "{mute.id}"
+            },
+            "title": "N\u00e9m\u00edt\u00e1s feloldva"
+          }
+        ]
+      }
+    },
+    "slowmode": {
+      "current_slowmode": {
+        "content": "The current slowmode in {channel.mention} is `{channel.slowmode}`."
+      },
+      "reason": "Slowmode changed by {moderator.username}",
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "Set slowmode in {channel.mention} to `{time}`.",
+            "timestamp": "{now}",
+            "title": "Slowmode changed"
+          }
+        ]
+      }
+    },
+    "unban": {
+      "notify": {
+        "content": "Kitilt\u00e1sod feloldott\u00e1k a(z) **{guild}** szerveren."
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "**{user.name}** kitilt\u00e1sa feloldva.",
+            "title": "Kitilt\u00e1s felold\u00e1sa"
+          }
+        ]
+      }
+    },
+    "unmute": {
+      "errors": {
+        "hierarchy": {
+          "content": "Nem oldhatod fel egy n\u00e1lad magasabb rang\u00fa tag n\u00e9m\u00edt\u00e1s\u00e1t."
+        }
+      },
+      "notify": {
+        "content": "Feloldott\u00e1k a n\u00e9m\u00edt\u00e1sod a(z) **{guild}** szerveren."
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "{user.mention} n\u00e9m\u00edt\u00e1sa el lett t\u00e1vol\u00edtva.",
+            "title": "N\u00e9m\u00edt\u00e1s feloldva"
+          }
+        ]
+      }
+    },
+    "warn": {
+      "errors": {
+        "bot": {
+          "content": "Engem nem figyelmeztethetsz!"
+        },
+        "hierarchy": {
+          "content": "Nem figyelmeztethetsz olyan tagot, akinek a rangja magasabb n\u00e1lad!"
+        }
+      },
+      "notify": {
+        "embeds": [
+          {
+            "color": 13369344,
+            "description": "Figyelmeztetve lett\u00e9l a(z) **{warn.guild}** szerveren.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{warn.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{warn.length}"
+              }
+            ],
+            "footer": {
+              "text": "{warn.id}"
+            },
+            "title": "Figyelmeztet\u00e9s"
+          }
+        ]
+      },
+      "response": {
+        "embeds": [
+          {
+            "description": "{warn.user.mention} figyelmeztetve.",
+            "fields": [
+              {
+                "name": "Indok",
+                "value": "{warn.reason}"
+              },
+              {
+                "name": "Lej\u00e1r",
+                "value": "{warn.date}"
+              }
+            ],
+            "footer": {
+              "text": "{warn.id}"
+            },
+            "title": "Figyelmeztet\u00e9s"
+          }
+        ],
+        "ephemeral": true
+      },
+      "unwarned": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "A figyelmeztet\u00e9sed a(z) **{warn.guild}** szerveren el lett t\u00e1vol\u00edtva.",
+            "fields": [
+              {
+                "name": "Eredeti indok",
+                "value": "{warn.reason}"
+              }
+            ],
+            "title": "Figyelmeztet\u00e9s elt\u00e1vol\u00edtva"
+          }
+        ]
+      }
+    }
+  },
+  "pay": {
+    "errors": {
+      "balance": {
+        "content": "Nincs ennyi k\u00e9szp\u00e9nzed!"
+      },
+      "positive": {
+        "content": "Csak pozit\u00edv \u00e9rt\u00e9ket adhatsz meg!"
+      }
+    },
+    "success": {
+      "content": "Sikeresen adt\u00e1l **{amount} Ft-ot** {member.mention} tagnak!"
+    }
+  },
+  "permissions": {
+    "add_reactions": "Reakci\u00f3k hozz\u00e1ad\u00e1sa",
+    "administrator": "Adminisztr\u00e1tor",
+    "attach_files": "F\u00e1jlok csatol\u00e1sa",
+    "ban_members": "Tagok kitilt\u00e1sa",
+    "change_nickname": "Becen\u00e9v megv\u00e1ltoztat\u00e1sa",
+    "connect": "Csatlakoz\u00e1s",
+    "create_events": "Esem\u00e9nyek l\u00e9trehoz\u00e1sa",
+    "create_expressions": "Kifejez\u00e9sek l\u00e9trehoz\u00e1sa",
+    "create_instant_invite": "Megh\u00edv\u00f3 l\u00e9trehoz\u00e1sa",
+    "create_polls": "Szavaz\u00e1sok l\u00e9trehoz\u00e1sa",
+    "create_private_threads": "Priv\u00e1t gondolatmenetek l\u00e9trehoz\u00e1sa",
+    "create_public_threads": "Nyilv\u00e1nos gondolatmenetek l\u00e9trehoz\u00e1sa",
+    "deafen_members": "Tagok s\u00fcket\u00edt\u00e9se",
+    "embed_links": "Hivatkoz\u00e1sok be\u00e1gyaz\u00e1sa",
+    "external_emojis": "K\u00fcls\u0151 emotikon haszn\u00e1lata",
+    "external_stickers": "K\u00fcls\u0151 matric\u00e1k haszn\u00e1lata",
+    "kick_members": "Tagok kir\u00fag\u00e1sa, j\u00f3v\u00e1hagy\u00e1sa \u00e9s elutas\u00edt\u00e1sa",
+    "manage_channels": "Csatorn\u00e1k kezel\u00e9se",
+    "manage_emojis": "Kifejez\u00e9sek l\u00e9trehoz\u00e1sa",
+    "manage_emojis_and_stickers": "Kifejez\u00e9sek \u00e9s matric\u00e1k kezel\u00e9se",
+    "manage_guild": "Szerver kezel\u00e9se",
+    "manage_messages": "\u00dczenetek kezel\u00e9se",
+    "manage_nicknames": "Becenevek kezel\u00e9se",
+    "manage_permissions": "Jogok kezel\u00e9se",
+    "manage_roles": "Szerepek kezel\u00e9se",
+    "manage_threads": "Gondolatmenetek kezel\u00e9se",
+    "manage_webhooks": "Webhookok kezel\u00e9se",
+    "mention_everyone": "@everyone, @here \u00e9s minden rang megeml\u00edt\u00e9se",
+    "moderate_members": "Tagok felf\u00fcggeszt\u00e9se",
+    "move_members": "Tagok \u00e1thelyez\u00e9se",
+    "mute_members": "Tagok n\u00e9m\u00edt\u00e1sa",
+    "priority_speaker": "Els\u0151bbs\u00e9gi megsz\u00f3lal\u00f3",
+    "read_message_history": "\u00dczenetel\u0151zm\u00e9nyek visszaolvas\u00e1sa",
+    "read_messages": "\u00dczenetek olvas\u00e1sa",
+    "request_to_speak": "Sz\u00f3 k\u00e9r\u00e9se",
+    "send_messages": "\u00dczenetek k\u00fcld\u00e9se",
+    "send_messages_in_threads": "\u00dczenetek k\u00fcld\u00e9se gondolatmenetekben",
+    "send_polls": "Szavaz\u00e1sok l\u00e9trehoz\u00e1sa",
+    "send_tts_messages": "Sz\u00f6vegfelolvas\u00f3 \u00fczenetek k\u00fcld\u00e9se",
+    "send_voice_messages": "Hang\u00fczenetek k\u00fcld\u00e9se",
+    "speak": "Besz\u00e9d",
+    "stream": "Vide\u00f3",
+    "use_application_commands": "Alkalmaz\u00e1sparancsok haszn\u00e1lata",
+    "use_embedded_activities": "Tev\u00e9kenys\u00e9gek haszn\u00e1lata",
+    "use_external_apps": "K\u00fcls\u0151 Alkalmaz\u00e1sok Haszn\u00e1lata",
+    "use_external_emojis": "K\u00fcls\u0151 emotikonok haszn\u00e1lata",
+    "use_external_sounds": "K\u00fcls\u0151 hangok haszn\u00e1lata",
+    "use_external_stickers": "K\u00fcls\u0151 matric\u00e1k haszn\u00e1lata",
+    "use_soundboard": "A Soundboard haszn\u00e1lata",
+    "use_voice_activation": "Voice Activity haszn\u00e1lata",
+    "view_audit_log": "Tev\u00e9kenys\u00e9gnapl\u00f3 megtekint\u00e9se",
+    "view_channel": "Csatorna megtekint\u00e9se",
+    "view_creator_monetization_analytics": "K\u00e9sz\u00edt\u0151i monetiz\u00e1ci\u00f3s analitik\u00e1k megtekint\u00e9se",
+    "view_guild_insights": "A Server Insights megtekint\u00e9se"
+  },
+  "ping": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "fields": [
+          {
+            "inline": false,
+            "name": "Bot v\u00e1laszid\u0151",
+            "value": "`{latency:.3f}s`"
+          },
+          {
+            "inline": false,
+            "name": "Adatb\u00e1zis ping",
+            "value": "`{db:.3f}s`"
+          }
+        ],
+        "title": "Pong!"
+      }
+    ],
+    "reply": false
+  },
+  "removemoney": {
+    "errors": {
+      "balance": {
+        "content": "Nem tudsz t\u00f6bb p\u00e9nzt levonni valaki egyenleg\u00e9b\u0151l, mint amennyi van!"
+      },
+      "positive": {
+        "content": "Csak **pozit\u00edv** \u00f6sszeget lehet levonni az egyenlegb\u0151l!"
+      }
+    },
+    "success": {
+      "content": "**{amount} Ft** el lett t\u00e1vol\u00edtva {member.mention} fi\u00f3kj\u00e1b\u00f3l!"
+    }
+  },
+  "say": {
+    "achievement": {
+      "response": {
+        "embeds": [
+          {
+            "image": {
+              "url": "{achievement}"
+            },
+            "title": "Achievement Get!"
+          }
+        ]
+      },
+      "title": "Achievement Get!"
+    },
+    "ascii": {
+      "content": "```\n{ascii}```"
+    },
+    "clap": {
+      "content": "{message}"
+    },
+    "edit": {
+      "content": "Message edited successfully."
+    },
+    "emoji": {
+      "content": "{emoji}"
+    },
+    "message": {
+      "content": "{message}"
+    },
+    "qr": {
+      "embeds": [
+        {
+          "image": {
+            "url": "{qr}"
+          },
+          "title": "QR code"
+        }
+      ]
+    },
+    "reverse": {
+      "content": "{message}"
+    }
+  },
+  "setup": {
+    "prefix": {
+      "errors": {
+        "long": {
+          "content": "A prefix maximum {limit} karakter hossz\u00fa lehet!"
+        }
+      },
+      "set": {
+        "content": "A prefix m\u00e1t\u00f3l `{prefix}`"
+      }
+    }
+  },
+  "shop": {
+    "buy": {
+      "errors": {
+        "balance": {
+          "content": "Nincs p\u00e9nzed erre a term\u00e9kre!"
+        },
+        "not_found": {
+          "content": "Nem l\u00e9tezik ilyen term\u00e9k!"
+        },
+        "role_not_found": {
+          "content": "T\u00f6r\u00f6lt\u00e9k a term\u00e9khez tartoz\u00f3 rangot! K\u00e9rj meg egy admint, hogy t\u00e1vol\u00edtsa el a boltb\u00f3l."
+        }
+      },
+      "success": {
+        "content": "Megvetted a(z) **{item.name}** term\u00e9ket **{item.price} Ft-\u00e9rt**."
+      }
+    },
+    "list": {
+      "empty": {
+        "content": "Nincsenek term\u00e9kek a boltban!"
+      },
+      "show": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "{item.name} ({item.price} Ft)",
+                "value": "{item.role.mention}: {item.description}"
+              }
+            ],
+            "title": "Bolt"
+          }
+        ]
+      }
+    },
+    "remove": {
+      "errors": {
+        "not_found": {
+          "content": "Ez a term\u00e9k nem l\u00e9tezik!"
+        },
+        "role_higher": {
+          "content": "Ez a rang magasabban van, mint a te rangod!"
+        }
+      },
+      "success": {
+        "content": "A term\u00e9k el lett t\u00e1vol\u00edtva a boltb\u00f3l!"
+      }
+    },
+    "set": {
+      "errors": {
+        "already_item": {
+          "content": "M\u00e1r l\u00e9tezik ilyen term\u00e9k a boltban!"
+        },
+        "limit": {
+          "content": "El\u00e9rted a maximum term\u00e9klimitet!"
+        },
+        "role_higher": {
+          "content": "Ez a rang magasabban van, mint a te rangod!"
+        }
+      },
+      "success": {
+        "content": "A term\u00e9k hozz\u00e1 lett adva a bolthoz!"
+      }
+    }
+  },
+  "slots": {
+    "errors": {
+      "balance": {
+        "content": "Nincs el\u00e9g k\u00e9szp\u00e9nzed!"
+      }
+    },
+    "lose": {
+      "embeds": [
+        {
+          "color": 6656243,
+          "fields": [
+            {
+              "inline": false,
+              "name": "V\u00e9geredm\u00e9ny",
+              "value": "{results}"
+            },
+            {
+              "inline": false,
+              "name": "Vesz\u00edtett\u00e9l",
+              "value": "{amount} Ft"
+            },
+            {
+              "inline": false,
+              "name": "\u26a0\ufe0f Ad\u00f3ss\u00e1god van.",
+              "value": "Tov\u00e1bbi nyert p\u00e9nzed az ad\u00f3ss\u00e1god t\u00f6rleszt\u00e9s\u00e9re fog menni."
+            }
+          ],
+          "title": "F\u00e9lkar\u00fa rabl\u00f3"
+        }
+      ]
+    },
+    "win": {
+      "embeds": [
+        {
+          "color": 6656243,
+          "fields": [
+            {
+              "inline": false,
+              "name": "V\u00e9geredm\u00e9ny",
+              "value": "{results}"
+            },
+            {
+              "inline": false,
+              "name": "Nyertes\u00e9g",
+              "value": "{amount} Ft"
+            }
+          ],
+          "title": "F\u00e9lkar\u00fa rabl\u00f3"
+        }
+      ]
+    }
+  },
+  "snapshot": {
+    "create": {
+      "embeds": [
+        {
+          "color": 6656243,
+          "description": "A Snapshot sikeresen elk\u00e9sz\u00fclt.\nK\u00f3d: ```{code}```",
+          "title": "Snapshot"
+        }
+      ]
+    },
+    "load": {
+      "embeds": [
+        {
+          "color": 6656243,
+          "description": "A Snapshot sikeresen be lett t\u00f6ltve. A szerver el\u0151z\u0151 \u00e1llapot\u00e1t a **/snapshot load** paranccsal tudod vissza\u00e1ll\u00edtani, ezzel a k\u00f3ddal: ```{code}```.",
+          "title": "Snapshot"
+        }
+      ]
+    },
+    "not_found": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "Az \u00e1ltalad megadott Snapshot nem tal\u00e1lhat\u00f3.",
+          "title": "Hib\u00e1s Snapshot"
+        }
+      ]
+    },
+    "owner_alert": {
+      "embeds": [
+        {
+          "color": 13369344,
+          "description": "{author.name} bet\u00f6lt\u00f6tt egy Snapshot-ot a(z) {guild.name} szerveren. A szerver el\u0151z\u0151 \u00e1llapot\u00e1t a **/snapshot load** paranccsal tudod vissza\u00e1ll\u00edtani, ezzel a k\u00f3ddal: ```{code}```.",
+          "title": "Snapshot bet\u00f6lt\u00e9s"
+        }
+      ]
+    },
+    "strings": {
+      "save_load_reason": "fm01 Snapshot bet\u00f6lt\u00e9s - {author.name}",
+      "server_snapshot": "{guild.name} Snapshot-ja"
+    }
+  },
+  "voice": {
+    "clear": {
+      "already_empty": {
+        "content": "A lej\u00e1tsz\u00e1si sor m\u00e1r \u00fcres."
+      },
+      "success": {
+        "content": "**{count}** elt\u00e1vol\u00edtva a lej\u00e1tsz\u00e1si sorb\u00f3l."
+      }
+    },
+    "errors": {
+      "different_channel": {
+        "content": "Ugyan abban a hangcsatorn\u00e1ban kell lenned, mint a botnak, hogy ezt a parancsot haszn\u00e1lhasd."
+      },
+      "empty_queue": {
+        "content": "A lej\u00e1tsz\u00e1si sor \u00fcres."
+      },
+      "no_results": {
+        "content": "Nincs tal\u00e1lat a k\u00f6vetkez\u0151re: `{query}`"
+      },
+      "not_connected": {
+        "content": "A bot nincs bent hangcsatorn\u00e1ban."
+      },
+      "not_in_voice": {
+        "content": "Be kell l\u00e9pned egy hangcsatorn\u00e1ba a parancs haszn\u00e1lat\u00e1hoz."
+      },
+      "not_playing": {
+        "content": "Jelenleg nem sz\u00f3l zene."
+      }
+    },
+    "listener": {
+      "disconnected_empty": {
+        "content": "Nincsen t\u00f6bb hallgat\u00f3, a bot kil\u00e9p."
+      }
+    },
+    "loop": {
+      "set": {
+        "content": "Ism\u00e9tl\u00e9si m\u00f3d be\u00e1ll\u00edtva erre: **{mode}**"
+      }
+    },
+    "np": {
+      "embeds": [
+        {
+          "color": 5793266,
+          "description": "**[{track.title}]({track.url})**\n{progress_bar}",
+          "fields": [
+            {
+              "inline": true,
+              "name": "El\u0151ad\u00f3",
+              "value": "{track.author}"
+            },
+            {
+              "inline": true,
+              "name": "Hanger\u0151",
+              "value": "{volume}%"
+            },
+            {
+              "inline": true,
+              "name": "Ism\u00e9tl\u00e9s",
+              "value": "{loop}"
+            }
+          ],
+          "title": "Most sz\u00f3l"
+        }
+      ]
+    },
+    "pause": {
+      "already_paused": {
+        "content": "A lej\u00e1tsz\u00e1s jelenleg is sz\u00fcnetelve van."
+      },
+      "success": {
+        "content": "Lej\u00e1tsz\u00e1s meg\u00e1ll\u00edtva."
+      }
+    },
+    "play": {
+      "now_playing": {
+        "embeds": [
+          {
+            "color": 5793266,
+            "description": "**[{track.title}]({track.url})**",
+            "fields": [
+              {
+                "inline": true,
+                "name": "El\u0151ad\u00f3",
+                "value": "{track.author}"
+              },
+              {
+                "inline": true,
+                "name": "Hossz",
+                "value": "{track.duration}"
+              },
+              {
+                "inline": true,
+                "name": "Poz\u00edci\u00f3 a lej\u00e1tsz\u00e1si sorban",
+                "value": "Most"
+              }
+            ],
+            "footer": {
+              "icon_url": "{author.avatar}",
+              "text": "Requested by {author.name}"
+            },
+            "title": "Most sz\u00f3l"
+          }
+        ]
+      },
+      "playlist_enqueued": {
+        "embeds": [
+          {
+            "color": 5793266,
+            "description": "**[{name}]({url})**\n**{count}** zenesz\u00e1m ker\u00fclt a lej\u00e1tsz\u00e1si sorhoz.",
+            "footer": {
+              "icon_url": "{author.avatar}",
+              "text": "{author.name}"
+            },
+            "title": "Lej\u00e1tsz\u00e1si lista hozz\u00e1adva"
+          }
+        ]
+      },
+      "track_enqueued": {
+        "embeds": [
+          {
+            "color": 5793266,
+            "description": "**[{track.title}]({track.url})**",
+            "fields": [
+              {
+                "inline": true,
+                "name": "El\u0151ad\u00f3",
+                "value": "{track.author}"
+              },
+              {
+                "inline": true,
+                "name": "Hossz",
+                "value": "{track.duration}"
+              },
+              {
+                "inline": true,
+                "name": "Poz\u00edci\u00f3 a lej\u00e1tsz\u00e1si sorban",
+                "value": "#{position}"
+              }
+            ],
+            "footer": {
+              "icon_url": "{author.avatar}",
+              "text": "{author.name}"
+            },
+            "title": "Zenesz\u00e1m hozz\u00e1adva"
+          }
+        ]
+      }
+    },
+    "queue": {
+      "embeds": [
+        {
+          "color": 5793266,
+          "description": "{tracks}",
+          "footer": {
+            "text": "{page}./{total_pages} oldal | {total_tracks} zene \u00f6sszesen"
+          },
+          "title": "Lej\u00e1tsz\u00e1si sor"
+        }
+      ]
+    },
+    "remove": {
+      "out_of_range": {
+        "content": "T\u00fal nagy sorsz\u00e1m, a maximum `{max}`."
+      },
+      "success": {
+        "content": "**{track.title}** elt\u00e1vol\u00edtva a lej\u00e1tsz\u00e1si sorb\u00f3l."
+      }
+    },
+    "resume": {
+      "not_paused": {
+        "content": "A lej\u00e1tsz\u00e1s nincs le\u00e1ll\u00edtva."
+      },
+      "success": {
+        "content": "Lej\u00e1tsz\u00e1s folytatva."
+      }
+    },
+    "seek": {
+      "out_of_range": {
+        "content": "A teker\u00e9s t\u00fall\u00f3g a zenesz\u00e1m hossz\u00e1n."
+      },
+      "success": {
+        "content": "\u00c1ttekerve ide: {position}"
+      }
+    },
+    "shuffle": {
+      "success": {
+        "content": "\ud83d\udd00 **{count}** zenesz\u00e1m \u00f6sszekeverve a lej\u00e1tsz\u00e1si sorban."
+      }
+    },
+    "skip": {
+      "success_empty": {
+        "content": "\u00c1tl\u00e9pve. A lej\u00e1tsz\u00e1si sor \u00fcres."
+      },
+      "success_next": {
+        "content": "\u00c1tl\u00e9pve erre: **[{track.title}]({track.url})**."
+      }
+    },
+    "stop": {
+      "success": {
+        "content": "A bot kil\u00e9pett, a lej\u00e1tsz\u00e1si sor t\u00f6r\u00f6lve."
+      }
+    },
+    "volume": {
+      "current": {
+        "content": "\ud83d\udd0a Hanger\u0151: **{volume}%**."
+      },
+      "set": {
+        "content": "\u00daj hanger\u0151: **{volume}%**."
+      }
+    }
+  },
+  "withdraw": {
+    "all": [
+      "mind",
+      "mind"
+    ],
+    "errors": {
+      "balance": {
+        "content": "Nincs ennyi p\u00e9nz a bankodban!"
+      },
+      "invalid_amount": {
+        "content": "Csak pozit\u00edv sz\u00e1mot adhatsz meg!"
+      }
+    },
+    "success": {
+      "content": "Sikeresen j\u00f3v\u00e1\u00edrt\u00e1l **{amount} Ft-ot** a bankodb\u00f3l!"
+    }
+  },
+  "work": {
+    "embeds": [
+      {
+        "color": 6656243,
+        "description": "{random}",
+        "title": "Munka"
+      }
+    ],
+    "random": [
+      "Haza\u00e9rt\u00e9l, \u00e9s l\u00e1ttad, hogy **{amount} Ft-al** b\u0151v\u00fclt a sz\u00e1ml\u00e1d egyenlege.",
+      "Egy neh\u00e9z nap ut\u00e1n **{amount} Ft-ot** kapt\u00e1l fizets\u00e9g\u00fcl!",
+      "Sikeresen teljes\u00edtetted az els\u0151 napod az \u00faj mel\u00f3ban, \u00edgy **{amount} Ft-ot** kapt\u00e1l.",
+      "C\u00e9gbeli el\u0151l\u00e9ptet\u00e9sed mell\u00e9 kapt\u00e1l egy **{amount} Ft-os** b\u00f3nuszt!",
+      "R\u00e9szv\u00e9nyeid ut\u00e1n **{amount} Ft-ot** kapt\u00e1l.",
+      "El\u0151l\u00e9ptettek a munkahelyeden, \u00edgy szerezt\u00e9l **{amount} Ft-ot**.",
+      "Taxisof\u0151rk\u00e9nt **{amount} Ft-ot** szerezt\u00e9l ma.",
+      "Elment\u00e9l a boltba zacsk\u00f3s levest venni, de a kassz\u00e1s t\u00f6bbet adott vissza. Szerezt\u00e9l **{amount} Ft-ot** \u00e9s egy csomag zacsk\u00f3s levest.",
+      "Neh\u00e9z napod volt a mez\u0151n - kapt\u00e1l **{amount} Ft-ot**."
+    ]
+  },
+  "automod": {
+    "reasons": {
+      "invite": "[AutoMod] Szervermeghívó",
+      "lines": "[AutoMod] Túl sok soros az üzeneted",
+      "link": "[AutoMod] Link van az üzenetedben",
+      "mention": "[AutoMod] Túl sok említés",
+      "phrase": "[AutoMod] Tiltott szavak az üzenetedben",
+      "spam": "[AutoMod] Spammelés"
+    },
+    "violation": {
+      "invite": {
+        "content": "***HÉ*** {member.mention}! Ezen a szerveren a Discord meghívók beküldése nem engedélyezett! :angry:"
+      },
+      "lines": {
+        "content": "***HÉ*** {member.mention}! Az üzeneted túl sok sorból áll! :angry:"
+      },
+      "link": {
+        "content": "***HÉ*** {member.mention}! Linkeket posztolni tilos ezen a szerveren! :angry:"
+      },
+      "mention": {
+        "content": "***HÉ*** {member.mention}! Túl sok embert említettél! :angry:"
+      },
+      "phrase": {
+        "content": "***HÉ*** {member.mention}! Az üzeneted tiltott szavakat tartalmaz! :angry:"
+      },
+      "spam": {
+        "content": "***HÉ*** {member.mention}! Ezen a szerveren tilos spammelni! :angry:"
+      }
+    }
+  }
 }

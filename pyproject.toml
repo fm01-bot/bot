@@ -1,6 +1,6 @@
 [project]
 name = "fm01"
-version = "0.9.0"
+version = "0.10.0"
 description = "All-in-one Discord bot for general purposes"
 authors = [{ name = "rnxm", email = "rnxm@playclan.org" }]
 readme = "README.md"
@@ -29,6 +29,7 @@ dependencies = [
     "jishaku>=2.7.5",
     "alembic>=1.20.0",
     "greenlet>=3.5.6",
+    "sentry-sdk>=2.72.0",
 ]
 
 [dependency-groups]
@@ -49,7 +50,6 @@ src = ["core", "helpers", "cogs"]
 [tool.ruff.format]
 docstring-code-format = true
 indent-style = "tab"
-skip-magic-trailing-comma = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

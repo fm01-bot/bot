@@ -20,10 +20,10 @@ class FormatDateTime:
 	def time(self) -> Formattable:
 		"""The hours and minutes of the timestamp.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").time
-		22:57
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").time
+			22:57
+
 		"""
 		return Formattable(self, style="t")
 
@@ -33,10 +33,10 @@ class FormatDateTime:
 	def seconds(self) -> Formattable:
 		"""The seconds of the timestamp.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").seconds
-		22:57:43
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").seconds
+			22:57:43
+
 		"""
 		return Formattable(self, style="T")
 
@@ -46,10 +46,10 @@ class FormatDateTime:
 	def date(self) -> Formattable:
 		"""The date of the timestamp.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").date
-		2022-02-17
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").date
+			2022-02-17
+
 		"""
 		return Formattable(self, style="d")
 
@@ -59,10 +59,10 @@ class FormatDateTime:
 	def date_long(self) -> Formattable:
 		"""The date version of the timestamp with the month as text.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").date_long
-		17 February 2022
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").date_long
+			17 February 2022
+
 		"""
 		return Formattable(self, style="D")
 
@@ -72,10 +72,10 @@ class FormatDateTime:
 	def long(self) -> Formattable:
 		"""The long version of the timestamp.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").long
-		Thursday, 17 February 2022
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").long
+			Thursday, 17 February 2022
+
 		"""
 		return Formattable(self, style="f")
 
@@ -85,10 +85,10 @@ class FormatDateTime:
 	def longer(self) -> Formattable:
 		"""The long version of the timestamp with the day shown.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").longer
-		Thursday, 17 February 2022 at 22:57
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").longer
+			Thursday, 17 February 2022 at 22:57
+
 		"""
 		return Formattable(self, style="F")
 
@@ -98,10 +98,10 @@ class FormatDateTime:
 	def relative(self) -> Formattable:
 		"""The relative version of the timestamp.
 
-		Examples
-		--------
-		>>> FormatDateTime(datetime.datetime.now(), "F").relative
-		1 minute ago
+		Examples:
+			>>> FormatDateTime(datetime.datetime.now(), "F").relative
+			1 minute ago
+
 		"""
 		return Formattable(self, style="R")
 

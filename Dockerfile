@@ -13,6 +13,8 @@ WORKDIR /bot
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
+COPY assets/fonts /usr/share/fonts/truetype/open-sans/
+
 COPY . .
 RUN uv sync --frozen --no-dev
 

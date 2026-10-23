@@ -3,6 +3,8 @@ from collections.abc import Sequence
 import discord
 from discord.ext import commands
 
+__all__ = ("Context",)
+
 
 class Context(commands.Context):
 	async def send(  # type: ignore
@@ -78,3 +80,12 @@ class Context(commands.Context):
 		"""Behaves like send, but automatically sets reference to self.message. Don't use this unless it's necessary."""
 		kwargs.setdefault("reference", self.message)
 		return await self.send(*args, **kwargs)
+
+	def __repr__(self) -> str:
+		author_str = f"{self.author} (id={getattr(self.author, 'id', None)})" if self.author else "None"
+		guild_str = f"{self.guild} (id={getattr(self.guild, 'id', None)})" if self.guild else "None"
+		channel_str = f"{self.channel} (id={getattr(self.channel, 'id', None)})" if self.channel else "None"
+		command_str = getattr(self.command, "qualified_name", None)
+		return f"Context(author={author_str}, guild={guild_str}, channel={channel_str}, command={command_str})"
+
+	__str__ = __repr__

@@ -26,6 +26,8 @@ from discord.ext import commands, localization
 if TYPE_CHECKING:
 	from core.bot import Bot
 
+__all__ = ("CustomResponse",)
+
 logger = logging.getLogger(__name__)
 
 KWARG_MAPPING = {
@@ -43,12 +45,10 @@ class CustomResponse:
 	def __init__(self, client: Bot, name: str | None = None) -> None:
 		"""A class to handle custom responses with localization.
 
-		Parameters
-		----------
-		client
-			The client object with a ``db`` attribute.
-		name
-			The name of the cog that uses this class.
+		Args:
+			client: The client object with a ``db`` attribute.
+			name: The name of the cog that uses this class.
+
 		"""
 		self.client = client
 		self.name = name
@@ -63,20 +63,15 @@ class CustomResponse:
 
 		This converts in a smart way: if there are both an ``embed`` and ``embeds`` key, ``embed`` will be merged into ``embeds``.
 
-		Parameters
-		----------
-		data
-			The data that might contain an ``embed`` or an ``embeds`` key. Conversion is only performed if this is a ``dict``.
+		Args:
+			data: The data that might contain an ``embed`` or an ``embeds`` key. Conversion is only performed if this is a ``dict``.
 
-		Returns
-		-------
-		Any
-			The original data, but with usable ``discord.Embed``s.
+		Returns:
+			Any: The original data, but with usable ``discord.Embed``s.
 
-		Raises
-		------
-		ValueError
-			If there are more than 10 embeds.
+		Raises:
+			ValueError: If there are more than 10 embeds.
+
 		"""
 		if isinstance(data, dict) and (data.get("embed") or data.get("embeds")):
 			if len(data.get("embeds", [])) > 10:
@@ -142,7 +137,13 @@ class CustomResponse:
 	async def get_message(
 		self,
 		name: str,
-		locale: str | discord.Locale | discord.Guild | discord.Interaction | commands.Context | Context,
+		locale: str
+		| discord.Locale
+		| discord.Guild
+		| discord.Interaction
+		| commands.Context
+		| Context
+		| discord.Message,
 		/,
 		*,
 		convert_embeds: bool = True,
@@ -150,28 +151,22 @@ class CustomResponse:
 	) -> dict | str | list | int | float | bool:
 		"""Returns a custom message from the database, or if not found, returns the default message.
 
-		Parameters
-		----------
-		name
-			The name of the message.
-		locale
-			The locale to use or the context to derive it.
-		convert_embeds
-		    Whether to convert the embeds in the message to discord.Embeds.
+		Args:
+			name: The name of the message.
+			locale: The locale to use or the context to derive it.
+			convert_embeds: Whether to convert the embeds in the message to discord.Embeds.
+			**kwargs: Formatting keyword arguments to pass into the localized template.
 
-		Returns
-		-------
-		Union[dict, str, list, int, float, bool]
-		    The message payload.
+		Returns:
+			dict | str | list | int | float | bool: The message payload.
+
 		"""
 		original = locale
 
-		if isinstance(locale, (discord.Interaction, commands.Context)):
+		if isinstance(locale, (discord.Interaction, commands.Context, discord.Message)):
 			locale = locale.guild.preferred_locale if (locale.guild and locale.guild.preferred_locale) else "en"
 		elif isinstance(locale, discord.Guild):
 			locale = locale.preferred_locale or "en"
-		elif isinstance(locale, discord.Message):
-			locale = locale.guild.preferred_locale or "en" if locale.guild else "en"
 		else:
 			locale = str(locale)
 
@@ -192,7 +187,7 @@ class CustomResponse:
 			else None,
 			"guild": (
 				Guild.from_guild(original.guild)
-				if isinstance(original, (discord.Interaction, commands.Context)) and original.guild
+				if isinstance(original, (discord.Interaction, commands.Context, discord.Message)) and original.guild
 				else Guild.from_guild(original)
 				if isinstance(original, discord.Guild)
 				else None
@@ -229,7 +224,9 @@ class CustomResponse:
 
 			if payload.get("reply"):
 				payload["reference"] = (
-					original.message if isinstance(original, (discord.Interaction, commands.Context)) else None
+					original.message
+					if isinstance(original, (discord.Interaction, commands.Context))
+					else (original if isinstance(original, discord.Message) else None)
 				)
 			payload.pop("reply", None)
 

@@ -46,6 +46,7 @@ Cogs are what regular users would call "modules". Each cog (each `.py` file in t
 - **Giveaway:** commands and event loops related to giveaways.
 - **Help:** contains the `?!help` command, a subclass of `discord.ext.commands.HelpCommand`.
 - **Info:** commands under the `?!info` group, such as `?!info @user`, `?!info server`, etc.
+- **Level:** leveling system with `?!level` card generation, `?!levels` leaderboard, message XP rewards, role rewards, and config subcommands.
 - **Log:** commands and listeners for server logging.
 - **Mod:** commands for server moderation and case management (each moderation action creates a case).
 - **Say:** commands under the `?!say` group.
@@ -56,6 +57,12 @@ Cogs are what regular users would call "modules". Each cog (each `.py` file in t
 ### Args
 
 Because the bot uses localization, we need to provide a way to include variables within responses. Every file in `args/` is a dataclass that we can convert `discord.py` objects into so that we can later pass those objects into the custom response functions (usually as kwargs in `ctx.send()`).
+
+### Localization
+
+Every response (apart from admin-only commands) can be localized. You can use localized messages by using `ctx.send(key)`, where `key` is the localization key found in `localization/[lang].l10n.json`. Nested `key`s are separated using a period `.`, such as `key.nested`. Never use hardcoded responses in messages and database defaults - leave them in the localization files instead.
+
+Only add english (`en`) localizations to responses and refuse to add new languages as the project does not like AI localizations.
 
 ## 4. Response directives
 
