@@ -619,7 +619,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await warn.create(self.client.db)
 
@@ -646,7 +646,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			expiry_date,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await mute.create(self.client.db)
 
@@ -683,7 +683,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			member,
 			ctx.author,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await kick.create(self.client.db)
 
@@ -698,7 +698,10 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 				else None
 			)
 		except (ValueError, TypeError):
-			raise commands.BadArgument
+			if ctx.interaction:
+				raise commands.BadArgument
+			reason = f"{expires} {reason}" if reason else expires
+			expiry_date = None
 		if user == ctx.me:
 			await ctx.send("mod.ban.errors.bot")
 			return
@@ -710,7 +713,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await ban.create(self.client.db)
 
@@ -855,15 +858,13 @@ class Cases(commands.Cog, name="Cases"):
 		if user.id != ctx.author.id and not ctx.author.guild_permissions.moderate_members:
 			raise commands.MissingPermissions(["moderate_members"])
 
-		message: dict | str | list | int | float = await self.custom_response.get_message(
-			"mod.list.response", ctx, cases=cases
-		)
-		if not isinstance(message, dict):
+		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)  # type: ignore
+		if isinstance(message, str):
 			await ctx.send(content=message)
 			return
 
 		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore
-		if not cases:
+		if not cases and isinstance(message, dict):
 			if embeds:
 				embeds[0].remove_field(0)
 			await ctx.send(**message)
