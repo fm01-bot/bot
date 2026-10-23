@@ -344,7 +344,7 @@ class Bot(commands.AutoShardedBot):
 					mention_author=False,
 				)
 
-	async def on_command_error(self, ctx: Context, error: commands.CommandError):
+	async def on_command_error(self, ctx: Context, error: commands.CommandError):  # type: ignore
 		await self.handle_error(ctx, error)
 
 	async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
@@ -361,7 +361,7 @@ class Bot(commands.AutoShardedBot):
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
 				await ctx.interaction.response.defer(thinking=True)
 			else:
-				await ctx.message.add_reaction(self.config.emojis.get("loading"))
+				await ctx.message.add_reaction(self.config.emojis.get("loading", ""))
 		except discord.HTTPException:
 			pass
 
@@ -369,6 +369,6 @@ class Bot(commands.AutoShardedBot):
 		if ctx.interaction:
 			return
 		try:
-			await ctx.message.remove_reaction(self.config.emojis.get("loading"), ctx.me)
+			await ctx.message.remove_reaction(self.config.emojis.get("loading", ""), ctx.me)
 		except discord.HTTPException:
 			pass
