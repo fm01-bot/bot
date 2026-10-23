@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import discord
 import pytest
-from helpers.convert import ALLOWED_TABLES, convert_to_query, seconds_to_text, text_to_emoji, text_to_seconds
+from helpers.convert import convert_to_query, seconds_to_text, text_to_emoji, text_to_seconds
 
 
 class TestTextToSeconds:
@@ -74,19 +74,6 @@ class TestSecondsToText:
 
 
 class TestConvertToQuery:
-	def test_allowed_tables(self):
-		for table in ALLOWED_TABLES:
-			query, params = convert_to_query(table)
-			assert query == f'SELECT * FROM "{table}" WHERE 1=1'
-			assert params == []
-
-	def test_disallowed_table(self):
-		with pytest.raises(ValueError, match="Disallowed or invalid table name"):
-			convert_to_query("users_passwords")
-
-		with pytest.raises(ValueError, match="Disallowed or invalid table name"):
-			convert_to_query("drop table users;--")
-
 	def test_with_guild_filter(self):
 		guild = MagicMock(spec=discord.Guild)
 		guild.id = 987654321

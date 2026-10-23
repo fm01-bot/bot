@@ -31,7 +31,10 @@ WEIGHT_MAP: dict[str, tuple[str, int]] = {
 	"extrabold": ("ExtraBold", 800),
 }
 
-FONT_PATH = pathlib.Path("/usr/share/fonts/truetype/open-sans/OpenSans-VariableFont_wdth,wght.ttf")
+_linux_font_path = pathlib.Path("/usr/share/fonts/truetype/open-sans/OpenSans-VariableFont_wdth,wght.ttf")
+_default_font_path = pathlib.Path("assets/fonts/OpenSans-VariableFont_wdth,wght.ttf")
+
+FONT_PATH = _linux_font_path if _linux_font_path.exists() else _default_font_path
 
 
 def _get_font(size: int, weight: FontWeight | str = "regular") -> ImageFont.FreeTypeFont:
