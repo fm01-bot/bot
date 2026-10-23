@@ -14,8 +14,12 @@ class RAM:
 		return round(self._memory.available / 1073741824, 2)
 
 	@property
+	def used(self):
+		return round(self._memory.used / 1073741824, 2)
+
+	@property
 	def usage(self):
-		return f"{self.available} / {self.current} GB"
+		return f"{self.used} / {self.current} GB"
 
 	def __str__(self):
 		return self.usage
