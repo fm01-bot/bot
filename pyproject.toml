@@ -50,7 +50,6 @@ src = ["core", "helpers", "cogs"]
 [tool.ruff.format]
 docstring-code-format = true
 indent-style = "tab"
-skip-magic-trailing-comma = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
