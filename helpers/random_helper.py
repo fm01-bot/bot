@@ -2,6 +2,8 @@
 
 import random
 
+__all__ = ("randbool",)
+
 
 def randbool() -> bool:
 	"""Random boolean value, using ``random.random``.

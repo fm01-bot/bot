@@ -3,6 +3,8 @@ from collections.abc import Sequence
 import discord
 from discord.ext import commands
 
+__all__ = ("Context",)
+
 
 class Context(commands.Context):
 	async def send(  # type: ignore

@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 from core import slash_localization
 
+__all__ = ("HybridCommand", "HybridGroup", "command", "group")
+
 T = TypeVar("T")
 CogT = TypeVar("CogT")
 

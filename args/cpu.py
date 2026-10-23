@@ -3,6 +3,7 @@ from cpuinfo import get_cpu_info
 
 CPU_NAME = get_cpu_info().get("brand_raw")
 
+
 class CPU:
 	@property
 	def name(self):

@@ -6,6 +6,8 @@ import shlex
 from collections.abc import Callable, Sequence
 from typing import Any, NoReturn
 
+__all__ = ("CLINode", "CLIParseError", "CLIParser", "HelpRequested")
+
 
 class CLIParseError(Exception):
 	"""Raised when command-line arguments cannot be parsed."""

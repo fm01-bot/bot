@@ -6,6 +6,8 @@ import discord
 from discord import app_commands
 from discord.ext import localization
 
+__all__ = ("SlashCommandLocalizer", "slash_command_localization", "update_slash_localizations")
+
 logger = getLogger(__name__)
 
 slash_command_localization: localization.Localization | None = None

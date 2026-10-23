@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 
 from core import slash_localization
 
+__all__ = ("Command",)
+
 
 @dataclass
 class Command:

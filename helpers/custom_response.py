@@ -26,6 +26,8 @@ from discord.ext import commands, localization
 if TYPE_CHECKING:
 	from core.bot import Bot
 
+__all__ = ("CustomResponse",)
+
 logger = logging.getLogger(__name__)
 
 KWARG_MAPPING = {

@@ -22,6 +22,8 @@ from helpers import custom_response, seconds_to_text
 from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
 from core.config import Config
 
+__all__ = ("Bot",)
+
 
 class Bot(commands.AutoShardedBot):
 	def __init__(self, config: Config):

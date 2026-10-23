@@ -4,6 +4,8 @@ import discord
 
 from .regex import TIME
 
+__all__ = ("convert_to_query", "seconds_to_text", "text_to_emoji", "text_to_seconds")
+
 
 def text_to_seconds(time: str, base: int = 0) -> int:
 	"""Converts text into seconds.
@@ -141,25 +143,6 @@ def seconds_to_text(seconds: int) -> str:
 	return time.strip()
 
 
-ALLOWED_TABLES = {
-	"afk",
-	"cases",
-	"closed_beta",
-	"cooldowns",
-	"economy",
-	"giveaways",
-	"global_ban",
-	"global_ban_blacklist",
-	"guilds",
-	"join_messages",
-	"leave_messages",
-	"log",
-	"messages",
-	"shop",
-	"snapshots",
-}
-
-
 def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int | None = None, **filters):
 	"""Converts a set of filters to an SQL query.
 
@@ -173,9 +156,6 @@ def convert_to_query(table: str, guild: discord.Guild | None = None, limit: int 
 		tuple[str, list[Any]]: The query string and the query parameters.
 
 	"""
-	if table not in ALLOWED_TABLES:
-		raise ValueError(f"Disallowed or invalid table name: '{table}'")
-
 	processed_filters = {}
 	for key, value in filters.items():
 		if isinstance(value, (discord.User, discord.Guild, discord.Member, discord.Message)):

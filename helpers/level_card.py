@@ -9,6 +9,8 @@ from typing import Literal
 import discord
 from PIL import Image, ImageDraw, ImageFont
 
+__all__ = ("create_level_card",)
+
 # Colors matching the design
 COLOR_BG = (27, 28, 32, 255)
 COLOR_TEXT_WHITE = (255, 255, 255, 255)

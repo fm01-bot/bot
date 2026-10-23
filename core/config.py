@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 import yaml
 
+__all__ = ("Config",)
+
 logger = logging.getLogger(__name__)
 
 
