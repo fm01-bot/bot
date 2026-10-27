@@ -79,7 +79,7 @@
           },
           {
             "inline": false,
-            "name": "\u26a0\ufe0f You are in debt.",
+            "name": "⚠️ You are in debt.",
             "value": "Any money you earn will be used to pay off your debt."
           }
         ],
@@ -100,7 +100,8 @@
     "say": "Says",
     "setup": "Setup",
     "snapshot": "Snapshots",
-    "status": "Status"
+    "status": "Status",
+    "ticket": "Tickets"
   },
   "crime": {
     "embeds": [
@@ -290,7 +291,7 @@
         "content": "No one joined the giveaway..."
       },
       "success": {
-        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
       }
     },
     "message": {
@@ -298,7 +299,7 @@
         "content": "You've already joined this giveaway!",
         "ephemeral": true
       },
-      "button": "\ud83c\udf89 {participants}",
+      "button": "🎉 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
@@ -328,7 +329,7 @@
             "footer": {
               "text": "Click the button below to enter!"
             },
-            "title": "\ud83c\udf89 Giveaway!"
+            "title": "🎉 Giveaway!"
           }
         ]
       }
@@ -535,7 +536,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83c\udf99\ufe0f {channel.name}",
+              "name": "🎙️ {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -681,7 +682,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83d\udd0a {channel.name}",
+              "name": "🔊 {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -1652,12 +1653,12 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
                 "name": "Color",
-                "value": "`{before.color}` \u2192 `{after.color}`"
+                "value": "`{before.color}` → `{after.color}`"
               }
             ],
             "title": "Role Updated"
@@ -2277,7 +2278,7 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
@@ -3053,7 +3054,7 @@
             },
             {
               "inline": false,
-              "name": "\u26a0\ufe0f You are in debt.",
+              "name": "⚠️ You are in debt.",
               "value": "Any money you earn will be used to pay off your debt."
             }
           ],
@@ -3122,6 +3123,70 @@
     "strings": {
       "save_load_reason": "Lumin save load - {author.name}",
       "server_snapshot": "Snapshot of {guild.name}"
+    }
+  },
+  "ticket": {
+    "actions": {
+      "archived": {
+        "description": "This ticket was archived by **{author.name}**.\n\n• To reopen, click **Reopen**.\n• To permanently close, click **Close**.\n• To save a transcript, click **Save Transcript**.",
+        "title": "Ticket Archived"
+      },
+      "closed": {
+        "generating": "Generating transcript and closing ticket...",
+        "title": "Ticket Closed"
+      },
+      "reopened": {
+        "description": "This ticket was reopened by **{author.name}**.",
+        "title": "Ticket Reopened"
+      },
+      "saved": {
+        "content": "Transcript saved successfully!"
+      }
+    },
+    "buttons": {
+      "archive": "Archive",
+      "close": "Close",
+      "open": "Open Ticket",
+      "reopen": "Reopen",
+      "save": "Save Transcript"
+    },
+    "created": {
+      "ephemeral": "Your ticket has been created: {channel}",
+      "footer": "FightMan01 bot - Ticket System"
+    },
+    "dm": {
+      "closed": "Your ticket in **{guild.name}** (#{channel_name}) has been closed. A transcript is attached below.",
+      "saved": "A transcript of your ticket in **{guild.name}** (#{channel_name}) has been saved."
+    },
+    "errors": {
+      "already_open": "You already have {count} open ticket(s). The maximum allowed is {limit}.",
+      "bot_perms": "The bot is missing required permissions to create channels or manage ticket permissions.",
+      "disabled": "The ticket system is currently disabled on this server.",
+      "no_permission": "You do not have permission to manage this ticket.",
+      "not_ticket": "This channel is not an active ticket channel."
+    },
+    "logs": {
+      "archived": "Ticket Archived",
+      "closed": "Ticket Closed",
+      "created": "Ticket Created",
+      "field_actor": "Action By",
+      "field_channel": "Ticket Channel",
+      "field_closer": "Closed By",
+      "field_creator": "Ticket Creator",
+      "field_topic": "Topic",
+      "reopened": "Ticket Reopened",
+      "saved": "Ticket Transcript Saved"
+    },
+    "modal": {
+      "desc_label": "Description",
+      "desc_placeholder": "Please provide a detailed explanation of your issue...",
+      "title": "Open a Ticket",
+      "topic_label": "Topic / Subject",
+      "topic_placeholder": "Brief summary of the issue"
+    },
+    "panel": {
+      "default_desc": "Need assistance? Click the button below to open a support ticket.",
+      "default_title": "Support Tickets"
     }
   },
   "voice": {
@@ -3313,7 +3378,7 @@
     },
     "shuffle": {
       "success": {
-        "content": "\ud83d\udd00 Shuffled **{count}** tracks in queue."
+        "content": "🔀 Shuffled **{count}** tracks in queue."
       }
     },
     "skip": {
@@ -3331,7 +3396,7 @@
     },
     "volume": {
       "current": {
-        "content": "\ud83d\udd0a Current volume: **{volume}%**."
+        "content": "🔊 Current volume: **{volume}%**."
       },
       "set": {
         "content": "Volume set to **{volume}%**."
