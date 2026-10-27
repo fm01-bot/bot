@@ -1,9 +1,11 @@
 import discord
 
 
-def resolve_channel(guild: discord.Guild, value: str | int | None) -> discord.abc.GuildChannel | discord.Thread | None:
+def resolve_channel(
+	guild: discord.Guild | None, value: str | int | None
+) -> discord.abc.GuildChannel | discord.Thread | None:
 	"""Resolve a channel from mention, ID, or name."""
-	if value is None:
+	if value is None or guild is None:
 		return None
 
 	val_str = str(value).strip()
@@ -27,9 +29,9 @@ def resolve_channel(guild: discord.Guild, value: str | int | None) -> discord.ab
 	return None
 
 
-def resolve_role(guild: discord.Guild, value: str | int | None) -> discord.Role | None:
+def resolve_role(guild: discord.Guild | None, value: str | int | None) -> discord.Role | None:
 	"""Resolve a role from mention, ID, or name."""
-	if value is None:
+	if value is None or guild is None:
 		return None
 
 	val_str = str(value).strip()
@@ -50,9 +52,9 @@ def resolve_role(guild: discord.Guild, value: str | int | None) -> discord.Role 
 	return None
 
 
-def resolve_category(guild: discord.Guild, value: str | int | None) -> discord.CategoryChannel | None:
+def resolve_category(guild: discord.Guild | None, value: str | int | None) -> discord.CategoryChannel | None:
 	"""Resolve a category from ID or name."""
-	if value is None:
+	if value is None or guild is None:
 		return None
 
 	val_str = str(value).strip()
@@ -69,9 +71,11 @@ def resolve_category(guild: discord.Guild, value: str | int | None) -> discord.C
 	return None
 
 
-def resolve_member_or_user(guild: discord.Guild, value: str | int | None) -> discord.Member | discord.User | None:
+def resolve_member_or_user(
+	guild: discord.Guild | None, value: str | int | None
+) -> discord.Member | discord.User | None:
 	"""Resolve a member or user from mention, ID, or username."""
-	if value is None:
+	if value is None or guild is None:
 		return None
 
 	val_str = str(value).strip()

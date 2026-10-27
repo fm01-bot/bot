@@ -9,6 +9,7 @@ class Setup(commands.Cog, name="Setup"):
 
 	@command(user=False, permissions=["administrator"])
 	async def prefix(self, ctx: Context, prefix: str, mention: bool | None = True):
+		assert ctx.guild is not None
 		if len(prefix) > 10:
 			return await ctx.send("setup.prefix.errors.long", prefix=prefix, limit=10)
 		mention_val = True if mention is None else bool(mention)

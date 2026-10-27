@@ -50,13 +50,17 @@ class Info(commands.Cog, name="Information"):
 		argument: discord.User | discord.abc.GuildChannel | discord.Role | discord.Emoji | discord.PartialEmoji,
 	):
 		if isinstance(argument, discord.User):
-			await ctx.invoke(self.info.get_command("user"), argument)
+			if cmd := self.info.get_command("user"):
+				await ctx.invoke(cmd, argument)
 		elif isinstance(argument, discord.abc.GuildChannel):
-			await ctx.invoke(self.info.get_command("channel"), argument)
+			if cmd := self.info.get_command("channel"):
+				await ctx.invoke(cmd, argument)
 		elif isinstance(argument, discord.Role):
-			await ctx.invoke(self.info.get_command("role"), argument)
+			if cmd := self.info.get_command("role"):
+				await ctx.invoke(cmd, argument)
 		elif isinstance(argument, (discord.Emoji, discord.PartialEmoji)):
-			await ctx.invoke(self.info.get_command("emoji"), argument)
+			if cmd := self.info.get_command("emoji"):
+				await ctx.invoke(cmd, argument)
 		else:
 			raise commands.BadArgument
 
@@ -72,19 +76,23 @@ class Info(commands.Cog, name="Information"):
 			await ctx.send("info.user.member", member=Member.from_member(user))
 			return
 
-		try:
-			member = await ctx.guild.fetch_member(user.id)
-			await ctx.send("info.user.member", member=Member.from_member(member))
-		except discord.NotFound:
-			await ctx.send("info.user.not_member", member=User.from_user(user))
+		if ctx.guild:
+			try:
+				member = await ctx.guild.fetch_member(user.id)
+				await ctx.send("info.user.member", member=Member.from_member(member))
+				return
+			except discord.NotFound:
+				pass
+		await ctx.send("info.user.not_member", member=User.from_user(user))
 
 	@info.command(user=False, l10n_key="serverinfo")
 	async def server(self, ctx: Context):
+		assert ctx.guild is not None
 		await ctx.send("info.server", server=Guild.from_guild(ctx.guild))
 
 	@info.command(user=False, l10n_key="roleinfo")
 	async def role(self, ctx: Context, role: discord.Role | None = None):
-		role = role or ctx.author.top_role
+		role = role or (ctx.author.top_role if isinstance(ctx.author, discord.Member) else None)
 		if not role:
 			raise commands.BadArgument("role")
 		await ctx.send("info.role", role=Role.from_role(role))

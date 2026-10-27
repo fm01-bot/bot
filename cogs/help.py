@@ -17,7 +17,7 @@ class HelpCommand(commands.HelpCommand):
 		super().__init__()
 		self.name = "help"
 
-	async def prepare_help_command(self, ctx: Context, command: str | None = None, /) -> None:
+	async def prepare_help_command(self, ctx: commands.Context[Any], command: str | None = None, /) -> None:
 		if not hasattr(self, "custom_response"):
 			self.custom_response = ctx.bot.custom_response
 
@@ -206,7 +206,7 @@ class HelpCommand(commands.HelpCommand):
 
 		return None
 
-	async def command_callback(self, ctx: Context, /, *, command: str | None = None) -> None:
+	async def command_callback(self, ctx: commands.Context[Any], /, *, command: str | None = None) -> None:
 		await self.prepare_help_command(ctx, command)
 
 		if command is None:
@@ -276,12 +276,12 @@ class HelpCommand(commands.HelpCommand):
 
 	async def send_bot_help(self, mapping: Mapping[commands.Cog | None, list[commands.Command]]):
 		message = await self.custom_response("help.bot", self.context, prefix=self.context.clean_prefix)
-		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore # it's gonna be a list i promise
+		embeds: list[discord.Embed] = message.get("embeds")  # it's gonna be a list i promise
 
 		if embeds:
 			template = embeds[0].to_dict().get("fields", [None])[0]
 			if not template:
-				await self.get_destination().send(**message)  # type: ignore
+				await self.get_destination().send(**message)
 				return
 			embeds[0].clear_fields()
 			for cog, cog_commands in mapping.items():
@@ -302,9 +302,9 @@ class HelpCommand(commands.HelpCommand):
 
 				formatted = Localization.format_strings(template, module=cog.qualified_name or "-", commands=cmd_count)
 				embeds[0].add_field(**formatted)
-			message["embeds"] = self.custom_response.convert_embeds(embeds)  # type: ignore
+			message["embeds"] = self.custom_response.convert_embeds(embeds)
 
-		await self.get_destination().send(**message)  # type: ignore
+		await self.get_destination().send(**message)
 
 	async def send_command_help(self, command: commands.Command[Any, ..., Any], /) -> None:
 		if (command.cog_name and command.cog_name.lower() == "jishaku") or command.name.lower() in ("jishaku", "jsk"):
@@ -332,12 +332,12 @@ class HelpCommand(commands.HelpCommand):
 			)
 		else:
 			raise commands.BadArgument
-		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore
+		embeds: list[discord.Embed] = message.get("embeds")
 
 		if embeds:
 			template = embeds[0].to_dict().get("fields", [None])[0]
 			if not template:
-				await self.get_destination().send(**message)  # type: ignore
+				await self.get_destination().send(**message)
 				return
 
 			embeds[0].clear_fields()
@@ -347,9 +347,9 @@ class HelpCommand(commands.HelpCommand):
 					break
 				formatted = Localization.format_strings(template, command=Command.from_command(command, self.context))
 				embeds[0].add_field(**formatted)
-			message["embeds"] = self.custom_response.convert_embeds(embeds)  # type: ignore
+			message["embeds"] = self.custom_response.convert_embeds(embeds)
 
-		await self.get_destination().send(**message)  # type: ignore
+		await self.get_destination().send(**message)
 
 	async def send_cog_help(self, cog: commands.Cog):
 		if cog.qualified_name.lower() == "jishaku":

@@ -29,7 +29,7 @@ class Case:
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		created: datetime.datetime = MISSING,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
@@ -47,10 +47,10 @@ class Case:
 		self._guild: discord.Guild = guild
 		self._user: discord.Member | discord.User = user
 		self._reason: str | None = reason
-		self._moderator: discord.User = moderator
+		self._moderator: discord.User | discord.Member = moderator
 		self.expires: datetime.datetime | None = expires
 		self.message: str | None = message
-		self.length: str | None = discord.utils.format_dt(self.expires, "R") if self.expires else self.expires
+		self.length: str | None = discord.utils.format_dt(self.expires, "R") if self.expires else None
 		self._created: datetime.datetime = created or datetime.datetime.now(tz=datetime.UTC)
 
 	def __repr__(self):
@@ -223,7 +223,7 @@ class Case:
 				cases.append(cls(**as_dict))  # type: ignore
 			else:
 				as_dict.pop("_type", None)
-				cases.append(case_class(**as_dict))
+				cases.append(case_class(**as_dict))  # type: ignore
 		return cases
 
 	def to_dict(
@@ -364,7 +364,7 @@ class Warn(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
 		message: str | None = None,
@@ -404,7 +404,7 @@ class Kick(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		message: str | None = None,
 		created: datetime.datetime = MISSING,
@@ -436,7 +436,7 @@ class Mute(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		expires: datetime.datetime,
 		reason: str | None = None,
 		message: str | None = None,
@@ -495,7 +495,7 @@ class Ban(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
 		message: str | None = None,
@@ -516,12 +516,12 @@ class Ban(Case):
 
 	async def after_creation(self) -> None:
 		"""Bans the user."""
-		await self._guild.ban(self._user, reason=f"Banned by {self._moderator}", delete_message_days=0)
+		await self._guild.ban(self._user, reason=f"Banned by {self._moderator}", delete_message_days=0)  # type: ignore
 
 	async def before_deletion(self) -> None:
 		"""Unbans the user."""
 		try:
-			await self._guild.unban(self._user, reason="Ban removed")
+			await self._guild.unban(self._user, reason="Ban removed")  # type: ignore
 		except discord.NotFound:
 			pass
 
@@ -582,6 +582,8 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 	async def warn(
 		self, ctx: Context, member: discord.Member, expires: str | None = None, *, reason: str | None = None
 	):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		try:
 			member = await commands.MemberConverter().convert(
 				ctx, str(member.name) if isinstance(member, discord.Member) else member
@@ -619,7 +621,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
+			ctx.message.reference.resolved.content if ctx.message.reference else None,
 		)
 		await warn.create(self.client.db)
 
@@ -627,6 +629,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["moderate_members"])
 	async def mute(self, ctx: Context, member: discord.Member, expires: str, *, reason: str | None = None):
+		assert ctx.guild is not None
 		try:
 			seconds = text_to_seconds(expires)
 		except (ValueError, TypeError):
@@ -646,7 +649,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			expiry_date,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
+			ctx.message.reference.resolved.content if ctx.message.reference else None,
 		)
 		await mute.create(self.client.db)
 
@@ -654,6 +657,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["moderate_members"])
 	async def unmute(self, ctx: Context, member: discord.Member):
+		assert ctx.guild is not None
 		if member.timed_out_until:
 			cases = await Mute.from_db(
 				self.client.db,
@@ -673,6 +677,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["kick_members"])
 	async def kick(self, ctx: Context, member: discord.Member, *, reason: str | None = None):
+		assert ctx.guild is not None
 		if member == ctx.me:
 			await ctx.send("mod.kick.errors.bot")
 			return
@@ -683,7 +688,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			member,
 			ctx.author,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
+			ctx.message.reference.resolved.content if ctx.message.reference else None,
 		)
 		await kick.create(self.client.db)
 
@@ -691,6 +696,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["ban_members"])
 	async def ban(self, ctx: Context, user: discord.User, expires: str | None = None, *, reason: str | None = None):
+		assert ctx.guild is not None
 		try:
 			expiry_date = (
 				datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=text_to_seconds(expires))
@@ -713,7 +719,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
+			ctx.message.reference.resolved.content if ctx.message.reference else None,
 		)
 		await ban.create(self.client.db)
 
@@ -721,6 +727,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["ban_members"])
 	async def unban(self, ctx: Context, user: discord.User):
+		assert ctx.guild is not None
 		cases = await Ban.from_db(self.client.db, self.client, ctx.guild, user=user)
 		if cases:
 			for case in cases:
@@ -736,26 +743,28 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["manage_channels"], l10n_key="sm")
 	async def slowmode(self, ctx: Context, duration: str | None = None, channel: discord.TextChannel | None = None):
+		target_channel = channel or (ctx.channel if isinstance(ctx.channel, discord.TextChannel) else None)
+		if not target_channel:
+			raise commands.BadArgument("Channel is not a text channel")
 		if not duration:
-			await ctx.send("mod.slowmode.current_slowmode", channel=TextChannel.from_channel(ctx.channel))
+			await ctx.send("mod.slowmode.current_slowmode", channel=TextChannel.from_channel(target_channel))
 			return
 		if duration.lower() == "off":
 			duration = "0s"
-		channel = channel or ctx.channel
 		max_slowmode_delay = 60 * 60 * 6  # 6 hours
-		slowmode_before = channel.slowmode_delay
+		slowmode_before = target_channel.slowmode_delay
 		try:
-			seconds = text_to_seconds(duration, channel.slowmode_delay)
+			seconds = text_to_seconds(duration, target_channel.slowmode_delay)
 		except ValueError:
 			raise commands.BadArgument
 		seconds = max(
 			0, min(seconds, max_slowmode_delay)
 		)  # clamp between 0 and 6hrs (silently, but whatever, its easier for the user)
-		reason: str = await self.custom_response("mod.slowmode.reason", ctx, moderator=ctx.author)  # type: ignore
-		await channel.edit(slowmode_delay=seconds, reason=reason)
+		reason: str = await self.custom_response("mod.slowmode.reason", ctx, moderator=ctx.author)
+		await target_channel.edit(slowmode_delay=seconds, reason=reason)
 		await ctx.send(
 			"mod.slowmode.response",
-			channel=channel,
+			channel=target_channel,
 			time_before=seconds_to_text(slowmode_before),
 			time=seconds_to_text(seconds),
 		)
@@ -768,6 +777,8 @@ class Cases(commands.Cog, name="Cases"):
 
 	@group(user=False, l10n_key="caseinfo")
 	async def case(self, ctx: Context, case_id: str):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		try:
 			fetched_case_id = int(case_id)
 		except ValueError:
@@ -787,6 +798,7 @@ class Cases(commands.Cog, name="Cases"):
 
 	@case.command(user=False, permissions=["moderate_members"], l10n_key="casedel")
 	async def delete(self, ctx: Context, case_id: str):
+		assert ctx.guild is not None
 		try:
 			# because discord's app commands only support int up to 2^54, but discord snowflakes are 2^64,
 			# we need to convert the case id to an int ourselves :(
@@ -821,6 +833,7 @@ class Cases(commands.Cog, name="Cases"):
 		]
 	)
 	async def edit(self, ctx: Context, case_id: str, value: Literal["expires", "reason", "message"], *, new_value: str):
+		assert ctx.guild is not None
 		try:
 			fetched_case_id = int(case_id)
 		except ValueError:
@@ -849,16 +862,18 @@ class Cases(commands.Cog, name="Cases"):
 
 	@case.command(user=False, l10n_key="caselist")
 	async def list(self, ctx: Context, user: discord.Member | None = None):
-		user = user or ctx.author
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
+		target_user: discord.Member | discord.User = user or ctx.author
 
-		cases = await Case.from_user(self.client.db, user, self.client, ctx.guild, 10)
+		cases = await Case.from_user(self.client.db, target_user, self.client, ctx.guild, 10)
 
 		# since we need the case's information but we don't want to duplicate db calls,
 		# we check inside the actual command
-		if user.id != ctx.author.id and not ctx.author.guild_permissions.moderate_members:
+		if target_user.id != ctx.author.id and not ctx.author.guild_permissions.moderate_members:
 			raise commands.MissingPermissions(["moderate_members"])
 
-		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)  # type: ignore
+		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)
 		if isinstance(message, str):
 			await ctx.send(content=message)
 			return

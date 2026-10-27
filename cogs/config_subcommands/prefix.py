@@ -17,6 +17,7 @@ def setup_prefix_subcommands(parent_node: CLINode) -> CLINode:
 	async def prefix(
 		ctx: Context, prefix: str | None = None, prefix_pos: str | None = None, mention: bool = True, **kwargs: Any
 	):
+		assert ctx.guild is not None
 		new_prefix = prefix or prefix_pos
 		if not new_prefix:
 			current = ctx.bot.prefix_cache.get(ctx.guild.id, ("?!", True))

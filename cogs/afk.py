@@ -80,6 +80,7 @@ class AFK(commands.Cog):
 
 	@command(user=False)
 	async def afk(self, ctx: Context, reason: str | None = None):
+		assert ctx.guild is not None
 		reason_text = reason
 		if not reason:
 			reason_text = await self.custom_response("afk.dnd", ctx)
@@ -105,7 +106,8 @@ class AFK(commands.Cog):
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
 				if isinstance(nick, str):
 					nick = nick[:32]
-				await ctx.author.edit(nick=nick)
+				if isinstance(ctx.author, discord.Member):
+					await ctx.author.edit(nick=nick)
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")
@@ -117,7 +119,8 @@ class AFK(commands.Cog):
 				"UPDATE afk SET state = $1 WHERE user_id = $2 AND guild_id = $3", False, ctx.author.id, ctx.guild.id
 			)
 			try:
-				await ctx.author.edit(nick=row["previous_nick"])
+				if isinstance(ctx.author, discord.Member):
+					await ctx.author.edit(nick=row["previous_nick"])
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.off")
@@ -136,7 +139,8 @@ class AFK(commands.Cog):
 				nick = await self.custom_response("afk.name", ctx, nickname=ctx.author.display_name)
 				if isinstance(nick, str):
 					nick = nick[:32]
-				await ctx.author.edit(nick=nick)
+				if isinstance(ctx.author, discord.Member):
+					await ctx.author.edit(nick=nick)
 			except (discord.Forbidden, discord.HTTPException):
 				pass
 			return await ctx.send("afk.on")

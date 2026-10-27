@@ -270,6 +270,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def leaderboard(self, ctx: commands.Context):
+		assert ctx.guild is not None
 		rows = await self.client.db.fetch(
 			"SELECT * FROM economy WHERE guild_id = $1 ORDER BY cash+bank DESC LIMIT 10",
 			ctx.guild.id,  # user = False on this command, so ctx.guild is always available
@@ -306,6 +307,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 	@command(user=False)
 	@commands.cooldown(1, 3600, commands.BucketType.user)
 	async def work(self, ctx: Context):
+		assert ctx.guild is not None
 		amount: int = random.randint(300, 1500)
 		await self.helper.add_money(ctx.author.id, ctx.guild.id, amount)
 
@@ -313,6 +315,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def crime(self, ctx: Context):
+		assert ctx.guild is not None
 		amount = random.randint(500, 2000)
 		await self.helper.add_money(ctx.author.id, ctx.guild.id, amount)
 
@@ -321,6 +324,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 	@command(user=False)
 	@commands.cooldown(1, 86400, commands.BucketType.user)
 	async def daily(self, ctx: Context):
+		assert ctx.guild is not None
 		amount = 5000
 		await self.helper.add_money(ctx.author.id, ctx.guild.id, amount)
 
@@ -342,6 +346,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 		amount: commands.Range[int, 1],
 		account: Literal["cash", "bank"] = "cash",
 	):
+		assert ctx.guild is not None
 		if amount > 0:
 			await self.helper.add_money(member.id, ctx.guild.id, amount, account)
 
@@ -365,6 +370,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 		amount: discord.app_commands.Range[int, 1],
 		account: Literal["cash", "bank"] = "cash",
 	):
+		assert ctx.guild is not None
 		if amount > 0:
 			try:
 				await self.helper.remove_money(member.id, ctx.guild.id, amount, account)
@@ -378,6 +384,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 	@command(user=False)
 	@commands.cooldown(1, 3600, commands.BucketType.user)
 	async def luck(self, ctx: Context):
+		assert ctx.guild is not None
 		balance: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id)  # type: ignore
 		minimum_balance = 1000
 		if balance < minimum_balance:
@@ -399,6 +406,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def pay(self, ctx: Context, member: discord.Member, amount: discord.app_commands.Range[int, 1]):
+		assert ctx.guild is not None
 		if amount < 1:
 			await ctx.send("pay.errors.positive")
 			return
@@ -451,10 +459,13 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def balance(self, ctx: Context, member: discord.Member | None):
-		member = member or ctx.author
-		cash, bank = await self.helper.get_balance(member.id, ctx.guild.id, wallet=None)  # type: ignore
+		assert ctx.guild is not None
+		target_member = member or (ctx.author if isinstance(ctx.author, discord.Member) else None)
+		if not target_member:
+			raise commands.BadArgument
+		cash, bank = await self.helper.get_balance(target_member.id, ctx.guild.id, wallet=None)  # type: ignore
 
-		message: dict = await self.custom_response("balance", ctx, member=member, cash=cash, bank=bank)  # type: ignore
+		message: dict = await self.custom_response("balance", ctx, member=target_member, cash=cash, bank=bank)
 
 		if bank >= 0 and message.get("embeds"):  # remove the debt alert embed field
 			for index, embed in enumerate(message["embeds"]):
@@ -466,6 +477,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 	@command(user=False)
 	@commands.cooldown(1, 3600, commands.BucketType.user)
 	async def slots(self, ctx: Context, bet: int):
+		assert ctx.guild is not None
 		if bet <= 0:
 			await ctx.send("slots.errors.balance")
 			return
@@ -493,7 +505,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			new_balance: int = await self.helper.get_balance(ctx.author.id, ctx.guild.id, "cash")  # type: ignore
 			message: dict = await self.custom_response(
 				"slots.lose", ctx, convert_embeds=False, results=" ".join(results), amount=bet
-			)  # type: ignore
+			)
 
 			if new_balance >= 0 and message.get("embeds"):
 				for index, embed in enumerate(message["embeds"]):
@@ -504,12 +516,13 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def deposit(self, ctx: Context, amount: discord.app_commands.Range[int, 1] | None = None):
+		assert ctx.guild is not None
 		cash, _ = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
 		amount = amount or cash
 		try:
 			amount = int(amount)
 		except ValueError:
-			if isinstance(amount, str) and amount.lower() in await self.custom_response("deposit.all", ctx):  # type: ignore
+			if isinstance(amount, str) and amount.lower() in await self.custom_response("deposit.all", ctx):
 				amount = cash
 			else:
 				await ctx.send("deposit.errors.invalid_amount")
@@ -530,12 +543,13 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 	@command(user=False)
 	async def withdraw(self, ctx: Context, amount: discord.app_commands.Range[int, 1] | None = None):
+		assert ctx.guild is not None
 		_, bank = await self.helper.get_balance(ctx.author.id, ctx.guild.id, wallet=None)  # type: ignore
 		amount = amount or bank
 		try:
 			amount = int(amount)
 		except ValueError:
-			if isinstance(amount, str) and amount.lower() in await self.custom_response("withdraw.all", ctx):  # type: ignore
+			if isinstance(amount, str) and amount.lower() in await self.custom_response("withdraw.all", ctx):
 				amount = bank
 			else:
 				await ctx.send("withdraw.errors.invalid_amount")
@@ -563,12 +577,13 @@ class Shop(commands.Cog, name="Shop"):
 
 	@group(user=False)
 	async def shop(self, ctx: Context):
+		assert ctx.guild is not None
 		row = await self.client.db.fetch("SELECT * FROM shop WHERE guild_id = $1", ctx.guild.id)
 		if not row:
 			await ctx.send("shop.list.empty")
 			return
 
-		message: dict = await self.custom_response.get_message("shop.list.show", ctx)  # type: ignore
+		message: dict = await self.custom_response.get_message("shop.list.show", ctx)
 		embeds: list[discord.Embed] = message.get("embeds", [])
 		if message.get("embeds"):
 			template = embeds[0].to_dict().get("fields", [None])[0]
@@ -589,6 +604,8 @@ class Shop(commands.Cog, name="Shop"):
 
 	@shop.command()
 	async def buy(self, ctx: Context, item_name: str):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		row = await self.client.db.fetchrow(
 			"SELECT * FROM shop WHERE guild_id = $1 AND LOWER(item_name) = $2", ctx.guild.id, item_name.lower()
 		)
@@ -616,6 +633,8 @@ class Shop(commands.Cog, name="Shop"):
 	@app_commands.checks.has_permissions(manage_guild=True, manage_roles=True)
 	@commands.has_permissions(manage_guild=True, manage_roles=True)
 	async def set_item(self, ctx: Context, item_name: str, price: int, description: str, role: discord.Role):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		row = await self.client.db.fetchrow(
 			"SELECT * FROM shop WHERE guild_id = $1 AND LOWER(item_name) = $2", ctx.guild.id, item_name.lower()
 		)
@@ -648,6 +667,8 @@ class Shop(commands.Cog, name="Shop"):
 	@shop.command()
 	@app_commands.checks.has_permissions(manage_guild=True)
 	async def remove_item(self, ctx: Context, item_name: str):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		row = await self.client.db.fetchrow(
 			"SELECT * FROM shop WHERE guild_id = $1 AND LOWER(item_name) = $2", ctx.guild.id, item_name.lower()
 		)

@@ -207,14 +207,14 @@ class Bot(commands.AutoShardedBot):
 				permissions: list[str] = [
 					(await self.custom_response(f"permissions.{permission}", ctx))
 					for permission in error.missing_permissions
-				]  # type: ignore
+				]
 
 				await ctx.send("errors.bot_missing_permissions", command=command, permissions=", ".join(permissions))
 			case commands.MissingPermissions() | app_commands.MissingPermissions():
 				permissions: list[str] = [
 					(await self.custom_response(f"permissions.{permission}", ctx))
 					for permission in error.missing_permissions
-				]  # type: ignore
+				]
 
 				await ctx.send("errors.missing_permissions", command=command, permissions=", ".join(permissions))
 			case commands.CommandOnCooldown():

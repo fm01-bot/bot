@@ -123,9 +123,9 @@ class _UnknownActor:
 async def _find_audit_entry(
 	guild: discord.Guild,
 	action: discord.AuditLogAction,
-	target: discord.abc.Snowflake | None = None,
+	target: Any = None,
 	*,
-	channel: discord.abc.Snowflake | None = None,
+	channel: Any = None,
 	within: float = 5.0,
 ) -> discord.AuditLogEntry | None:
 	"""Search recent audit log for a matching entry."""

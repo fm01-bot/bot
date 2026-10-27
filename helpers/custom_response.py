@@ -103,21 +103,21 @@ class CustomResponse:
 		return data
 
 	@overload
-	def update_localizations(self, data: dict): ...
+	def update_localizations(self, data_or_path: dict): ...
 
 	@overload
-	def update_localizations(self, path: str): ...
+	def update_localizations(self, data_or_path: str): ...
 
-	def update_localizations(self, data: dict | str):
-		if isinstance(data, dict):
-			for lang, translations in data.items():
+	def update_localizations(self, data_or_path: dict | str):
+		if isinstance(data_or_path, dict):
+			for lang, translations in data_or_path.items():
 				if isinstance(translations, dict):
 					self.localizations.setdefault(lang, {}).update(translations)
 				else:
 					self.localizations[lang] = translations
 			self._localizer = localization.Localization(self.localizations, default_locale="en")
-		elif isinstance(data, str):
-			self.load_localizations(data)
+		elif isinstance(data_or_path, str):
+			self.load_localizations(data_or_path)
 
 	def load_localizations(self, path: str = "./localization"):
 		localization_path = pathlib.Path(path)
@@ -148,7 +148,7 @@ class CustomResponse:
 		*,
 		convert_embeds: bool = True,
 		**kwargs,
-	) -> dict | str | list | int | float | bool:
+	) -> Any:
 		"""Returns a custom message from the database, or if not found, returns the default message.
 
 		Args:

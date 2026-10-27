@@ -439,7 +439,7 @@ class Level(commands.Cog, name="Level"):
 		if isinstance(localized_label, str) and localized_label != "level_card.label":
 			level_label = localized_label
 		else:
-			locale = ctx.guild.preferred_locale if ctx.guild.preferred_locale else "en"
+			locale = ctx.guild.preferred_locale if ctx.guild else "en"
 			level_label = "szint" if str(locale).startswith("hu") else "lvl"
 
 		card_buffer = await create_level_card(

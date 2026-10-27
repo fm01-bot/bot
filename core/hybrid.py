@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar, Unpack
+from typing import Any, ClassVar, Literal, TypeVar
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import MISSING
-
-if TYPE_CHECKING:
-	from discord.ext.commands.hybrid import _HybridCommandDecoratorKwargs
 
 from core import slash_localization
 
@@ -179,6 +176,8 @@ class HybridAppCommand(commands.hybrid.HybridAppCommand):
 
 
 class HybridCommand(commands.HybridCommand):
+	callback: Any
+
 	def __init__(
 		self,
 		func: CommandCallback | Callable[..., Coroutine[Any, Any, Any]],
@@ -215,6 +214,8 @@ class HybridCommand(commands.HybridCommand):
 
 
 class HybridGroup(commands.HybridGroup):
+	callback: Any
+
 	def __init__(
 		self,
 		func: CommandCallback | Callable[..., Any],
@@ -262,12 +263,14 @@ class HybridGroup(commands.HybridGroup):
 			fallback_command = HybridAppCommand(self, name=getattr(self, "fallback_locale", None) or self.fallback)
 			self.app_command.add_command(fallback_command)
 
-	def add_command(self, command: HybridGroup[CogT, ..., Any] | HybridCommand[CogT, ..., Any], /) -> None:
+	def add_command(
+		self, command: commands.hybrid.HybridGroup[Any, ..., Any] | commands.hybrid.HybridCommand[Any, ..., Any], /
+	) -> None:
 		super().add_command(command)
 		if isinstance(command, commands.hybrid.HybridCommand) and command.app_command:
 			command.app_command._locale_name = _l10n_str(command.name, command.name)
 
-	def command(
+	def command(  # type: ignore[override]
 		self,
 		name: str | app_commands.locale_str | None = None,
 		*args: Any,
@@ -275,8 +278,8 @@ class HybridGroup(commands.HybridGroup):
 		with_app_command: bool = True,
 		user: bool = True,
 		guild: bool = True,
-		**kwargs: Unpack[_HybridCommandDecoratorKwargs],
-	) -> Callable[[CommandCallback], HybridCommand]:
+		**kwargs: Any,
+	) -> Callable[[CommandCallback], Any]:
 		def decorator(func: CommandCallback):
 			kwargs.setdefault("parent", self)
 			result = command(
@@ -286,8 +289,8 @@ class HybridGroup(commands.HybridGroup):
 				l10n_key=l10n_key,
 				user=user,
 				guild=guild,
-				**kwargs,
 				with_app_command=with_app_command,
+				**kwargs,
 			)(func)
 			self.add_command(result)
 			return result
@@ -336,6 +339,7 @@ def command(
 	user: bool = True,
 	guild: bool = True,
 	aliases: list[str] | None = None,
+	**kwargs: Any,
 ) -> Callable[[CommandCallback], HybridCommand]:
 	def decorator(func: CommandCallback) -> HybridCommand:
 		if isinstance(func, commands.Command):
@@ -362,6 +366,7 @@ def command(
 			user=user,
 			guild=guild,
 			aliases=aliases or [],
+			**kwargs,
 		)
 
 		return cmd

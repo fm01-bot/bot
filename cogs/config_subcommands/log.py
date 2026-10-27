@@ -19,6 +19,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	enable_node.add_argument("channel_pos", required=False, help="Target channel positional argument")
 
 	async def log_enable(ctx: Context, channel: str | None = None, channel_pos: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		ch_raw = channel or channel_pos
 		target_channel: discord.abc.GuildChannel | discord.Thread | None = None
 
@@ -31,7 +32,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 			existing_cfg = logging_cog.get_config(ctx.guild.id) if logging_cog else None
 			if existing_cfg and existing_cfg.channel_id:
 				target_channel = ctx.guild.get_channel(existing_cfg.channel_id)
-			if not target_channel:
+			if not target_channel and isinstance(ctx.channel, (discord.abc.GuildChannel, discord.Thread)):
 				target_channel = ctx.channel
 
 		channel_id = target_channel.id if target_channel else None
@@ -59,6 +60,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	disable_node = log_node.create_subcommand("disable", description="Disable server logging.")
 
 	async def log_disable(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		logging_cog: Any = ctx.bot.get_cog("Logging")
 		if logging_cog:
 			await logging_cog.disable_log(ctx.guild.id)
@@ -73,6 +75,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	channel_node.add_argument("channel_pos", required=False, help="Target channel positional")
 
 	async def log_channel(ctx: Context, channel: str | None = None, channel_pos: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		ch_raw = channel or channel_pos
 		if not ch_raw:
 			raise CLIParseError("Please specify a channel via `--channel #name` or `#name`.", channel_node)
@@ -104,6 +107,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	mod_enable_node.add_argument("modules", nargs="+", required=True, help="Names of the modules to enable")
 
 	async def modules_enable(ctx: Context, modules: list[str], **kwargs: Any):
+		assert ctx.guild is not None
 		logging_cog: Any = ctx.bot.get_cog("Logging")
 		from cogs.log import LOG_MODULES
 
@@ -142,6 +146,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	mod_disable_node.add_argument("modules", nargs="+", required=True, help="Names of the modules to disable")
 
 	async def modules_disable(ctx: Context, modules: list[str], **kwargs: Any):
+		assert ctx.guild is not None
 		logging_cog: Any = ctx.bot.get_cog("Logging")
 		for m in modules:
 			if logging_cog:
@@ -157,6 +162,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	mod_list_node = modules_node.create_subcommand("list", description="List all available logging modules.")
 
 	async def modules_list(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		logging_cog: Any = ctx.bot.get_cog("Logging")
 		from cogs.log import LOG_MODULES
 
@@ -175,6 +181,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 	status_node = log_node.create_subcommand("status", description="Show server logging status.")
 
 	async def log_status(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		logging_cog: Any = ctx.bot.get_cog("Logging")
 		cfg = await logging_cog._ensure_config(ctx.guild.id) if logging_cog else None
 
