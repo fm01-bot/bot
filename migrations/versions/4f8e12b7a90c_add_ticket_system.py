@@ -44,7 +44,6 @@ def upgrade() -> None:
 		sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text("now()")),
 		sa.Column("closed_at", sa.TIMESTAMP(timezone=True), nullable=True),
 		sa.Column("closed_by", sa.Numeric(), nullable=True),
-		sa.Column("transcript_path", sa.Text(), nullable=True),
 	)
 	op.create_index("tickets_guild_user_idx", "tickets", ["guild_id", "user_id"])
 	op.create_index("tickets_channel_idx", "tickets", ["channel_id"])

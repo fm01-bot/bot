@@ -91,29 +91,35 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 					panel_node,
 				)
 
-		# Build embed and button
+		# Build view
 		ticket_cog: Any = ctx.bot.get_cog("Ticket")
-		embed_title = title or "Support Tickets"
-		embed_desc = description or "Need assistance? Click the button below to open a support ticket."
-		button_label = button or "Open Ticket"
-
-		embed = discord.Embed(
-			title=embed_title,
-			description=embed_desc,
-			color=6656243,
-			timestamp=discord.utils.utcnow(),
-		)
-		embed.set_footer(text="FightMan01 bot - Ticket System")
-
 		if ticket_cog and hasattr(ticket_cog, "create_launcher_view"):
-			view = ticket_cog.create_launcher_view(button_label=button_label)
+			view = await ticket_cog.create_launcher_view(ctx.guild, button_label=button)
 		else:
-			# Fallback import
+			btn_label = button or "Open Ticket"
 			from cogs.ticket import TicketLauncherView
 
-			view = TicketLauncherView(ctx.bot, button_label=button_label)
+			view = TicketLauncherView(button_label=btn_label)
 
-		await target_channel.send(embed=embed, view=view)
+		# Build message payload with localized defaults or custom overrides
+		send_kwargs: dict[str, Any] = {"view": view}
+		if title or description:
+			embed = discord.Embed(
+				title=title,
+				description=description,
+				color=6656243,
+				timestamp=discord.utils.utcnow(),
+			)
+			embed.set_footer(text="FightMan01 bot - Ticket System")
+			send_kwargs["embed"] = embed
+		else:
+			payload = await ctx.bot.custom_response.get_message("ticket.panel", ctx.guild)
+			if isinstance(payload, dict):
+				send_kwargs.update(payload)
+			elif isinstance(payload, str):
+				send_kwargs["content"] = payload
+
+		await target_channel.send(**send_kwargs)
 		ch_name = getattr(target_channel, "name", str(target_channel.id))
 		return await ctx.send(content=f"```ansi\n[+] Ticket panel deployed in #{ch_name}\n```")
 

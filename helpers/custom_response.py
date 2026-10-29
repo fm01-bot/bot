@@ -13,11 +13,13 @@ from typing import TYPE_CHECKING, Any, overload
 import discord
 import wavelink
 from args._emoji import Emoji
+from args.channel import convert_to_custom_channel
 from args.format_date_time import FormatDateTime
 from args.guild import Guild
 from args.member import Member
 from args.partial_emoji import PartialEmoji
 from args.role import Role
+from args.text_channel import TextChannel
 from args.track import Track
 from args.user import User
 from core.context import Context
@@ -37,6 +39,7 @@ KWARG_MAPPING = {
 	discord.Role: Role.from_role,
 	discord.Emoji: Emoji.from_emoji,
 	discord.PartialEmoji: PartialEmoji.from_emoji,
+	discord.TextChannel: TextChannel.from_channel,
 	wavelink.Playable: Track.from_track,
 }
 
@@ -202,8 +205,12 @@ class CustomResponse:
 			for _type, converter in KWARG_MAPPING.items():
 				if isinstance(value, _type):
 					kwargs[key] = converter(value)
-				elif isinstance(value, datetime.datetime):
+					break
+			else:
+				if isinstance(value, datetime.datetime):
 					kwargs[key] = FormatDateTime(value, default_style="F")
+				elif isinstance(value, (discord.abc.GuildChannel, discord.Thread)):
+					kwargs[key] = convert_to_custom_channel(value)
 
 		if self.client.debug:
 			now = time.time()

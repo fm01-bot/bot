@@ -6,7 +6,11 @@ from cogs.config import Config
 from cogs.ticket import (
 	ActiveTicketControlsView,
 	ArchivedTicketControlsView,
+	CompactTranscriptAttachmentHandler,
+	DisabledControlsView,
 	Ticket,
+	TicketLauncherView,
+	process_compact_transcript,
 )
 from helpers.cli_parser import CLIParseError, CLIParser
 
@@ -96,6 +100,7 @@ async def test_config_ticket_execution_flow():
 	bot = MagicMock()
 	bot.db = AsyncMock()
 	bot.get_cog.return_value = None
+	bot.custom_response.get_message = AsyncMock(return_value="Open Ticket")
 
 	guild = MagicMock()
 	guild.id = 12345
@@ -209,7 +214,7 @@ async def test_ticket_permissions():
 	member.guild_permissions.manage_channels = False
 	member.roles = []
 
-	interaction = MagicMock()
+	interaction = MagicMock(spec=discord.Interaction)
 	interaction.guild = guild
 	interaction.user = member
 
@@ -260,6 +265,7 @@ async def test_ticket_create_flow():
 	created_ch.id = 888
 	created_ch.name = "ticket-alice"
 	created_ch.mention = "<#888>"
+	created_ch.send = AsyncMock()
 	guild.create_text_channel = AsyncMock(return_value=created_ch)
 
 	member = MagicMock(spec=discord.Member)
@@ -269,11 +275,12 @@ async def test_ticket_create_flow():
 	member.display_avatar.url = "https://example.com/avatar.png"
 	member.mention = "<@100>"
 
-	interaction = MagicMock()
+	interaction = MagicMock(spec=discord.Interaction)
 	interaction.guild = guild
 	interaction.user = member
 	interaction.response = MagicMock()
 	interaction.response.defer = AsyncMock()
+	interaction.response.is_done.return_value = True
 	interaction.followup = MagicMock()
 	interaction.followup.send = AsyncMock()
 
@@ -286,7 +293,8 @@ async def test_ticket_create_flow():
 	guild.create_text_channel.assert_called_once()
 	created_ch.send.assert_called_once()
 	interaction.followup.send.assert_called_once()
-	assert "ticket-alice" in interaction.followup.send.call_args[0][0]
+	sent_content = interaction.followup.send.call_args[1].get("content", "")
+	assert "ticket-alice" in sent_content
 
 
 @pytest.mark.asyncio
@@ -304,10 +312,13 @@ async def test_ticket_create_limit_exceeded():
 	member.id = 100
 	member.name = "Bob"
 
-	interaction = MagicMock()
+	interaction = MagicMock(spec=discord.Interaction)
 	interaction.guild = guild
 	interaction.user = member
+	interaction.response = MagicMock()
 	interaction.response.defer = AsyncMock()
+	interaction.response.is_done.return_value = True
+	interaction.followup = MagicMock()
 	interaction.followup.send = AsyncMock()
 
 	bot.db.fetchrow.return_value = {"is_on": True, "max_tickets": 1}
@@ -317,7 +328,66 @@ async def test_ticket_create_limit_exceeded():
 
 	guild.create_text_channel.assert_not_called()
 	interaction.followup.send.assert_called_once()
-	assert "already have" in interaction.followup.send.call_args[0][0]
+	sent_content = interaction.followup.send.call_args[1].get("content", "")
+	assert "already have" in sent_content
+
+
+@pytest.mark.asyncio
+async def test_ticket_modal_localization():
+	bot = MagicMock()
+	bot.custom_response.get_message = AsyncMock(side_effect=lambda key, *args, **kwargs: f"loc_{key.split('.')[-1]}")
+	cog = Ticket(bot)
+
+	interaction = MagicMock(spec=discord.Interaction)
+	interaction.guild = MagicMock()
+
+	modal = await cog.create_ticket_modal(interaction)
+	assert modal.title == "loc_title"
+	assert modal.topic.label == "loc_topic_label"
+	assert modal.description.label == "loc_desc_label"
+
+
+@pytest.mark.asyncio
+async def test_ticket_launcher_view_localization():
+	bot = MagicMock()
+	bot.custom_response.get_message = AsyncMock(
+		side_effect=lambda key, *args, **kwargs: (
+			{"button": "Localized Open"} if key == "ticket.panel" else "Localized Open"
+		)
+	)
+	cog = Ticket(bot)
+
+	guild = MagicMock()
+	launcher_view = await cog.create_launcher_view(guild)
+	assert isinstance(launcher_view, TicketLauncherView)
+	assert launcher_view.open_button.label == "Localized Open"
+
+
+@pytest.mark.asyncio
+async def test_ticket_controls_view_localization():
+	bot = MagicMock()
+	bot.custom_response.get_message = AsyncMock(side_effect=lambda key, *args, **kwargs: f"loc_{key.split('.')[-1]}")
+	cog = Ticket(bot)
+
+	guild = MagicMock()
+
+	# Active view
+	active_view = await cog.create_controls_view(guild, is_archived=False)
+	assert isinstance(active_view, ActiveTicketControlsView)
+	assert active_view.archive_btn.label == "loc_archive"
+	assert active_view.close_btn.label == "loc_close"
+	assert active_view.save_btn.label == "loc_save"
+
+	# Archived view
+	archived_view = await cog.create_controls_view(guild, is_archived=True)
+	assert isinstance(archived_view, ArchivedTicketControlsView)
+	assert archived_view.close_btn.label == "loc_close"
+	assert archived_view.reopen_btn.label == "loc_reopen"
+	assert archived_view.save_btn.label == "loc_save"
+
+	# Disabled view
+	disabled_view = await cog.create_disabled_controls_view(guild, is_archived=False)
+	assert isinstance(disabled_view, DisabledControlsView)
 
 
 @pytest.mark.asyncio
@@ -339,7 +409,7 @@ async def test_ticket_archive_and_reopen():
 	channel.set_permissions = AsyncMock()
 	channel.send = AsyncMock()
 
-	interaction = MagicMock()
+	interaction = MagicMock(spec=discord.Interaction)
 	interaction.guild = guild
 	interaction.user = member
 	interaction.channel = channel
@@ -396,7 +466,7 @@ async def test_ticket_save_and_close():
 	channel.name = "ticket-test"
 	channel.delete = AsyncMock()
 
-	interaction = MagicMock()
+	interaction = MagicMock(spec=discord.Interaction)
 	interaction.guild = guild
 	interaction.user = member
 	interaction.channel = channel
@@ -415,10 +485,16 @@ async def test_ticket_save_and_close():
 		await cog.handle_close_action(interaction)
 
 	log_channel.send.assert_called_once()
-	# Transcripts attached as file
+	# Transcripts attached directly as Discord file, not saved to disk
 	assert "file" in log_channel.send.call_args[1]
 	member.send.assert_called_once()
 	channel.delete.assert_called_once()
+
+	# DB update must not reference transcript_path
+	bot.db.execute.assert_called_once()
+	query_str = bot.db.execute.call_args[0][0]
+	assert "transcript_path" not in query_str
+	assert "is_closed = true" in query_str
 
 
 @pytest.mark.asyncio
@@ -433,3 +509,112 @@ async def test_on_guild_channel_delete():
 	bot.db.execute.assert_called_once()
 	assert "UPDATE tickets" in bot.db.execute.call_args[0][0]
 	assert bot.db.execute.call_args[0][1] == 12345
+
+
+@pytest.mark.asyncio
+async def test_compact_transcript_attachment_handler_limits_images():
+	handler = CompactTranscriptAttachmentHandler(max_images=5)
+
+	# Process 5 image attachments
+	for i in range(5):
+		att = MagicMock(spec=discord.Attachment)
+		att.id = i
+		att.content_type = "image/png"
+		att.filename = f"image_{i}.png"
+		att.read = AsyncMock(return_value=b"fake_image_bytes")
+		res = await handler.process_asset(att)
+		assert res.url.startswith("data:image/png;base64,")
+		assert handler.saved_images == i + 1
+
+	# 6th image attachment should NOT be embedded as base64 data URL
+	att6 = MagicMock(spec=discord.Attachment)
+	att6.id = 6
+	att6.content_type = "image/png"
+	att6.filename = "image_6.png"
+	att6.url = "https://cdn.discordapp.com/attachments/1/6/image_6.png"
+	att6.read = AsyncMock(return_value=b"fake_image_bytes")
+	res6 = await handler.process_asset(att6)
+	assert not res6.url.startswith("data:")
+	assert res6.content_type == "application/octet-stream"
+	assert handler.saved_images == 5
+
+	# Non-image attachment should not increment saved_images
+	att_pdf = MagicMock(spec=discord.Attachment)
+	att_pdf.id = 7
+	att_pdf.content_type = "application/pdf"
+	att_pdf.filename = "document.pdf"
+	att_pdf.url = "https://cdn.discordapp.com/attachments/1/7/document.pdf"
+	res_pdf = await handler.process_asset(att_pdf)
+	assert res_pdf.url == att_pdf.url
+	assert handler.saved_images == 5
+
+
+def test_process_compact_transcript_strips_avatars_and_limits_images():
+	raw_html = (
+		"<!DOCTYPE html><html><head><title>Test</title></head><body>"
+		'<div class="chatlog__message-aside">'
+		'<img class="chatlog__avatar" src="https://cdn.discordapp.com/avatars/100/avatar.png" data-user-id="100" />'
+		"</div>"
+		'<div class="chatlog__followup">'
+		'<img class="chatlog__followup-avatar" src="https://cdn.discordapp.com/avatars/200/avatar.png" />'
+		"</div>"
+		'<div class="meta-popout"><div class="meta__header"><img src="https://cdn.discordapp.com/avatars/100/avatar.png" alt="Avatar"></div></div>'
+		'<div class="chatlog__content">'
+		'<img class="panel__hashtag-icon" src="https://cdn.jsdelivr.net/.../discord-hashtag.svg" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,1" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,2" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,3" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,4" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,5" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,6" />'
+		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,7" />'
+		"</div>"
+		"</body></html>"
+	)
+
+	compact_html = process_compact_transcript(raw_html, max_images=5)
+
+	# Discord user avatar URLs and avatar tags must be stripped
+	assert "https://cdn.discordapp.com/avatars/" not in compact_html
+	assert 'class="chatlog__avatar"' not in compact_html
+	assert 'class="chatlog__followup-avatar"' not in compact_html
+	assert 'alt="Avatar"' not in compact_html
+
+	# Compact styling must be injected
+	assert "compact-transcript-style" in compact_html
+	assert ".chatlog__message-aside { display: none !important;" in compact_html
+
+	# Preserves system icons (e.g. hashtag)
+	assert "discord-hashtag.svg" in compact_html
+
+	# Saves only up to 5 images, excess replaced
+	assert "base64,1" in compact_html
+	assert "base64,5" in compact_html
+	assert "base64,6" not in compact_html
+	assert "base64,7" not in compact_html
+	assert "[Image not saved in compact mode]" in compact_html
+
+
+@pytest.mark.asyncio
+async def test_export_transcript_passes_attachment_handler_and_applies_compact():
+	bot = MagicMock()
+	cog = Ticket(bot)
+
+	channel = MagicMock(spec=discord.TextChannel)
+	channel.id = 555
+	channel.name = "ticket-ch"
+
+	mock_exporter_html = (
+		"<!DOCTYPE html><html><head></head><body>"
+		'<img class="chatlog__avatar" src="https://cdn.discordapp.com/avatars/9/avatar.png" />'
+		"hello world"
+		"</body></html>"
+	)
+
+	with patch("chat_exporter.export", AsyncMock(return_value=mock_exporter_html)) as mock_export:
+		result = await cog.export_transcript(channel, 42)
+		mock_export.assert_called_once()
+		assert isinstance(mock_export.call_args[1]["attachment_handler"], CompactTranscriptAttachmentHandler)
+		# Avatars removed and compact style injected
+		assert "https://cdn.discordapp.com/avatars/" not in result
+		assert "compact-transcript-style" in result

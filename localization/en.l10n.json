@@ -3128,16 +3128,33 @@
   "ticket": {
     "actions": {
       "archived": {
-        "description": "This ticket was archived by **{author.name}**.\n\n• To reopen, click **Reopen**.\n• To permanently close, click **Close**.\n• To save a transcript, click **Save Transcript**.",
-        "title": "Ticket Archived"
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "This ticket was archived by **{author.name}**.\n\n• To reopen, click **Reopen**.\n• To permanently close, click **Close**.\n• To save a transcript, click **Save Transcript**.",
+            "footer": {
+              "text": "FightMan01 bot - Ticket #{ticket_id}"
+            },
+            "title": "Ticket Archived"
+          }
+        ]
       },
       "closed": {
-        "generating": "Generating transcript and closing ticket...",
-        "title": "Ticket Closed"
+        "generating": {
+          "content": "Generating transcript and closing ticket..."
+        }
       },
       "reopened": {
-        "description": "This ticket was reopened by **{author.name}**.",
-        "title": "Ticket Reopened"
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "This ticket was reopened by **{author.name}**.",
+            "footer": {
+              "text": "FightMan01 bot - Ticket #{ticket_id}"
+            },
+            "title": "Ticket Reopened"
+          }
+        ]
       },
       "saved": {
         "content": "Transcript saved successfully!"
@@ -3151,42 +3168,220 @@
       "save": "Save Transcript"
     },
     "created": {
-      "ephemeral": "Your ticket has been created: {channel}",
-      "footer": "FightMan01 bot - Ticket System"
+      "ephemeral": {
+        "content": "Your ticket has been created: {channel.mention}"
+      },
+      "message": {
+        "content": "{member.mention}",
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "{description}",
+            "footer": {
+              "text": "FightMan01 bot - Ticket #{ticket_id}"
+            },
+            "title": "{topic}"
+          }
+        ]
+      }
     },
     "dm": {
-      "closed": "Your ticket in **{guild.name}** (#{channel_name}) has been closed. A transcript is attached below.",
-      "saved": "A transcript of your ticket in **{guild.name}** (#{channel_name}) has been saved."
+      "closed": {
+        "content": "Your ticket in **{guild.name}** (#{channel_name}) has been closed. A transcript is attached below."
+      },
+      "saved": {
+        "content": "A transcript of your ticket in **{guild.name}** (#{channel_name}) has been saved."
+      }
     },
     "errors": {
-      "already_open": "You already have {count} open ticket(s). The maximum allowed is {limit}.",
-      "bot_perms": "The bot is missing required permissions to create channels or manage ticket permissions.",
-      "disabled": "The ticket system is currently disabled on this server.",
-      "no_permission": "You do not have permission to manage this ticket.",
-      "not_ticket": "This channel is not an active ticket channel."
+      "already_open": {
+        "content": "You already have {count} open ticket(s). The maximum allowed is {limit}."
+      },
+      "bot_perms": {
+        "content": "The bot is missing required permissions to create channels or manage ticket permissions."
+      },
+      "disabled": {
+        "content": "The ticket system is currently disabled on this server."
+      },
+      "no_permission": {
+        "content": "You do not have permission to manage this ticket."
+      },
+      "not_ticket": {
+        "content": "This channel is not an active ticket channel."
+      },
+      "unavailable": {
+        "content": "The ticket system is currently unavailable."
+      }
     },
     "logs": {
-      "archived": "Ticket Archived",
-      "closed": "Ticket Closed",
-      "created": "Ticket Created",
-      "field_actor": "Action By",
-      "field_channel": "Ticket Channel",
-      "field_closer": "Closed By",
-      "field_creator": "Ticket Creator",
-      "field_topic": "Topic",
-      "reopened": "Ticket Reopened",
-      "saved": "Ticket Transcript Saved"
+      "archived": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Action By",
+                "value": "{actor.mention} ({actor.id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Creator",
+                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Channel",
+                "value": "{channel.mention}"
+              }
+            ],
+            "footer": {
+              "text": "Ticket ID: {ticket_id}"
+            },
+            "title": "Ticket Archived"
+          }
+        ]
+      },
+      "closed": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Closed By",
+                "value": "{actor.mention} ({actor.id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Creator",
+                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Channel",
+                "value": "#{channel.name}"
+              },
+              {
+                "inline": false,
+                "name": "Topic",
+                "value": "{topic}"
+              }
+            ],
+            "footer": {
+              "text": "Ticket ID: {ticket_id}"
+            },
+            "title": "Ticket Closed"
+          }
+        ]
+      },
+      "created": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Ticket Creator",
+                "value": "{member.mention} ({member.id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Channel",
+                "value": "{channel.mention} (#{channel.name})"
+              },
+              {
+                "inline": false,
+                "name": "Topic",
+                "value": "{topic}"
+              }
+            ],
+            "footer": {
+              "text": "Ticket ID: {ticket_id}"
+            },
+            "title": "Ticket Created"
+          }
+        ]
+      },
+      "reopened": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Action By",
+                "value": "{actor.mention} ({actor.id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Creator",
+                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Channel",
+                "value": "{channel.mention}"
+              }
+            ],
+            "footer": {
+              "text": "Ticket ID: {ticket_id}"
+            },
+            "title": "Ticket Reopened"
+          }
+        ]
+      },
+      "saved": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "fields": [
+              {
+                "inline": false,
+                "name": "Action By",
+                "value": "{actor.mention} ({actor.id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Creator",
+                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+              },
+              {
+                "inline": false,
+                "name": "Ticket Channel",
+                "value": "{channel.mention}"
+              }
+            ],
+            "footer": {
+              "text": "Ticket ID: {ticket_id}"
+            },
+            "title": "Ticket Transcript Saved"
+          }
+        ]
+      }
     },
     "modal": {
       "desc_label": "Description",
       "desc_placeholder": "Please provide a detailed explanation of your issue...",
+      "error": {
+        "content": "An unexpected error occurred while creating your ticket."
+      },
       "title": "Open a Ticket",
       "topic_label": "Topic / Subject",
       "topic_placeholder": "Brief summary of the issue"
     },
     "panel": {
-      "default_desc": "Need assistance? Click the button below to open a support ticket.",
-      "default_title": "Support Tickets"
+      "button": "Open Ticket",
+      "embeds": [
+        {
+          "color": 6656243,
+          "description": "Need assistance? Click the button below to open a support ticket.",
+          "footer": {
+            "text": "FightMan01 bot - Ticket System"
+          },
+          "title": "Support Tickets"
+        }
+      ]
     }
   },
   "voice": {
