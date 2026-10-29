@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import json
 from logging import getLogger
@@ -213,6 +214,10 @@ class Logging(commands.Cog, name="Logging"):
 	def invalidate_cache(self, guild_id: int):
 		"""Remove cached config so it gets re-fetched on next event."""
 		self._config_cache.pop(guild_id, None)
+		if hasattr(self.client, "event_bus"):
+			asyncio.create_task(
+				self.client.event_bus.publish("fm01:events", {"type": "INVALIDATE_LOG_CONFIG", "guild_id": guild_id})
+			)
 
 	async def enable_log(self, guild_id: int, channel_id: int | None = None) -> LogConfig:
 		"""Enable logging for a guild, creating the DB row if not present."""
@@ -387,6 +392,83 @@ class Logging(commands.Cog, name="Logging"):
 			await self._send(
 				after.guild, "on_message_edit", "log.on_message_edit.pinned", before=before_msg, after=after_msg
 			)
+
+	@commands.Cog.listener()
+	async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+		if not payload.guild_id:
+			return
+
+		guild = self.client.get_guild(payload.guild_id)
+		if not guild:
+			return
+
+		if payload.cached_message:
+			await self.on_message_delete(payload.cached_message)
+			return
+
+		snapshot = await self.client.message_buffer.get_message(payload.channel_id, payload.message_id)
+		if not snapshot:
+			return
+
+		channel = guild.get_channel_or_thread(payload.channel_id)
+		author_id = snapshot.get("author_id", 0)
+		author_member = guild.get_member(author_id)
+		deleted_by = (
+			_user_arg(author_member) if author_member else _UnknownActor(snapshot.get("author_name", "Unknown"))
+		)
+
+		entry = await _find_audit_entry(
+			guild, discord.AuditLogAction.message_delete, target=author_member, channel=channel, within=4.0
+		)
+		if entry and entry.user:
+			deleted_by = _user_arg(entry.user)
+
+		msg_arg = Message.from_snapshot(snapshot, guild=guild, channel=channel)
+		await self._send(
+			guild,
+			"on_message_delete",
+			"log.on_message_delete.delete",
+			message=msg_arg,
+			deleted_by=deleted_by,
+		)
+
+	@commands.Cog.listener()
+	async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
+		guild_id = payload.data.get("guild_id")
+		if not guild_id:
+			return
+		guild = self.client.get_guild(int(guild_id))
+		if not guild:
+			return
+
+		if payload.cached_message:
+			return
+
+		new_content = payload.data.get("content")
+		if new_content is None:
+			return
+
+		snapshot = await self.client.message_buffer.get_message(payload.channel_id, payload.message_id)
+		if not snapshot:
+			return
+
+		old_content = snapshot.get("content", "")
+		if old_content == new_content:
+			return
+
+		channel = guild.get_channel_or_thread(payload.channel_id)
+		before_msg = Message.from_snapshot(snapshot, guild=guild, channel=channel)
+		after_snapshot = dict(snapshot)
+		after_snapshot["content"] = new_content
+		after_msg = Message.from_snapshot(after_snapshot, guild=guild, channel=channel)
+
+		await self._send(
+			guild,
+			"on_message_edit",
+			"log.on_message_edit.content",
+			before=before_msg,
+			after=after_msg,
+		)
 
 	@commands.Cog.listener()
 	async def on_guild_channel_create(self, channel: discord.abc.GuildChannel):

@@ -31,6 +31,8 @@ dependencies = [
     "greenlet>=3.5.6",
     "sentry-sdk>=2.72.0",
     "chat-exporter>=3.1.0",
+    "orjson>=3.10.0",
+    "redis>=5.0.0",
 ]
 
 [dependency-groups]

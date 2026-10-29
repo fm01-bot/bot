@@ -31,6 +31,7 @@ modules:
   - voice
   - level
   - ticket
+  - state_sync
 
 # Emojis used in bot responses
 # https://support.discord.com/hc/en-us/community/posts/360069335891-Get-Emoji-ID

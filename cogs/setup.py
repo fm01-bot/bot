@@ -17,6 +17,8 @@ class Setup(commands.Cog, name="Setup"):
 			"UPDATE guilds SET prefix = $1, mention = $2 WHERE guild_id = $3", prefix, mention_val, ctx.guild.id
 		)
 		self.client.prefix_cache[ctx.guild.id] = (prefix, mention_val)
+		if hasattr(self.client, "event_bus"):
+			await self.client.event_bus.publish("fm01:events", {"type": "INVALIDATE_PREFIX", "guild_id": ctx.guild.id})
 		return await ctx.send("setup.prefix.set", prefix=prefix)
 
 
