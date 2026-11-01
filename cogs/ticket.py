@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import base64
+import inspect
 import io
 import logging
 import re
 from typing import TYPE_CHECKING, Any
 
-import aiohttp
 import chat_exporter
 import discord
-from chat_exporter.construct.attachment_handler import AttachmentHandler
 from discord.ext import commands
 
 if TYPE_CHECKING:
@@ -23,98 +21,6 @@ TICKET_CLOSE_ID = "ticket:close"
 TICKET_SAVE_ID = "ticket:save"
 TICKET_REOPEN_ID = "ticket:reopen"
 
-LEGACY_MAP = {
-	"ticketbtn": TICKET_OPEN_ID,
-	"archivebtn": TICKET_ARCHIVE_ID,
-	"closebtn": TICKET_CLOSE_ID,
-	"savebtn": TICKET_SAVE_ID,
-	"reopenbtn": TICKET_REOPEN_ID,
-	TICKET_OPEN_ID: TICKET_OPEN_ID,
-	TICKET_ARCHIVE_ID: TICKET_ARCHIVE_ID,
-	TICKET_CLOSE_ID: TICKET_CLOSE_ID,
-	TICKET_SAVE_ID: TICKET_SAVE_ID,
-	TICKET_REOPEN_ID: TICKET_REOPEN_ID,
-}
-
-
-class CompactTranscriptAttachmentHandler(AttachmentHandler):
-	"""Attachment handler that saves up to max_images in base64 data URLs in the HTML transcript."""
-
-	def __init__(self, max_images: int = 5):
-		self.max_images = max_images
-		self.saved_images = 0
-
-	async def process_asset(self, attachment: discord.Attachment) -> discord.Attachment:
-		ct = getattr(attachment, "content_type", "") or ""
-		fn = getattr(attachment, "filename", "") or ""
-		is_image = ct.startswith("image/") or fn.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
-
-		if is_image and self.saved_images < self.max_images:
-			try:
-				data = None
-				if hasattr(attachment, "read") and callable(attachment.read):
-					data = await attachment.read()
-				elif getattr(attachment, "url", None):
-					async with (
-						aiohttp.ClientSession() as session,
-						session.get(attachment.url) as resp,
-					):
-						if resp.status == 200:
-							data = await resp.read()
-				if data and len(data) <= 4 * 1024 * 1024:
-					self.saved_images += 1
-					mime = ct or "image/png"
-					b64 = base64.b64encode(data).decode("ascii")
-					data_url = f"data:{mime};base64,{b64}"
-					attachment.url = data_url
-					attachment.proxy_url = data_url
-					return attachment
-			except (discord.DiscordException, OSError, ValueError, aiohttp.ClientError) as e:
-				logger.debug(f"Failed to embed image asset {fn} in compact transcript: {e}")
-
-		if is_image and self.saved_images >= self.max_images:
-			attachment.content_type = "application/octet-stream"
-
-		return attachment
-
-
-def process_compact_transcript(html: str, max_images: int = 5) -> str:
-	"""Apply compact mode to ticket transcript HTML, strip user avatars, and enforce maximum image limit."""
-	# 1. Strip avatars of Discord users
-	html = re.sub(r"<img[^>]*chatlog__(?:followup-)?avatar[^>]*>", "", html)
-	html = re.sub(r'<img[^>]*alt="Avatar"[^>]*>', "", html)
-	html = re.sub(r"https://cdn\.discordapp\.com/avatars/[^\s\"'<>]+", "", html)
-
-	# 2. Inject compact layout CSS (IRC-style compact messages, no 72px avatar spacing)
-	compact_css = (
-		'\n<style id="compact-transcript-style">\n'
-		"  .chatlog__message-aside { display: none !important; width: 0 !important; }\n"
-		"  .chatlog__message { grid-template-columns: 1fr !important; padding: 0.15rem 1rem !important; }\n"
-		"  .chatlog__avatar, .chatlog__followup-avatar, .chatlog__pin-avatar { display: none !important; }\n"
-		"  .meta-popout .meta__header img { display: none !important; }\n"
-		"</style>\n"
-	)
-	if "</head>" in html:
-		html = html.replace("</head>", f"{compact_css}</head>", 1)
-	else:
-		html = f"{compact_css}{html}"
-
-	# 3. Enforce maximum image limit (only saving up to max_images in the HTML)
-	img_count = 0
-
-	def replace_excess_images(match: re.Match) -> str:
-		nonlocal img_count
-		tag = match.group(0)
-		if "discord-hashtag" in tag or "discord-logo" in tag or ("icon" in tag and "attachment" not in tag):
-			return tag
-		img_count += 1
-		if img_count > max_images:
-			return '<span class="chatlog__attachment-omitted">[Image not saved in compact mode]</span>'
-		return tag
-
-	html = re.sub(r"<img[^>]+>", replace_excess_images, html)
-	return html
-
 
 class TicketModal(discord.ui.Modal):
 	def __init__(
@@ -125,6 +31,10 @@ class TicketModal(discord.ui.Modal):
 		topic_placeholder: str = "Brief summary of the issue",
 		desc_label: str = "Description",
 		desc_placeholder: str = "Please provide a detailed explanation of your issue...",
+		topic_min_length: int = 3,
+		topic_max_length: int = 100,
+		desc_min_length: int = 10,
+		desc_max_length: int = 1800,
 	):
 		super().__init__(title=title[:45], timeout=300)
 		self.cog = cog
@@ -132,8 +42,8 @@ class TicketModal(discord.ui.Modal):
 		self.topic = discord.ui.TextInput(
 			label=topic_label[:45],
 			placeholder=topic_placeholder[:100],
-			min_length=3,
-			max_length=100,
+			min_length=topic_min_length,
+			max_length=topic_max_length,
 			required=True,
 		)
 		self.add_item(self.topic)
@@ -142,8 +52,8 @@ class TicketModal(discord.ui.Modal):
 			label=desc_label[:45],
 			style=discord.TextStyle.paragraph,
 			placeholder=desc_placeholder[:100],
-			min_length=10,
-			max_length=1800,
+			min_length=desc_min_length,
+			max_length=desc_max_length,
 			required=True,
 		)
 		self.add_item(self.description)
@@ -278,56 +188,6 @@ class ArchivedTicketControlsView(discord.ui.View):
 			await cog.handle_save_action(interaction)
 
 
-class DisabledControlsView(discord.ui.View):
-	def __init__(
-		self,
-		*,
-		close_label: str = "Close",
-		save_label: str = "Save Transcript",
-		archive_label: str | None = None,
-		reopen_label: str | None = None,
-	):
-		super().__init__(timeout=None)
-		if archive_label:
-			self.add_item(
-				discord.ui.Button(
-					label=archive_label,
-					style=discord.ButtonStyle.blurple,
-					emoji="📦",
-					disabled=True,
-					custom_id="dis_arch",
-				)
-			)
-		self.add_item(
-			discord.ui.Button(
-				label=close_label,
-				style=discord.ButtonStyle.danger,
-				emoji="📪",
-				disabled=True,
-				custom_id="dis_close",
-			)
-		)
-		if reopen_label:
-			self.add_item(
-				discord.ui.Button(
-					label=reopen_label,
-					style=discord.ButtonStyle.success,
-					emoji="🔁",
-					disabled=True,
-					custom_id="dis_reopen",
-				)
-			)
-		self.add_item(
-			discord.ui.Button(
-				label=save_label,
-				style=discord.ButtonStyle.secondary,
-				emoji="💾",
-				disabled=True,
-				custom_id="dis_save",
-			)
-		)
-
-
 class Ticket(commands.Cog, name="Ticket"):
 	def __init__(self, bot: Bot):
 		self.bot = bot
@@ -374,29 +234,6 @@ class Ticket(commands.Cog, name="Ticket"):
 			save_label=str(save_lbl) if save_lbl and not str(save_lbl).startswith("localizer") else "Save Transcript",
 		)
 
-	async def create_disabled_controls_view(
-		self, guild: discord.Guild | None = None, is_archived: bool = False
-	) -> DisabledControlsView:
-		close_lbl = await self.bot.custom_response.get_message("ticket.buttons.close", guild)
-		save_lbl = await self.bot.custom_response.get_message("ticket.buttons.save", guild)
-		if is_archived:
-			reopen_lbl = await self.bot.custom_response.get_message("ticket.buttons.reopen", guild)
-			return DisabledControlsView(
-				close_label=str(close_lbl) if close_lbl and not str(close_lbl).startswith("localizer") else "Close",
-				reopen_label=str(reopen_lbl)
-				if reopen_lbl and not str(reopen_lbl).startswith("localizer")
-				else "Reopen",
-				save_label=str(save_lbl)
-				if save_lbl and not str(save_lbl).startswith("localizer")
-				else "Save Transcript",
-			)
-		arch_lbl = await self.bot.custom_response.get_message("ticket.buttons.archive", guild)
-		return DisabledControlsView(
-			archive_label=str(arch_lbl) if arch_lbl and not str(arch_lbl).startswith("localizer") else "Archive",
-			close_label=str(close_lbl) if close_lbl and not str(close_lbl).startswith("localizer") else "Close",
-			save_label=str(save_lbl) if save_lbl and not str(save_lbl).startswith("localizer") else "Save Transcript",
-		)
-
 	async def send_response(
 		self,
 		key: str,
@@ -404,7 +241,7 @@ class Ticket(commands.Cog, name="Ticket"):
 		*,
 		ephemeral: bool = False,
 		file: discord.File | None = None,
-		view: discord.ui.View | None = None,
+		view: discord.ui.View | discord.ui.LayoutView | None = None,
 		**kwargs: Any,
 	) -> discord.Message | None:
 		context: Any = (
@@ -421,6 +258,8 @@ class Ticket(commands.Cog, name="Ticket"):
 			send_kwargs["view"] = view
 
 		if isinstance(payload, dict):
+			if "view" in payload and "view" in send_kwargs:
+				send_kwargs["view"] = self.bot.custom_response.merge_views(send_kwargs["view"], payload.pop("view"))
 			send_kwargs.update(payload)
 		elif isinstance(payload, str):
 			send_kwargs["content"] = payload
@@ -444,8 +283,14 @@ class Ticket(commands.Cog, name="Ticket"):
 	async def get_ticket_config(self, guild_id: int) -> dict | None:
 		if not self.bot.db:
 			return None
-		row = await self.bot.db.fetchrow("SELECT * FROM ticket_config WHERE guild_id = $1", guild_id)
-		return dict(row) if row else None
+		res = self.bot.db.fetchrow("SELECT * FROM ticket_config WHERE guild_id = $1", guild_id)
+		row = await res if inspect.isawaitable(res) else res
+		if not row:
+			return None
+		try:
+			return dict(row)
+		except (TypeError, ValueError):
+			return None
 
 	async def get_ticket(self, channel_id: int) -> dict | None:
 		if not self.bot.db:
@@ -487,6 +332,22 @@ class Ticket(commands.Cog, name="Ticket"):
 		desc_label = await self.bot.custom_response.get_message("ticket.modal.desc_label", context)
 		desc_placeholder = await self.bot.custom_response.get_message("ticket.modal.desc_placeholder", context)
 
+		cfg = await self.get_ticket_config(interaction.guild.id) if interaction.guild else None
+		topic_min = 3
+		topic_max = 100
+		desc_min = 10
+		desc_max = 1800
+
+		if cfg:
+			if cfg.get("topic_min_length") is not None:
+				topic_min = int(cfg["topic_min_length"])
+			if cfg.get("topic_max_length") is not None:
+				topic_max = int(cfg["topic_max_length"])
+			if cfg.get("description_min_length") is not None:
+				desc_min = int(cfg["description_min_length"])
+			if cfg.get("description_max_length") is not None:
+				desc_max = int(cfg["description_max_length"])
+
 		return TicketModal(
 			cog=self,
 			title=str(title) if title and not str(title).startswith("localizer") else "Open a Ticket",
@@ -500,18 +361,20 @@ class Ticket(commands.Cog, name="Ticket"):
 			desc_placeholder=str(desc_placeholder)
 			if desc_placeholder and not str(desc_placeholder).startswith("localizer")
 			else "Please provide a detailed explanation of your issue...",
+			topic_min_length=topic_min,
+			topic_max_length=topic_max,
+			desc_min_length=desc_min,
+			desc_max_length=desc_max,
 		)
 
 	async def export_transcript(self, channel: discord.abc.GuildChannel | discord.Thread, ticket_id: int) -> str:
 		transcript_str = ""
-		handler = CompactTranscriptAttachmentHandler(max_images=5)
 		if isinstance(channel, discord.TextChannel):
 			try:
 				res = await chat_exporter.export(
 					channel=channel,
 					tz_info="UTC",
 					bot=self.bot,
-					attachment_handler=handler,
 				)
 				if isinstance(res, str):
 					transcript_str = res
@@ -525,33 +388,10 @@ class Ticket(commands.Cog, name="Ticket"):
 			]
 			if isinstance(channel, discord.TextChannel):
 				try:
-					fallback_images = 0
 					async for msg in channel.history(limit=500, oldest_first=True):
 						author_str = f"{msg.author.display_name} ({msg.author.id})"
 						content_str = msg.clean_content.replace("<", "&lt;").replace(">", "&gt;")
-						att_parts: list[str] = []
-						for att in msg.attachments:
-							ct = getattr(att, "content_type", "") or ""
-							fn = getattr(att, "filename", "") or ""
-							is_img = ct.startswith("image/") or fn.lower().endswith(
-								(".png", ".jpg", ".jpeg", ".gif", ".webp")
-							)
-							if is_img and fallback_images < 5:
-								try:
-									data = await att.read()
-									if len(data) <= 4 * 1024 * 1024:
-										fallback_images += 1
-										mime = ct or "image/png"
-										b64 = base64.b64encode(data).decode("ascii")
-										att_parts.append(
-											f"<br><img src='data:{mime};base64,{b64}' style='max-width:400px;' alt='{fn}' />"
-										)
-									else:
-										att_parts.append(f"<br>[Attachment: {fn}]")
-								except (discord.DiscordException, OSError, ValueError):
-									att_parts.append(f"<br>[Attachment: {fn}]")
-							else:
-								att_parts.append(f"<br>[Attachment: {fn}]")
+						att_parts: list[str] = [f"<br>[Attachment: {att.filename}]" for att in msg.attachments]
 						att_str = "".join(att_parts)
 						lines.append(
 							f"<li><strong>{author_str}</strong> [{msg.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}]: {content_str}{att_str}</li>"
@@ -561,7 +401,7 @@ class Ticket(commands.Cog, name="Ticket"):
 			lines.append("</ul></body></html>")
 			transcript_str = "\n".join(lines)
 
-		return process_compact_transcript(transcript_str, max_images=5)
+		return transcript_str
 
 	async def handle_ticket_create(self, interaction: discord.Interaction, topic: str, description: str):
 		assert interaction.guild is not None
@@ -717,9 +557,25 @@ class Ticket(commands.Cog, name="Ticket"):
 		if not await self.can_manage_ticket(interaction, ticket):
 			return await self.send_response("ticket.errors.no_permission", interaction, ephemeral=True)
 
-		await interaction.response.defer()
+		if not interaction.response.is_done():
+			await interaction.response.defer()
+
+		if interaction.message is not None:
+			try:
+				v2_view = discord.ui.LayoutView.from_message(interaction.message)
+				for item in v2_view.walk_children():
+					if isinstance(item, discord.ui.Button):
+						item.disabled = True
+				await interaction.message.edit(view=v2_view)
+			except (discord.HTTPException, TypeError, ValueError, AttributeError) as e:
+				logger.debug("Failed to disable buttons on archive message: %s", e)
 
 		opener = interaction.guild.get_member(int(ticket["user_id"]))
+		if not opener:
+			try:
+				opener = await interaction.guild.fetch_member(int(ticket["user_id"]))
+			except discord.HTTPException:
+				opener = None
 		if opener and isinstance(interaction.channel, discord.TextChannel):
 			try:
 				await interaction.channel.set_permissions(
@@ -768,9 +624,25 @@ class Ticket(commands.Cog, name="Ticket"):
 		if not await self.can_manage_ticket(interaction, ticket):
 			return await self.send_response("ticket.errors.no_permission", interaction, ephemeral=True)
 
-		await interaction.response.defer()
+		if not interaction.response.is_done():
+			await interaction.response.defer()
+
+		if interaction.message is not None:
+			try:
+				v2_view = discord.ui.LayoutView.from_message(interaction.message)
+				for item in v2_view.walk_children():
+					if isinstance(item, discord.ui.Button):
+						item.disabled = True
+				await interaction.message.edit(view=v2_view)
+			except (discord.HTTPException, TypeError, ValueError, AttributeError) as e:
+				logger.debug(f"Failed to disable buttons on reopen message: {e}")
 
 		opener = interaction.guild.get_member(int(ticket["user_id"]))
+		if not opener:
+			try:
+				opener = await interaction.guild.fetch_member(int(ticket["user_id"]))
+			except discord.HTTPException:
+				opener = None
 		if opener and isinstance(interaction.channel, discord.TextChannel):
 			try:
 				await interaction.channel.set_permissions(
@@ -819,7 +691,8 @@ class Ticket(commands.Cog, name="Ticket"):
 		if not await self.can_manage_ticket(interaction, ticket):
 			return await self.send_response("ticket.errors.no_permission", interaction, ephemeral=True)
 
-		await interaction.response.defer()
+		if not interaction.response.is_done():
+			await interaction.response.defer()
 
 		transcript = await self.export_transcript(interaction.channel, ticket["id"])  # type: ignore
 
@@ -862,15 +735,17 @@ class Ticket(commands.Cog, name="Ticket"):
 		if not await self.can_manage_ticket(interaction, ticket):
 			return await self.send_response("ticket.errors.no_permission", interaction, ephemeral=True)
 
-		await interaction.response.defer()
+		if not interaction.response.is_done():
+			await interaction.response.defer()
 
-		if interaction.message:
+		if interaction.message is not None:
 			try:
-				disabled_view = await self.create_disabled_controls_view(
-					interaction.guild, is_archived=bool(ticket.get("is_archived", False))
-				)
-				await interaction.message.edit(view=disabled_view)
-			except discord.HTTPException as e:
+				v2_view = discord.ui.LayoutView.from_message(interaction.message)
+				for item in v2_view.walk_children():
+					if isinstance(item, discord.ui.Button):
+						item.disabled = True
+				await interaction.message.edit(view=v2_view)
+			except (discord.HTTPException, TypeError, ValueError, AttributeError) as e:
 				logger.debug("Failed to disable buttons on close message: %s", e)
 
 		await self.send_response(
@@ -949,30 +824,6 @@ class Ticket(commands.Cog, name="Ticket"):
 			""",
 			channel.id,
 		)
-
-	@commands.Cog.listener()
-	async def on_interaction(self, interaction: discord.Interaction):
-		if interaction.type != discord.InteractionType.component:
-			return
-		data = interaction.data
-		if not data:
-			return
-		custom_id = data.get("custom_id")
-		if not custom_id or custom_id not in LEGACY_MAP:
-			return
-
-		mapped_id = LEGACY_MAP[custom_id]
-		if mapped_id == TICKET_OPEN_ID:
-			modal = await self.create_ticket_modal(interaction)
-			await interaction.response.send_modal(modal)
-		elif mapped_id == TICKET_ARCHIVE_ID:
-			await self.handle_archive_action(interaction)
-		elif mapped_id == TICKET_CLOSE_ID:
-			await self.handle_close_action(interaction)
-		elif mapped_id == TICKET_SAVE_ID:
-			await self.handle_save_action(interaction)
-		elif mapped_id == TICKET_REOPEN_ID:
-			await self.handle_reopen_action(interaction)
 
 
 async def setup(bot: Bot):

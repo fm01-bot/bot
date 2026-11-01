@@ -79,7 +79,7 @@
           },
           {
             "inline": false,
-            "name": "⚠️ You are in debt.",
+            "name": "\u26a0\ufe0f You are in debt.",
             "value": "Any money you earn will be used to pay off your debt."
           }
         ],
@@ -291,7 +291,7 @@
         "content": "No one joined the giveaway..."
       },
       "success": {
-        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
       }
     },
     "message": {
@@ -299,7 +299,7 @@
         "content": "You've already joined this giveaway!",
         "ephemeral": true
       },
-      "button": "🎉 {participants}",
+      "button": "\ud83c\udf89 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
@@ -329,7 +329,7 @@
             "footer": {
               "text": "Click the button below to enter!"
             },
-            "title": "🎉 Giveaway!"
+            "title": "\ud83c\udf89 Giveaway!"
           }
         ]
       }
@@ -536,7 +536,7 @@
         "embeds": [
           {
             "author": {
-              "name": "🎙️ {channel.name}",
+              "name": "\ud83c\udf99\ufe0f {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -682,7 +682,7 @@
         "embeds": [
           {
             "author": {
-              "name": "🔊 {channel.name}",
+              "name": "\ud83d\udd0a {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -1653,12 +1653,12 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` → `{after.name}`"
+                "value": "`{before.name}` \u2192 `{after.name}`"
               },
               {
                 "inline": true,
                 "name": "Color",
-                "value": "`{before.color}` → `{after.color}`"
+                "value": "`{before.color}` \u2192 `{after.color}`"
               }
             ],
             "title": "Role Updated"
@@ -2278,7 +2278,7 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` → `{after.name}`"
+                "value": "`{before.name}` \u2192 `{after.name}`"
               },
               {
                 "inline": true,
@@ -3054,7 +3054,7 @@
             },
             {
               "inline": false,
-              "name": "⚠️ You are in debt.",
+              "name": "\u26a0\ufe0f You are in debt.",
               "value": "Any money you earn will be used to pay off your debt."
             }
           ],
@@ -3128,14 +3128,20 @@
   "ticket": {
     "actions": {
       "archived": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "description": "This ticket was archived by **{author.name}**.\n\n• To reopen, click **Reopen**.\n• To permanently close, click **Close**.\n• To save a transcript, click **Save Transcript**.",
-            "footer": {
-              "text": "FightMan01 bot - Ticket #{ticket_id}"
-            },
-            "title": "Ticket Archived"
+            "accent_color": 15105570,
+            "components": [
+              {
+                "content": "# \ud83d\udce6 Ticket Archived\nThis ticket was archived by **{author.name}**.",
+                "type": "text_display"
+              },
+              {
+                "content": "-# Ticket #{ticket_id}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
           }
         ]
       },
@@ -3145,14 +3151,20 @@
         }
       },
       "reopened": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "description": "This ticket was reopened by **{author.name}**.",
-            "footer": {
-              "text": "FightMan01 bot - Ticket #{ticket_id}"
-            },
-            "title": "Ticket Reopened"
+            "accent_color": 5763719,
+            "components": [
+              {
+                "content": "# \ud83d\udd01 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
+                "type": "text_display"
+              },
+              {
+                "content": "-# Ticket #{ticket_id}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
           }
         ]
       },
@@ -3172,15 +3184,30 @@
         "content": "Your ticket has been created: {channel.mention}"
       },
       "message": {
-        "content": "{member.mention}",
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "description": "{description}",
-            "footer": {
-              "text": "FightMan01 bot - Ticket #{ticket_id}"
-            },
-            "title": "{topic}"
+            "accent_color": 6656243,
+            "components": [
+              {
+                "content": "# \ud83c\udfab {topic}\n**Opened by:** {member.mention} \u2022 **Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "### Description\n{description}",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "*Please describe your issue in detail. Staff will assist you shortly.*",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
           }
         ]
       }
@@ -3215,147 +3242,107 @@
     },
     "logs": {
       "archived": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "fields": [
+            "accent_color": 15105570,
+            "components": [
               {
-                "inline": false,
-                "name": "Action By",
-                "value": "{actor.mention} ({actor.id})"
+                "content": "# \ud83d\udce6 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
               },
               {
-                "inline": false,
-                "name": "Ticket Creator",
-                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+                "type": "separator"
               },
               {
-                "inline": false,
-                "name": "Ticket Channel",
-                "value": "{channel.mention}"
+                "content": "Archived by {actor.mention} ({actor.id})\nTicket created by <@{ticket_user_id}> ({ticket_user_id})\nChannel: {channel.mention}",
+                "type": "text_display"
               }
             ],
-            "footer": {
-              "text": "Ticket ID: {ticket_id}"
-            },
-            "title": "Ticket Archived"
+            "type": "container"
           }
         ]
       },
       "closed": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "fields": [
+            "accent_color": 15548997,
+            "components": [
               {
-                "inline": false,
-                "name": "Closed By",
-                "value": "{actor.mention} ({actor.id})"
+                "content": "# \ud83d\udcea Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
               },
               {
-                "inline": false,
-                "name": "Ticket Creator",
-                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+                "type": "separator"
               },
               {
-                "inline": false,
-                "name": "Ticket Channel",
-                "value": "#{channel.name}"
-              },
-              {
-                "inline": false,
-                "name": "Topic",
-                "value": "{topic}"
+                "content": "\u2022 **Closed By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** #{channel.name}\n\u2022 **Topic:** {topic}",
+                "type": "text_display"
               }
             ],
-            "footer": {
-              "text": "Ticket ID: {ticket_id}"
-            },
-            "title": "Ticket Closed"
+            "type": "container"
           }
         ]
       },
       "created": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "fields": [
+            "accent_color": 5763719,
+            "components": [
               {
-                "inline": false,
-                "name": "Ticket Creator",
-                "value": "{member.mention} ({member.id})"
+                "content": "# \ud83c\udfab Ticket Created\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
               },
               {
-                "inline": false,
-                "name": "Ticket Channel",
-                "value": "{channel.mention} (#{channel.name})"
+                "type": "separator"
               },
               {
-                "inline": false,
-                "name": "Topic",
-                "value": "{topic}"
+                "content": "\u2022 **Ticket Creator:** {member.mention} ({member.id})\n\u2022 **Ticket Channel:** {channel.mention} (#{channel.name})\n\u2022 **Topic:** {topic}",
+                "type": "text_display"
               }
             ],
-            "footer": {
-              "text": "Ticket ID: {ticket_id}"
-            },
-            "title": "Ticket Created"
+            "type": "container"
           }
         ]
       },
       "reopened": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "fields": [
+            "accent_color": 5763719,
+            "components": [
               {
-                "inline": false,
-                "name": "Action By",
-                "value": "{actor.mention} ({actor.id})"
+                "content": "# \ud83d\udd01 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
               },
               {
-                "inline": false,
-                "name": "Ticket Creator",
-                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+                "type": "separator"
               },
               {
-                "inline": false,
-                "name": "Ticket Channel",
-                "value": "{channel.mention}"
+                "content": "\u2022 **Action By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** {channel.mention}",
+                "type": "text_display"
               }
             ],
-            "footer": {
-              "text": "Ticket ID: {ticket_id}"
-            },
-            "title": "Ticket Reopened"
+            "type": "container"
           }
         ]
       },
       "saved": {
-        "embeds": [
+        "components": [
           {
-            "color": 6656243,
-            "fields": [
+            "accent_color": 3447003,
+            "components": [
               {
-                "inline": false,
-                "name": "Action By",
-                "value": "{actor.mention} ({actor.id})"
+                "content": "# \ud83d\udcbe Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
               },
               {
-                "inline": false,
-                "name": "Ticket Creator",
-                "value": "<@{ticket_user_id}> ({ticket_user_id})"
+                "type": "separator"
               },
               {
-                "inline": false,
-                "name": "Ticket Channel",
-                "value": "{channel.mention}"
+                "content": "\u2022 **Action By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** {channel.mention}",
+                "type": "text_display"
               }
             ],
-            "footer": {
-              "text": "Ticket ID: {ticket_id}"
-            },
-            "title": "Ticket Transcript Saved"
+            "type": "container"
           }
         ]
       }
@@ -3372,14 +3359,23 @@
     },
     "panel": {
       "button": "Open Ticket",
-      "embeds": [
+      "components": [
         {
-          "color": 6656243,
-          "description": "Need assistance? Click the button below to open a support ticket.",
-          "footer": {
-            "text": "FightMan01 bot - Ticket System"
-          },
-          "title": "Support Tickets"
+          "accent_color": 6656243,
+          "components": [
+            {
+              "content": "# \ud83c\udfab Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "*FightMan01 bot - Ticket System*",
+              "type": "text_display"
+            }
+          ],
+          "type": "container"
         }
       ]
     }
@@ -3573,7 +3569,7 @@
     },
     "shuffle": {
       "success": {
-        "content": "🔀 Shuffled **{count}** tracks in queue."
+        "content": "\ud83d\udd00 Shuffled **{count}** tracks in queue."
       }
     },
     "skip": {
@@ -3591,7 +3587,7 @@
     },
     "volume": {
       "current": {
-        "content": "🔊 Current volume: **{volume}%**."
+        "content": "\ud83d\udd0a Current volume: **{volume}%**."
       },
       "set": {
         "content": "Volume set to **{volume}%**."
