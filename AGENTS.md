@@ -1,78 +1,172 @@
-# fm01 Discord bot codebase outline
+# fm01 Codebase Agent Guidelines (`AGENTS.md`)
 
-## 1. Project setup
+This document defines architectural standards, technical conventions, and operational directives for AI agents and automated tools working on the fm01 Discord bot codebase.
 
-- This project uses the `uv` package manager.
-- Python 3.12 and 3.13 are supported.
-- All dependencies can be seen in `pyproject.toml`.
-- To run the bot in the virtual environment, use `uv run main.py`.
-- The project consists of a runner file (`main.py`) and four main directories (`core`, `args`, `cogs`, `helpers`).
-- We use `ty` for type checking and `ruff` for formatting.
+---
 
-## 2. Project goal
+## 1. Environment & Technical Stack
 
-- This is the code for a large-scale bot.
-- The bot can support multiple languages.
-- It is an all-in-one, open source bot.
+- **Runtime**: Python `>=3.12,<3.14`
+- **Package & Environment Manager**: `uv`
+- **Core Framework**: `discord.py >=2.3.2`, `discord-localization >=1.1.5`
+- **Data & Storage**: PostgreSQL 16 (`asyncpg`), Alembic (`migrations/`), Redis 7 (`redis-py`)
+- **Media & Voice**: Lavalink v4 (`wavelink >=3.5.2`), Pillow (`pillow >=11.3.0`)
+- **Code Quality**:
+  - Linter & Formatter: `ruff` (indent: tabs `\t`, line-length: 120, quotes: double `"`)
+  - Type Checker: `ty` (`uv run ty check`)
+  - Test Suite: `pytest` with `pytest-asyncio` (`uv run pytest`)
+- **Task Runner**: `just` (see `justfile`)
 
-## 3. Modules
+---
 
-### Helpers
+## 2. Repository Layout & Module Index
 
-Helpers are utilities that are used multiple times in the whole project or in one cog. If it is a project-wide helper, it should be placed under the `helpers/` directory with a short and descriptive name. Unless needed, don't add a class in any of the folders.
+```
+.
+├── args/                 # Dataclasses wrapping discord.py objects for safe string formatting
+├── assets/               # Static assets (fonts, images, badges)
+├── cogs/                 # Modular command sets and event listeners (extensions)
+│   └── config_subcommands/ # Modular CLI dispatchers for the ?!config command tree
+├── core/                 # Framework core, custom abstractions, and clustering
+│   └── clustering/       # Distributed shard coordination, Redis event bus, state stores
+├── helpers/              # Cross-module utility functions and algorithmic helpers
+├── localization/         # User-facing message templates (JSON format)
+├── migrations/           # Database schema versioning via Alembic
+├── slash_localization/   # Slash command metadata (command names, param descriptions)
+├── tests/                # Automated pytest test suites and mocking fixtures
+├── justfile              # Automation recipes for development, linting, and testing
+├── pyproject.toml        # Project dependencies, tool settings, and metadata
+└── main.py               # Bot entry point and runtime initializer
+```
 
-Because users usually ask for a specific feature, you usually won't need a helper. You can easily create a standalone function in a cog file for something that you only need once.
+### Module Breakdown
 
-### Core
+#### `core/` (Foundational Abstractions)
 
-The core directory is the bare minimum required for the bot to function properly, even if there are no cogs loaded. It includes the bot class (`bot.py`) alongside some formatting classes (`argument.py`, `command.py`).
+- `bot.py` (`Bot`): Subclasses `commands.AutoShardedBot`. Manages database connection pool (`self.db`), prefix cache, clustering coordinator, event bus, message logging buffer, and global error handling.
+- `context.py` (`Context`): Subclasses `commands.Context`. Overrides `send()` to automatically intercept localization keys and format variables via `CustomResponse`.
+- `hybrid.py` (`command`, `group`, `HybridCommand`, `HybridGroup`): Custom command decorators automatically linking commands to the slash command localization tree.
+- `slash_localization.py` (`SlashCommandLocalizer`): Subclasses `app_commands.Translator` to dynamically translate slash command names and descriptions from `slash_localization/`.
+- `argument.py` & `command.py`: Serialization helpers converting Discord contexts/commands for formatted messages.
+- `config.py` (`Config`): Runtime configuration parser loading `config.yml`.
+- `clustering/`: Shard coordination (`ShardCoordinator`), session resumption (`SessionPersister`), distributed state (`StateStore`), event pub/sub (`EventBus`), and audit log buffers (`MessageBuffer`).
 
-The bot can be configured before runtime using a `Config` object (`config.py`). You can get configuration keys using the `Config.get()` method. You can edit the configuration using the `config.yml` file.
+#### `args/` (Safe String Formatting Wrappers)
 
-The project uses a subclassed `commands.Context` class in order to support localization automatically at every message send. This takes advantage of the `custom_response` helper, which is used to actually retreive localized messages from the `localization/` and `slash_localization/` directories. This subclass can be found in `context.py`.
+Dataclasses decorated with `@dataclass(slots=True)` that wrap Discord objects (e.g. `User`, `Member`, `Guild`, `Role`, `TextChannel`, `Emoji`, `Track`).
 
-Commands are hybrid, which means they can be used with prefixes (e.g. `?!` or `?`) or with Slash Commands. However, because we also localize slash commands, we have to subclass `commands.HybridCommand` and its corresponding decorator in order to automatically retreive localized strings without the need to manually type `@app_commands.rename` or `@app_commands.description` for every command. This hybrid command subclass can be found in `hybrid.py`.
+- Must provide a `from_<object>` classmethod (e.g. `User.from_user(user)`).
+- Exposes sanitised properties (strings, URLs, IDs) rather than raw Discord internal models so localization strings can cleanly reference attributes (e.g. `{member.mention}`, `{user.name}`).
 
-Slash commands need an automatic localizer class, which takes strings from `slash_localization/` and uses them to localize the slash command. This can be found in `slash_localization.py`.
+#### `helpers/` (Shared Utility Modules)
 
-### Cogs
+- `custom_response.py` (`CustomResponse`): Core localization interpolation engine. Translates dot-delimited message keys, formats embed dictionaries, and maps Discord models via `KWARG_MAPPING` to `args/` wrappers.
+- `cli_parser.py`: Robust command-line parsing engine powering the `?!config` tree.
+- `convert.py`: Converters for time durations, colors, booleans, and channel lookups.
+- `leveling.py` & `level_card.py`: Level math algorithms and Pillow-based rank card canvas generation.
+- `regex.py` & `random_helper.py`: Compiled pattern matching and randomization helpers.
 
-Cogs are what regular users would call "modules". Each cog (each `.py` file in the `cogs/` folder) contains a collection of commands related to a specific functionallity. For example, the `mod` cog contains moderation-related commands such as `ban`, `kick`, and `warn`, and also contains the commands related to viewing case information.
+#### `cogs/` (Feature Modules)
 
-- **Admin:** administrative commands that can only be used by the developers, i.e. reloading cogs.
-- **AFK:** the `?!afk` command and its related listeners.
-- **Basic:** a collection of basic, general-purpose commands.
-- **Economy:** this contains an `EconomyHelper` and a `ShopItem`, which are classes that you can use to retreive a user's balance or to convert a database shop item into an object that you can later use during formatting.
-- **Giveaway:** commands and event loops related to giveaways.
-- **Help:** contains the `?!help` command, a subclass of `discord.ext.commands.HelpCommand`.
-- **Info:** commands under the `?!info` group, such as `?!info @user`, `?!info server`, etc.
-- **Level:** leveling system with `?!level` card generation, `?!levels` leaderboard, message XP rewards, role rewards, and config subcommands.
-- **Log:** commands and listeners for server logging.
-- **Mod:** commands for server moderation and case management (each moderation action creates a case).
-- **Say:** commands under the `?!say` group.
-- **Setup:** commands for configuring the bot's basic functionality.
-- **Snapshot:** a snapshot is a backup of the server, this module creates and restores server snapshots.
-- **Status:** basic cog for switching the bot's status.
+- `admin.py`: Developer commands (extension reloading, evaluation, synchronization).
+- `afk.py`: AFK presence tracking, auto-nicknames, and mention notifications.
+- `automod.py`: Server protection rule engine (invite blocking, links, caps, spam, word filters).
+- `basic.py`: Core utility commands (`ping`, `uptime`).
+- `config.py` & `config_subcommands/`: Hierarchical CLI server settings management (`automod`, `join`, `leave`, `level`, `log`, `prefix`, `ticket`).
+- `economy.py`: Virtual economy system (`EconomyHelper`, `ShopItem`, balances, transactions).
+- `help.py`: Dynamic help system subclassing `commands.HelpCommand` with paginated views.
+- `info.py`: Server, user, role, and bot diagnostic inspection commands.
+- `join_leave.py`: Welcome/leave announcement handlers and autorole assignment.
+- `level.py`: Message XP awarding, rank card generator (`?!level`), leaderboards (`?!levels`), and level role rewards.
+- `log.py`: Server event audit logger (message edits/deletions, member changes, channel updates).
+- `mod.py`: Moderation command suite (`ban`, `kick`, `mute`, `warn`, `clear`, case database logging).
+- `say.py`: Echo and Minecraft achievement message generators.
+- `setup.py`: Interactive first-time server setup helper.
+- `snapshot.py`: Guild structural backup and restoration system.
+- `state_sync.py`: Distributed cluster sync listeners (invalidating prefix/log caches across instances).
+- `status.py`: Presence and bot activity status cycler.
+- `ticket.py`: Interactive support ticket system with components, modals, and transcript export.
+- `voice.py`: Lavalink v4 music playback controls via Wavelink.
 
-### Args
+---
 
-Because the bot uses localization, we need to provide a way to include variables within responses. Every file in `args/` is a dataclass that we can convert `discord.py` objects into so that we can later pass those objects into the custom response functions (usually as kwargs in `ctx.send()`).
+## 3. Mandatory Architectural & Coding Rules
 
-### Localization
+### 1. Command Definition
 
-Every response (apart from admin-only commands) can be localized. You can use localized messages by using `ctx.send(key)`, where `key` is the localization key found in `localization/[lang].l10n.json`. Nested `key`s are separated using a period `.`, such as `key.nested`. Never use hardcoded responses in messages and database defaults - leave them in the localization files instead.
+- Always import `Context`, `command`, and optionally, `group` from `core`:
+  ```python
+  from core import Context, command, group
+  from discord.ext import commands
+  ```
+- All commands must be hybrid commands by default unless strictly restricted to developer or guild-event only.
+- Do not import `command` or `group` directly from `discord.ext.commands` or `discord.app_commands`.
 
-Only add english (`en`) localizations to responses and refuse to add new languages as the project does not like AI localizations.
+### 2. Localization First
 
-## 4. Response directives
+- **Zero Hardcoded Strings**: Never hardcode user-facing text, error messages, or default strings in Python files.
+- **Message Responses**: Call `ctx.send("path.to.key", **kwargs)` using dot notation. Strings must be placed in `localization/en.l10n.json`.
+- **Slash Command Metadata**: Slash command names and descriptions must be registered in `slash_localization/en.l10n.json`:
+  - Command Name: `<command>-name`
+  - Command Description: `<command>-desc`
+  - Parameter Name: `<command>-args-<parameter>-name`
+  - Parameter Description: `<command>-args-<parameter>-desc`
+- **English-Only Policy**: Add or modify only English (`en`) localizations. Non-English localizations are managed through Crowdin; do not generate AI translations in other languages.
 
-- Always give short, direct and concise answers to the user.
-- Don't ask follow-up questions.
-- Be objective, avoid social niceties, reassurance or filler.
-- Operate under a mandatory "Zero Trust" approach, where you always override training data with live web searches for topics requiring up-to-date information.
-- Run negative audits (counter-search) to test your findings before presenting them.
-- The project should not be filled with "AI slop", and if the user asks for something that sounds like vibe-coding new features without having necessary prior knowledge about how Python works, you should politely decline and explain why it is not a good idea.
-- Try to minimize output tokens if possible.
-- If the user says something vague, ask for clarification instead of hallucinating instructions.
+### 3. Argument Passing & Formatting
 
-Your prime directive is to provide an accurate, unvarnished reality, ensuring every output is factually grounded and free of distortion.
+- Pass Discord models directly into `ctx.send("key", user=user, guild=guild)`. The `CustomResponse` pipeline will automatically map them using `KWARG_MAPPING` to their corresponding `args/` dataclass.
+- If introducing custom variables or non-standard objects, create a new `@dataclass(slots=True)` wrapper in `args/` with a `from_<object>` classmethod.
+
+### 4. Helper Scope
+
+- Only place utilities in `helpers/` if they are reused across multiple cogs or core subsystems.
+- Cog-specific models or helper functions must remain within their respective cog file.
+
+### 5. Database Schema & Migrations
+
+- All database operations use `self.bot.db` (`asyncpg.Pool`).
+- Any table or column addition, modification, or removal requires an Alembic migration under `migrations/versions/`.
+- Ensure migrations include both `upgrade()` and `downgrade()` steps.
+
+### 6. Code Style & Typing
+
+- **Indentation**: Tabs (`\t`), never spaces.
+- **Line Length**: Max 120 characters.
+- **Quotes**: Double quotes (`"`).
+- **Docstrings**: Google-style docstrings for public classes and non-command functions.
+- **Typing**: Use Python 3.12+ syntax (e.g. `X | Y`, `type Alias = ...`). All code must pass `uv run ty check`.
+
+---
+
+## 4. Mandatory Verification Pipeline
+
+Before completing any task, running checks is mandatory. Execute the following commands in order:
+
+```bash
+# 1. Check code formatting (must produce zero diffs)
+uv run ruff format --check .
+
+# 2. Run Ruff linter (must produce zero warnings/errors)
+uv run ruff check .
+
+# 3. Static type analysis (must pass cleanly)
+uv run ty check
+
+# 4. Automated tests (all tests must pass)
+uv run pytest
+```
+
+If any check fails, fix the underlying issue immediately before presenting results.
+
+---
+
+## 5. Agent Operational & Behavioral Directives
+
+- **Conciseness**: Give short, direct, and concise answers. Avoid filler, small talk, social pleasantries, and reassurance.
+- **Zero Trust**: Always verify codebase facts against the current repository files before acting. Never rely on unverified assumptions or hallucinated APIs.
+- **Negative Audits**: Counter-search and cross-verify findings against actual implementations before committing changes.
+- **No Follow-up Questions**: Do not ask unprompted follow-up questions unless the user request is genuinely blocked or critically ambiguous.
+- **Anti-Vibe-Coding / Anti-AI-Slop**: Reject unprincipled code generation. Maintain strict architectural discipline, appropriate typing, modular structure, and error resilience.
+- **Token Efficiency**: Strive to minimize output tokens while conveying complete, accurate technical solutions.
+- **Prime Directive**: Provide an accurate, unvarnished reality grounded in verified code.
