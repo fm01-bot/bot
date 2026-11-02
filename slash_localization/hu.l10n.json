@@ -223,27 +223,27 @@
   "clapsay": {
     "args": {
       "message": {
-        "desc": "The\ud83d\udc4fmessage\ud83d\udc4fto\ud83d\udc4fclap",
+        "desc": "The👏message👏to👏clap",
         "name": "message"
       }
     },
-    "desc": "Clap\ud83d\udc4fa\ud83d\udc4fmessage\ud83d\udc4fwith\ud83d\udc4femojis",
+    "desc": "Clap👏a👏message👏with👏emojis",
     "name": "clap",
     "usage": "say clap [message: 1...500]"
   },
   "clear": {
-    "desc": "Minden zen\u00e9t kiszed a lej\u00e1tsz\u00e1si sorb\u00f3l",
-    "name": "t\u00f6r\u00f6l"
+    "desc": "Minden zenét kiszed a lejátszási sorból",
+    "name": "töröl"
   },
   "cog": "cog",
   "config": {
     "args": {
       "flags_and_args": {
-        "desc": "Flagek \u00e9s param\u00e9terek a parancshoz, -h seg\u00edts\u00e9ghez",
-        "name": "flagek_\u00e9s_param\u00e9terek"
+        "desc": "Flagek és paraméterek a parancshoz, -h segítséghez",
+        "name": "flagek_és_paraméterek"
       }
     },
-    "desc": "Kezeld a botot, mintha egy parancssorb\u00f3l tenn\u00e9d",
+    "desc": "Kezeld a botot, mintha egy parancssorból tennéd",
     "name": "config"
   },
   "crime": {
@@ -363,7 +363,7 @@
   },
   "global": {
     "bank": "bank",
-    "cash": "k\u00e9szp\u00e9nz"
+    "cash": "készpénz"
   },
   "info": {
     "args": {
@@ -425,22 +425,22 @@
   "level": {
     "args": {
       "member": {
-        "desc": "A tag, akinek a szintj\u00e9t meg szeretn\u00e9d n\u00e9zni",
+        "desc": "A tag, akinek a szintjét meg szeretnéd nézni",
         "name": "tag"
       }
     },
-    "desc": "A saj\u00e1t vagy egy m\u00e1sik tag szintj\u00e9nek \u00e9s rangj\u00e1nak megtekint\u00e9se",
+    "desc": "A saját vagy egy másik tag szintjének és rangjának megtekintése",
     "name": "szint",
     "usage": "szint (tag)"
   },
   "levels": {
     "args": {
       "page": {
-        "desc": "A ranglista oldalsz\u00e1ma",
+        "desc": "A ranglista oldalszáma",
         "name": "oldal"
       }
     },
-    "desc": "A szerver szintl\u00e9p\u00e9si ranglist\u00e1j\u00e1nak megjelen\u00edt\u00e9se",
+    "desc": "A szerver szintlépési ranglistájának megjelenítése",
     "name": "ranglista",
     "usage": "ranglista (oldal)"
   },
@@ -497,13 +497,13 @@
   "loop": {
     "args": {
       "mode": {
-        "desc": "Ism\u00e9tl\u00e9si m\u00f3d: off, track, vagy queue",
-        "name": "m\u00f3d"
+        "desc": "Ismétlési mód: off, track, vagy queue",
+        "name": "mód"
       }
     },
-    "desc": "Be\u00e1ll\u00edtja az ism\u00e9tl\u00e9si m\u00f3dot (off, track, vagy queue)",
+    "desc": "Beállítja az ismétlési módot (off, track, vagy queue)",
     "name": "loop",
-    "usage": "loop (m\u00f3d)"
+    "usage": "loop (mód)"
   },
   "luck": {
     "desc": "Try your luck (wins/loses $200-$1000)",
@@ -541,11 +541,11 @@
     "usage": "mute [member] (duration) (reason)"
   },
   "np": {
-    "desc": "Megjelen\u00edti a jelenleg sz\u00f3l\u00f3 zene adatait",
+    "desc": "Megjeleníti a jelenleg szóló zene adatait",
     "name": "most"
   },
   "pause": {
-    "desc": "Meg\u00e1ll\u00edtja a lej\u00e1tsz\u00e1st",
+    "desc": "Megállítja a lejátszást",
     "name": "pause"
   },
   "pay": {
@@ -570,26 +570,26 @@
   "play": {
     "args": {
       "query": {
-        "desc": "Zenesz\u00e1m neve vagy YouTube link",
-        "name": "keres\u00e9s"
+        "desc": "Zeneszám neve vagy YouTube link",
+        "name": "keresés"
       }
     },
-    "desc": "Lej\u00e1tszik egy zen\u00e9t a YouTube Music-r\u00f3l",
+    "desc": "Lejátszik egy zenét a YouTube Music-ról",
     "name": "play",
-    "usage": "play [keres\u00e9s]"
+    "usage": "play [keresés]"
   },
   "pokeinfo": {
     "args": {
       "pokemon_name": {
-        "desc": "The pok\u00e9mon you'd like information of",
+        "desc": "The pokémon you'd like information of",
         "name": "pokemon"
       }
     },
-    "desc": "Information about a Pok\u00e9mon",
+    "desc": "Information about a Pokémon",
     "name": "pokeinfo",
     "usage": "info pokemon [pokemon]"
   },
-  "pokemon": "pok\u00e9mon",
+  "pokemon": "pokémon",
   "prefix": {
     "args": {
       "mention": {
@@ -619,11 +619,11 @@
   "queue": {
     "args": {
       "page": {
-        "desc": "Egy oldalon maximum 10 zene jelen\u00edthet\u0151 meg.",
+        "desc": "Egy oldalon maximum 10 zene jeleníthető meg.",
         "name": "oldal"
       }
     },
-    "desc": "Megjelen\u00edti a zen\u00e9ket a lej\u00e1tsz\u00e1si sorban",
+    "desc": "Megjeleníti a zenéket a lejátszási sorban",
     "name": "queue",
     "usage": "queue (oldal)"
   },
@@ -670,7 +670,7 @@
     "usage": "removemoney [member] [amount] (account)"
   },
   "resume": {
-    "desc": "Folytatja a lej\u00e1tsz\u00e1st",
+    "desc": "Folytatja a lejátszást",
     "name": "resume"
   },
   "reverse_say": {
@@ -722,13 +722,13 @@
   "seek": {
     "args": {
       "seconds": {
-        "desc": "Az el\u0151re-/visszateker\u00e9s m\u00e9rt\u00e9ke",
-        "name": "m\u00e1sodperc"
+        "desc": "Az előre-/visszatekerés mértéke",
+        "name": "másodperc"
       }
     },
-    "desc": "El\u0151re-/visszateker\u00e9s a zen\u00e9ben m\u00e1sodpercben megadva",
+    "desc": "Előre-/visszatekerés a zenében másodpercben megadva",
     "name": "seek",
-    "usage": "seek [m\u00e1sodperc]"
+    "usage": "seek [másodperc]"
   },
   "server": "szerver",
   "serverinfo": {
@@ -764,11 +764,11 @@
     "name": "shop"
   },
   "shuffle": {
-    "desc": "Megkeveri a zen\u00e9ket a lej\u00e1tsz\u00e1si sorban",
+    "desc": "Megkeveri a zenéket a lejátszási sorban",
     "name": "shuffle"
   },
   "skip": {
-    "desc": "\u00c1tugrik a k\u00f6vetkez\u0151 zen\u00e9re",
+    "desc": "Átugrik a következő zenére",
     "name": "skip"
   },
   "slots": {
@@ -815,7 +815,7 @@
     "usage": "snapshot load [snapshot]"
   },
   "stop": {
-    "desc": "Meg\u00e1ll\u00edtja a lej\u00e1tsz\u00e1st \u00e9s t\u00f6rli a lej\u00e1tsz\u00e1si list\u00e1t",
+    "desc": "Megállítja a lejátszást és törli a lejátszási listát",
     "name": "stop"
   },
   "sync": {
@@ -898,22 +898,22 @@
   "voice_remove": {
     "args": {
       "index": {
-        "desc": "A zene sorsz\u00e1ma a lej\u00e1tsz\u00e1si sorban",
-        "name": "sorsz\u00e1m"
+        "desc": "A zene sorszáma a lejátszási sorban",
+        "name": "sorszám"
       }
     },
-    "desc": "Elt\u00e1vol\u00edt egy zen\u00e9t a sorsz\u00e1ma alapj\u00e1n",
+    "desc": "Eltávolít egy zenét a sorszáma alapján",
     "name": "remove",
-    "usage": "remove [sorsz\u00e1m]"
+    "usage": "remove [sorszám]"
   },
   "volume": {
     "args": {
       "level": {
-        "desc": "Hanger\u0151 (0-150)",
+        "desc": "Hangerő (0-150)",
         "name": "szint"
       }
     },
-    "desc": "Be\u00e1ll\u00edtja a hanger\u0151t (0-150%)",
+    "desc": "Beállítja a hangerőt (0-150%)",
     "name": "volume",
     "usage": "volume (szint)"
   },

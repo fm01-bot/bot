@@ -223,11 +223,11 @@
   "clapsay": {
     "args": {
       "message": {
-        "desc": "The\ud83d\udc4fmessage\ud83d\udc4fto\ud83d\udc4fclap",
+        "desc": "The👏message👏to👏clap",
         "name": "message"
       }
     },
-    "desc": "Clap\ud83d\udc4fa\ud83d\udc4fmessage\ud83d\udc4fwith\ud83d\udc4femojis",
+    "desc": "Clap👏a👏message👏with👏emojis",
     "name": "clap",
     "usage": "say clap [message: 1...500]"
   },
@@ -581,11 +581,11 @@
   "pokeinfo": {
     "args": {
       "pokemon_name": {
-        "desc": "The pok\u00e9mon you'd like information of",
+        "desc": "The pokémon you'd like information of",
         "name": "pokemon"
       }
     },
-    "desc": "Information about a Pok\u00e9mon",
+    "desc": "Information about a Pokémon",
     "name": "pokeinfo",
     "usage": "info pokemon [pokemon]"
   },

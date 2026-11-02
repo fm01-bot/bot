@@ -79,7 +79,7 @@
           },
           {
             "inline": false,
-            "name": "\u26a0\ufe0f You are in debt.",
+            "name": "⚠️ You are in debt.",
             "value": "Any money you earn will be used to pay off your debt."
           }
         ],
@@ -291,7 +291,7 @@
         "content": "No one joined the giveaway..."
       },
       "success": {
-        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
       }
     },
     "message": {
@@ -299,7 +299,7 @@
         "content": "You've already joined this giveaway!",
         "ephemeral": true
       },
-      "button": "\ud83c\udf89 {participants}",
+      "button": "🎉 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
@@ -329,7 +329,7 @@
             "footer": {
               "text": "Click the button below to enter!"
             },
-            "title": "\ud83c\udf89 Giveaway!"
+            "title": "🎉 Giveaway!"
           }
         ]
       }
@@ -536,7 +536,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83c\udf99\ufe0f {channel.name}",
+              "name": "🎙️ {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -682,7 +682,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83d\udd0a {channel.name}",
+              "name": "🔊 {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -1653,12 +1653,12 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
                 "name": "Color",
-                "value": "`{before.color}` \u2192 `{after.color}`"
+                "value": "`{before.color}` → `{after.color}`"
               }
             ],
             "title": "Role Updated"
@@ -2278,7 +2278,7 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
@@ -3054,7 +3054,7 @@
             },
             {
               "inline": false,
-              "name": "\u26a0\ufe0f You are in debt.",
+              "name": "⚠️ You are in debt.",
               "value": "Any money you earn will be used to pay off your debt."
             }
           ],
@@ -3133,7 +3133,7 @@
             "accent_color": 15105570,
             "components": [
               {
-                "content": "# \ud83d\udce6 Ticket Archived\nThis ticket was archived by **{author.name}**.",
+                "content": "# 📦 Ticket Archived\nThis ticket was archived by **{author.name}**.",
                 "type": "text_display"
               },
               {
@@ -3156,7 +3156,7 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83d\udd01 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
+                "content": "# 🔁 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
                 "type": "text_display"
               },
               {
@@ -3189,7 +3189,7 @@
             "accent_color": 6656243,
             "components": [
               {
-                "content": "# \ud83c\udfab {topic}\n**Opened by:** {member.mention} \u2022 **Ticket ID:** `#{ticket_id}`",
+                "content": "# 🎫 {topic}\n**Opened by:** {member.mention} • **Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
@@ -3247,7 +3247,7 @@
             "accent_color": 15105570,
             "components": [
               {
-                "content": "# \ud83d\udce6 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 📦 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
@@ -3268,14 +3268,14 @@
             "accent_color": 15548997,
             "components": [
               {
-                "content": "# \ud83d\udcea Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 📪 Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "\u2022 **Closed By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** #{channel.name}\n\u2022 **Topic:** {topic}",
+                "content": "• **Closed By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** #{channel.name}\n• **Topic:** {topic}",
                 "type": "text_display"
               }
             ],
@@ -3289,14 +3289,14 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83c\udfab Ticket Created\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 🎫 Ticket Created\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "\u2022 **Ticket Creator:** {member.mention} ({member.id})\n\u2022 **Ticket Channel:** {channel.mention} (#{channel.name})\n\u2022 **Topic:** {topic}",
+                "content": "• **Ticket Creator:** {member.mention} ({member.id})\n• **Ticket Channel:** {channel.mention} (#{channel.name})\n• **Topic:** {topic}",
                 "type": "text_display"
               }
             ],
@@ -3310,14 +3310,14 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83d\udd01 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 🔁 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "\u2022 **Action By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** {channel.mention}",
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
                 "type": "text_display"
               }
             ],
@@ -3331,14 +3331,14 @@
             "accent_color": 3447003,
             "components": [
               {
-                "content": "# \ud83d\udcbe Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 💾 Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "\u2022 **Action By:** {actor.mention} ({actor.id})\n\u2022 **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n\u2022 **Ticket Channel:** {channel.mention}",
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
                 "type": "text_display"
               }
             ],
@@ -3364,7 +3364,7 @@
           "accent_color": 6656243,
           "components": [
             {
-              "content": "# \ud83c\udfab Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
+              "content": "# 🎫 Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
               "type": "text_display"
             },
             {
@@ -3569,7 +3569,7 @@
     },
     "shuffle": {
       "success": {
-        "content": "\ud83d\udd00 Shuffled **{count}** tracks in queue."
+        "content": "🔀 Shuffled **{count}** tracks in queue."
       }
     },
     "skip": {
@@ -3587,7 +3587,7 @@
     },
     "volume": {
       "current": {
-        "content": "\ud83d\udd0a Current volume: **{volume}%**."
+        "content": "🔊 Current volume: **{volume}%**."
       },
       "set": {
         "content": "Volume set to **{volume}%**."
