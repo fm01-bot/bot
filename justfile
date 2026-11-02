@@ -5,17 +5,14 @@ set dotenv-load := true
 default:
   just --list
 
-sync:
-  uv sync
-
 migrate:
   docker compose run --rm bot uv run alembic upgrade head
 
 format:
-  uv run ruff format
+  uv run ruff format .
 
 lint:
-  uv run ruff check
+  uv run ruff check --fix .
 
 test *ARGS:
   uv run pytest {{ARGS}}
@@ -41,17 +38,35 @@ logs *ARGS:
 deploy:
   git fetch --all
   git reset --hard origin/main
-  just sync
+  uv sync
   just up db
   just migrate
   docker compose build
   just up -d --remove-orphans
 
+[windows]
 debug:
-  just sync
-  just up db
-  just migrate
-  just up
+  if (docker compose ps bot --status running -q 2>$null) { \
+    just restart bot; \
+  } else { \
+    uv sync; \
+    just up db; \
+    just migrate; \
+    just up; \
+  }
+  just logs -f bot
+
+[unix]
+debug:
+  if [ -n "$(docker compose ps bot --status running -q 2>/dev/null)" ]; then \
+    just restart bot; \
+  else \
+    uv sync; \
+    just up db; \
+    just migrate; \
+    just up; \
+  fi
+  just logs -f bot
 
 destroy *ARGS:
   docker compose down -v {{ARGS}}

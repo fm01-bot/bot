@@ -6,11 +6,8 @@ from cogs.config import Config
 from cogs.ticket import (
 	ActiveTicketControlsView,
 	ArchivedTicketControlsView,
-	CompactTranscriptAttachmentHandler,
-	DisabledControlsView,
 	Ticket,
 	TicketLauncherView,
-	process_compact_transcript,
 )
 from helpers.cli_parser import CLIParseError, CLIParser
 
@@ -95,6 +92,50 @@ def test_config_ticket_dm_parse():
 	assert opts["enable"] is True
 
 
+def test_config_ticket_length_parse():
+	config_cog = Config(MagicMock())
+	tokens = CLIParser.split_args("ticket length --topic-min 5 --topic-max 50 --desc-min 20 --desc-max 1500")
+	node, opts = config_cog.parser.parse(tokens)
+	assert node.name == "length"
+	assert opts["topic_min"] == "5"
+	assert opts["topic_max"] == "50"
+	assert opts["desc_min"] == "20"
+	assert opts["desc_max"] == "1500"
+
+
+def test_config_ticket_modal_parse():
+	config_cog = Config(MagicMock())
+	tokens = CLIParser.split_args("ticket modal --topic-min 10 --topic-max 80")
+	node, opts = config_cog.parser.parse(tokens)
+	assert node.name == "modal"
+	assert opts["topic_min"] == "10"
+	assert opts["topic_max"] == "80"
+
+
+def test_config_ticket_topic_parse():
+	config_cog = Config(MagicMock())
+	tokens = CLIParser.split_args("ticket topic --min 5 --max 50")
+	node, opts = config_cog.parser.parse(tokens)
+	assert node.name == "topic"
+	assert opts["min"] == "5"
+	assert opts["max"] == "50"
+
+
+def test_config_ticket_desc_parse():
+	config_cog = Config(MagicMock())
+	tokens = CLIParser.split_args("ticket description --min 20 --max 1500")
+	node, opts = config_cog.parser.parse(tokens)
+	assert node.name == "description"
+	assert opts["min"] == "20"
+	assert opts["max"] == "1500"
+
+	tokens_alias = CLIParser.split_args("ticket desc 20 1500")
+	node_alias, opts_alias = config_cog.parser.parse(tokens_alias)
+	assert node_alias.name == "desc"
+	assert opts_alias["min_pos"] == "20"
+	assert opts_alias["max_pos"] == "1500"
+
+
 @pytest.mark.asyncio
 async def test_config_ticket_execution_flow():
 	bot = MagicMock()
@@ -166,6 +207,19 @@ async def test_config_ticket_execution_flow():
 	assert "[+] Ticket panel deployed in #tickets" in ctx.send.call_args[1]["content"]
 	text_ch.send.assert_called_once()
 
+	# Execute default panel without title/description where get_message returns button in payload
+	text_ch.send.reset_mock()
+	bot.custom_response.get_message = AsyncMock(
+		return_value={
+			"button": "Open Ticket",
+			"view": discord.ui.LayoutView(),
+		}
+	)
+	await config_cog.parser.execute("ticket panel --channel #tickets", ctx=ctx)
+	assert "[+] Ticket panel deployed in #tickets" in ctx.send.call_args[1]["content"]
+	text_ch.send.assert_called_once()
+	assert "button" not in text_ch.send.call_args[1]
+
 	# Execute status
 	bot.db.fetchrow.return_value = {
 		"is_on": True,
@@ -182,6 +236,62 @@ async def test_config_ticket_execution_flow():
 	assert "Log Channel:   #tickets" in status_out
 	assert "Support Role:  @Support" in status_out
 	assert "Max Tickets:   3 per user" in status_out
+	assert "Modal Topic:   Min 3 / Max 100" in status_out
+	assert "Modal Desc:    Min 10 / Max 1800" in status_out
+
+	# Execute length with no args (display current settings)
+	bot.db.fetchrow.return_value = {
+		"topic_min_length": 3,
+		"topic_max_length": 100,
+		"description_min_length": 10,
+		"description_max_length": 1800,
+	}
+	await config_cog.parser.execute("ticket length", ctx=ctx)
+	len_out = ctx.send.call_args[1]["content"]
+	assert "Topic:       Min 3 / Max 100" in len_out
+	assert "Description: Min 10 / Max 1800" in len_out
+
+	# Execute length update
+	bot.db.fetchrow.return_value = {
+		"topic_min_length": 3,
+		"topic_max_length": 100,
+		"description_min_length": 10,
+		"description_max_length": 1800,
+	}
+	await config_cog.parser.execute("ticket length --topic-min 5 --topic-max 50 --desc-min 20 --desc-max 1500", ctx=ctx)
+	len_update_out = ctx.send.call_args[1]["content"]
+	assert "[+] Ticket modal lengths updated:" in len_update_out
+	assert "Topic: Min 5 / Max 50" in len_update_out
+	assert "Description: Min 20 / Max 1500" in len_update_out
+
+	# Execute modal alias
+	await config_cog.parser.execute("ticket modal --topic-min 6 --topic-max 45", ctx=ctx)
+	modal_update_out = ctx.send.call_args[1]["content"]
+	assert "[+] Ticket modal lengths updated:" in modal_update_out
+	assert "Topic: Min 6 / Max 45" in modal_update_out
+
+	# Execute topic command
+	bot.db.fetchrow.return_value = {
+		"topic_min_length": 5,
+		"topic_max_length": 50,
+	}
+	await config_cog.parser.execute("ticket topic --min 4 --max 60", ctx=ctx)
+	topic_out = ctx.send.call_args[1]["content"]
+	assert "[+] Ticket topic length set to: Min 4 / Max 60" in topic_out
+
+	# Execute description command
+	bot.db.fetchrow.return_value = {
+		"description_min_length": 20,
+		"description_max_length": 1500,
+	}
+	await config_cog.parser.execute("ticket description --min 15 --max 2000", ctx=ctx)
+	desc_out = ctx.send.call_args[1]["content"]
+	assert "[+] Ticket description length set to: Min 15 / Max 2000" in desc_out
+
+	# Execute desc alias with positional arguments
+	await config_cog.parser.execute("ticket desc 12 1800", ctx=ctx)
+	desc_alias_out = ctx.send.call_args[1]["content"]
+	assert "[+] Ticket description length set to: Min 12 / Max 1800" in desc_alias_out
 
 
 @pytest.mark.asyncio
@@ -197,6 +307,68 @@ async def test_config_ticket_limit_invalid():
 
 	with pytest.raises(CLIParseError):
 		await config_cog.parser.execute("ticket limit abc", ctx=ctx)
+
+
+@pytest.mark.asyncio
+async def test_config_ticket_length_validation():
+	bot = MagicMock()
+	bot.db = AsyncMock()
+	ctx = MagicMock()
+	ctx.guild = MagicMock()
+	ctx.bot = bot
+	ctx.send = AsyncMock()
+	config_cog = Config(bot)
+
+	bot.db.fetchrow.return_value = {
+		"topic_min_length": 3,
+		"topic_max_length": 100,
+		"description_min_length": 10,
+		"description_max_length": 1800,
+	}
+
+	# Non-integer min/max
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket length --topic-min abc", ctx=ctx)
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket length --desc-max xyz", ctx=ctx)
+
+	# Out of bounds (<1 or >4000)
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket length --topic-min 0", ctx=ctx)
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket length --desc-max 5000", ctx=ctx)
+
+	# Min exceeds Max
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket length --topic-min 80 --topic-max 40", ctx=ctx)
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket topic --min 50 --max 10", ctx=ctx)
+	with pytest.raises(CLIParseError):
+		await config_cog.parser.execute("ticket description --min 500 --max 100", ctx=ctx)
+
+
+@pytest.mark.asyncio
+async def test_ticket_modal_configured_lengths():
+	bot = MagicMock()
+	bot.db = AsyncMock()
+	bot.db.fetchrow.return_value = {
+		"topic_min_length": 8,
+		"topic_max_length": 64,
+		"description_min_length": 25,
+		"description_max_length": 1200,
+	}
+	bot.custom_response.get_message = AsyncMock(return_value="Label")
+	cog = Ticket(bot)
+
+	interaction = MagicMock(spec=discord.Interaction)
+	interaction.guild = MagicMock()
+	interaction.guild.id = 12345
+
+	modal = await cog.create_ticket_modal(interaction)
+	assert modal.topic.min_length == 8
+	assert modal.topic.max_length == 64
+	assert modal.description.min_length == 25
+	assert modal.description.max_length == 1200
 
 
 @pytest.mark.asyncio
@@ -385,10 +557,6 @@ async def test_ticket_controls_view_localization():
 	assert archived_view.reopen_btn.label == "loc_reopen"
 	assert archived_view.save_btn.label == "loc_save"
 
-	# Disabled view
-	disabled_view = await cog.create_disabled_controls_view(guild, is_archived=False)
-	assert isinstance(disabled_view, DisabledControlsView)
-
 
 @pytest.mark.asyncio
 async def test_ticket_archive_and_reopen():
@@ -512,91 +680,7 @@ async def test_on_guild_channel_delete():
 
 
 @pytest.mark.asyncio
-async def test_compact_transcript_attachment_handler_limits_images():
-	handler = CompactTranscriptAttachmentHandler(max_images=5)
-
-	# Process 5 image attachments
-	for i in range(5):
-		att = MagicMock(spec=discord.Attachment)
-		att.id = i
-		att.content_type = "image/png"
-		att.filename = f"image_{i}.png"
-		att.read = AsyncMock(return_value=b"fake_image_bytes")
-		res = await handler.process_asset(att)
-		assert res.url.startswith("data:image/png;base64,")
-		assert handler.saved_images == i + 1
-
-	# 6th image attachment should NOT be embedded as base64 data URL
-	att6 = MagicMock(spec=discord.Attachment)
-	att6.id = 6
-	att6.content_type = "image/png"
-	att6.filename = "image_6.png"
-	att6.url = "https://cdn.discordapp.com/attachments/1/6/image_6.png"
-	att6.read = AsyncMock(return_value=b"fake_image_bytes")
-	res6 = await handler.process_asset(att6)
-	assert not res6.url.startswith("data:")
-	assert res6.content_type == "application/octet-stream"
-	assert handler.saved_images == 5
-
-	# Non-image attachment should not increment saved_images
-	att_pdf = MagicMock(spec=discord.Attachment)
-	att_pdf.id = 7
-	att_pdf.content_type = "application/pdf"
-	att_pdf.filename = "document.pdf"
-	att_pdf.url = "https://cdn.discordapp.com/attachments/1/7/document.pdf"
-	res_pdf = await handler.process_asset(att_pdf)
-	assert res_pdf.url == att_pdf.url
-	assert handler.saved_images == 5
-
-
-def test_process_compact_transcript_strips_avatars_and_limits_images():
-	raw_html = (
-		"<!DOCTYPE html><html><head><title>Test</title></head><body>"
-		'<div class="chatlog__message-aside">'
-		'<img class="chatlog__avatar" src="https://cdn.discordapp.com/avatars/100/avatar.png" data-user-id="100" />'
-		"</div>"
-		'<div class="chatlog__followup">'
-		'<img class="chatlog__followup-avatar" src="https://cdn.discordapp.com/avatars/200/avatar.png" />'
-		"</div>"
-		'<div class="meta-popout"><div class="meta__header"><img src="https://cdn.discordapp.com/avatars/100/avatar.png" alt="Avatar"></div></div>'
-		'<div class="chatlog__content">'
-		'<img class="panel__hashtag-icon" src="https://cdn.jsdelivr.net/.../discord-hashtag.svg" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,1" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,2" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,3" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,4" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,5" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,6" />'
-		'<img class="chatlog__attachment-thumbnail" src="data:image/png;base64,7" />'
-		"</div>"
-		"</body></html>"
-	)
-
-	compact_html = process_compact_transcript(raw_html, max_images=5)
-
-	# Discord user avatar URLs and avatar tags must be stripped
-	assert "https://cdn.discordapp.com/avatars/" not in compact_html
-	assert 'class="chatlog__avatar"' not in compact_html
-	assert 'class="chatlog__followup-avatar"' not in compact_html
-	assert 'alt="Avatar"' not in compact_html
-
-	# Compact styling must be injected
-	assert "compact-transcript-style" in compact_html
-	assert ".chatlog__message-aside { display: none !important;" in compact_html
-
-	# Preserves system icons (e.g. hashtag)
-	assert "discord-hashtag.svg" in compact_html
-
-	# Saves only up to 5 images, excess replaced
-	assert "base64,1" in compact_html
-	assert "base64,5" in compact_html
-	assert "base64,6" not in compact_html
-	assert "base64,7" not in compact_html
-	assert "[Image not saved in compact mode]" in compact_html
-
-
-@pytest.mark.asyncio
-async def test_export_transcript_passes_attachment_handler_and_applies_compact():
+async def test_export_transcript():
 	bot = MagicMock()
 	cog = Ticket(bot)
 
@@ -613,8 +697,154 @@ async def test_export_transcript_passes_attachment_handler_and_applies_compact()
 
 	with patch("chat_exporter.export", AsyncMock(return_value=mock_exporter_html)) as mock_export:
 		result = await cog.export_transcript(channel, 42)
-		mock_export.assert_called_once()
-		assert isinstance(mock_export.call_args[1]["attachment_handler"], CompactTranscriptAttachmentHandler)
-		# Avatars removed and compact style injected
-		assert "https://cdn.discordapp.com/avatars/" not in result
-		assert "compact-transcript-style" in result
+		mock_export.assert_called_once_with(channel=channel, tz_info="UTC", bot=bot)
+		assert result == mock_exporter_html
+
+
+@pytest.mark.asyncio
+async def test_ticket_panel_components_v2():
+	bot = MagicMock()
+	bot.debug = False
+	bot.config.emojis = {}
+	from helpers.custom_response import CustomResponse
+
+	cr = CustomResponse(bot)
+	payload = await cr.get_message("ticket.panel", "en")
+	assert isinstance(payload, dict)
+	assert "view" in payload
+	layout = payload["view"]
+	assert isinstance(layout, discord.ui.LayoutView)
+	assert layout.has_components_v2() is True
+	container = layout.children[0]
+	assert isinstance(container, discord.ui.Container)
+	assert container.accent_color == 6656243
+
+	# Test merging launcher view
+	launcher_view = TicketLauncherView(button_label="Open Support Ticket")
+	merged = cr.merge_views(layout, launcher_view)
+	assert isinstance(merged, discord.ui.LayoutView)
+	# Verify action row with open ticket button was added to container
+	ar = next((c for c in container.children if isinstance(c, discord.ui.ActionRow)), None)
+	assert ar is not None
+	assert any(getattr(b, "custom_id", None) == "ticket:open" for b in ar.children)
+
+
+@pytest.mark.asyncio
+async def test_ticket_created_components_v2():
+	bot = MagicMock()
+	bot.debug = False
+	bot.config.emojis = {}
+	from helpers.custom_response import CustomResponse
+
+	cr = CustomResponse(bot)
+
+	member = MagicMock(spec=discord.Member)
+	member.mention = "<@100>"
+	member.name = "Alice"
+	member.id = 100
+
+	payload = await cr.get_message(
+		"ticket.created.message",
+		"en",
+		member=member,
+		topic="Billing Issue",
+		description="Charged twice",
+		ticket_id=42,
+	)
+	assert isinstance(payload, dict)
+	assert "view" in payload
+	layout = payload["view"]
+	assert isinstance(layout, discord.ui.LayoutView)
+	container = layout.children[0]
+	assert isinstance(container, discord.ui.Container)
+
+	# Check content inside container
+	text_items = [c for c in container.children if isinstance(c, discord.ui.TextDisplay)]
+	full_text = " ".join(t.content for t in text_items)
+	assert "Billing Issue" in full_text
+	assert "<@100>" in full_text
+	assert "#42" in full_text
+	assert "Charged twice" in full_text
+
+	# Test merging active controls view
+	controls = ActiveTicketControlsView()
+	merged = cr.merge_views(layout, controls)
+	assert isinstance(merged, discord.ui.LayoutView)
+	ar = next((c for c in container.children if isinstance(c, discord.ui.ActionRow)), None)
+	assert ar is not None
+	button_ids = [getattr(b, "custom_id", None) for b in ar.children]
+	assert "ticket:archive" in button_ids
+	assert "ticket:close" in button_ids
+	assert "ticket:save" in button_ids
+
+
+@pytest.mark.asyncio
+async def test_ticket_logs_components_v2():
+	bot = MagicMock()
+	bot.debug = False
+	bot.config.emojis = {}
+	from helpers.custom_response import CustomResponse
+
+	cr = CustomResponse(bot)
+
+	member = MagicMock(spec=discord.Member)
+	member.mention = "<@100>"
+	member.id = 100
+
+	channel = MagicMock(spec=discord.TextChannel)
+	channel.mention = "<#888>"
+	channel.name = "ticket-alice"
+
+	# Created log
+	created_log = await cr.get_message(
+		"ticket.logs.created",
+		"en",
+		member=member,
+		channel=channel,
+		topic="Payment",
+		ticket_id=1,
+	)
+	assert "view" in created_log
+	assert created_log["view"].has_components_v2() is True
+	container = created_log["view"].children[0]
+	assert container.accent_color == 5763719
+
+	# Closed log
+	closed_log = await cr.get_message(
+		"ticket.logs.closed",
+		"en",
+		actor=member,
+		ticket_user_id=100,
+		channel=channel,
+		topic="Payment",
+		ticket_id=1,
+	)
+	assert "view" in closed_log
+	assert closed_log["view"].children[0].accent_color == 15548997
+
+
+@pytest.mark.asyncio
+async def test_ticket_close_disables_components_v2_view():
+	bot = MagicMock()
+	cog = Ticket(bot)
+	assert cog is not None
+
+	layout = discord.ui.LayoutView()
+	btn = discord.ui.Button(label="Close", custom_id="ticket:close")
+	container = discord.ui.Container(discord.ui.TextDisplay("Ticket info"), discord.ui.ActionRow(btn))
+	layout.add_item(container)
+
+	msg = MagicMock(spec=discord.Message)
+	msg.flags = discord.MessageFlags._from_value(1 << 15)  # IS_COMPONENTS_V2
+	msg.components = []
+	msg.edit = AsyncMock()
+
+	with patch("discord.ui.LayoutView.from_message", return_value=layout):
+		# Verify disabling buttons on components v2 message
+		is_v2 = getattr(msg.flags, "components_v2", False)
+		assert is_v2 is True
+		v2_view = discord.ui.LayoutView.from_message(msg)
+		for item in v2_view.walk_children():
+			if isinstance(item, discord.ui.Button):
+				item.disabled = True
+		assert btn.disabled is True

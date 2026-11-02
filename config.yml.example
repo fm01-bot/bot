@@ -29,6 +29,7 @@ modules:
   - snapshot
   - status
   - voice
+  - automod
   - level
   - ticket
   - state_sync

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -96,7 +97,13 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if ticket_cog and hasattr(ticket_cog, "create_launcher_view"):
 			view = await ticket_cog.create_launcher_view(ctx.guild, button_label=button)
 		else:
-			btn_label = button or "Open Ticket"
+			btn_label = button
+			if not btn_label:
+				panel_data = await ctx.bot.custom_response.get_message("ticket.panel", ctx.guild)
+				if isinstance(panel_data, dict) and "button" in panel_data:
+					btn_label = str(panel_data["button"])
+			if not btn_label:
+				btn_label = "Open Ticket"
 			from cogs.ticket import TicketLauncherView
 
 			view = TicketLauncherView(button_label=btn_label)
@@ -104,22 +111,65 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		# Build message payload with localized defaults or custom overrides
 		send_kwargs: dict[str, Any] = {"view": view}
 		if title or description:
-			embed = discord.Embed(
-				title=title,
-				description=description,
-				color=6656243,
-				timestamp=discord.utils.utcnow(),
-			)
-			embed.set_footer(text="FightMan01 bot - Ticket System")
-			send_kwargs["embed"] = embed
+			panel_title = title or "Support Tickets"
+			panel_desc = description or "Need assistance? Click the button below to open a support ticket."
+			custom_layout = {
+				"components": [
+					{
+						"type": "container",
+						"accent_color": 6656243,
+						"components": [
+							{
+								"type": "text_display",
+								"content": f"# 🎫 {panel_title}\n{panel_desc}",
+							},
+							{
+								"type": "separator",
+							},
+							{
+								"type": "text_display",
+								"content": "*FightMan01 bot — Ticket System*",
+							},
+						],
+					}
+				]
+			}
+			converted = ctx.bot.custom_response.convert_components(custom_layout)
+			if "view" in converted:
+				send_kwargs["view"] = ctx.bot.custom_response.merge_views(converted["view"], view)
 		else:
 			payload = await ctx.bot.custom_response.get_message("ticket.panel", ctx.guild)
 			if isinstance(payload, dict):
+				payload.pop("button", None)
+				if "view" in payload and "view" in send_kwargs:
+					send_kwargs["view"] = ctx.bot.custom_response.merge_views(send_kwargs["view"], payload.pop("view"))
 				send_kwargs.update(payload)
 			elif isinstance(payload, str):
 				send_kwargs["content"] = payload
 
-		await target_channel.send(**send_kwargs)
+		valid_send_kwargs = frozenset(
+			{
+				"content",
+				"tts",
+				"embed",
+				"embeds",
+				"file",
+				"files",
+				"stickers",
+				"delete_after",
+				"nonce",
+				"allowed_mentions",
+				"reference",
+				"mention_author",
+				"view",
+				"suppress_embeds",
+				"silent",
+				"poll",
+			}
+		)
+		filtered_kwargs = {k: v for k, v in send_kwargs.items() if k in valid_send_kwargs}
+
+		await target_channel.send(**filtered_kwargs)
 		ch_name = getattr(target_channel, "name", str(target_channel.id))
 		return await ctx.send(content=f"```ansi\n[+] Ticket panel deployed in #{ch_name}\n```")
 
@@ -332,6 +382,372 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 
 	dm_node.callback = ticket_dm
 
+	# length / modal subcommand
+	length_node = ticket_node.create_subcommand("length", description="Configure modal input min/max lengths.")
+	length_node.add_option("topic-min", "tn", help="Minimum length for topic (1-4000, default 3)")
+	length_node.add_option("topic-max", "tx", help="Maximum length for topic (1-4000, default 100)")
+	length_node.add_option("desc-min", "dn", help="Minimum length for description (1-4000, default 10)")
+	length_node.add_option("desc-max", "dx", help="Maximum length for description (1-4000, default 1800)")
+	length_node.add_argument("--description-min", dest="desc_min", help=argparse.SUPPRESS)
+	length_node.add_argument("--description-max", dest="desc_max", help=argparse.SUPPRESS)
+
+	modal_node = ticket_node.create_subcommand("modal", description="Configure modal input min/max lengths.")
+	modal_node.add_option("topic-min", "tn", help="Minimum length for topic (1-4000, default 3)")
+	modal_node.add_option("topic-max", "tx", help="Maximum length for topic (1-4000, default 100)")
+	modal_node.add_option("desc-min", "dn", help="Minimum length for description (1-4000, default 10)")
+	modal_node.add_option("desc-max", "dx", help="Maximum length for description (1-4000, default 1800)")
+	modal_node.add_argument("--description-min", dest="desc_min", help=argparse.SUPPRESS)
+	modal_node.add_argument("--description-max", dest="desc_max", help=argparse.SUPPRESS)
+
+	async def ticket_length(
+		ctx: Context,
+		topic_min: str | None = None,
+		topic_max: str | None = None,
+		desc_min: str | None = None,
+		desc_max: str | None = None,
+		**kwargs: Any,
+	):
+		assert ctx.guild is not None
+		if topic_min is None and topic_max is None and desc_min is None and desc_max is None:
+			row = await ctx.bot.db.fetchrow(
+				"SELECT topic_min_length, topic_max_length, description_min_length, description_max_length "
+				"FROM ticket_config WHERE guild_id = $1",
+				ctx.guild.id,
+			)
+			t_min = (
+				row["topic_min_length"]
+				if row and "topic_min_length" in row and row["topic_min_length"] is not None
+				else 3
+			)
+			t_max = (
+				row["topic_max_length"]
+				if row and "topic_max_length" in row and row["topic_max_length"] is not None
+				else 100
+			)
+			d_min = (
+				row["description_min_length"]
+				if row and "description_min_length" in row and row["description_min_length"] is not None
+				else 10
+			)
+			d_max = (
+				row["description_max_length"]
+				if row and "description_max_length" in row and row["description_max_length"] is not None
+				else 1800
+			)
+			return await ctx.send(
+				content=(
+					f"```ansi\n"
+					f"Ticket Modal Length Limits ({ctx.guild.name})\n\n"
+					f"Topic:       Min {t_min} / Max {t_max}\n"
+					f"Description: Min {d_min} / Max {d_max}\n"
+					f"```"
+				)
+			)
+
+		t_min_val: int | None = None
+		t_max_val: int | None = None
+		d_min_val: int | None = None
+		d_max_val: int | None = None
+
+		if topic_min is not None:
+			try:
+				t_min_val = int(topic_min)
+				if t_min_val < 1 or t_min_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("`--topic-min` must be an integer between 1 and 4000.", length_node)
+
+		if topic_max is not None:
+			try:
+				t_max_val = int(topic_max)
+				if t_max_val < 1 or t_max_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("`--topic-max` must be an integer between 1 and 4000.", length_node)
+
+		if desc_min is not None:
+			try:
+				d_min_val = int(desc_min)
+				if d_min_val < 1 or d_min_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("`--desc-min` must be an integer between 1 and 4000.", length_node)
+
+		if desc_max is not None:
+			try:
+				d_max_val = int(desc_max)
+				if d_max_val < 1 or d_max_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("`--desc-max` must be an integer between 1 and 4000.", length_node)
+
+		row = await ctx.bot.db.fetchrow(
+			"SELECT topic_min_length, topic_max_length, description_min_length, description_max_length "
+			"FROM ticket_config WHERE guild_id = $1",
+			ctx.guild.id,
+		)
+		cur_t_min = (
+			row["topic_min_length"] if row and "topic_min_length" in row and row["topic_min_length"] is not None else 3
+		)
+		cur_t_max = (
+			row["topic_max_length"]
+			if row and "topic_max_length" in row and row["topic_max_length"] is not None
+			else 100
+		)
+		cur_d_min = (
+			row["description_min_length"]
+			if row and "description_min_length" in row and row["description_min_length"] is not None
+			else 10
+		)
+		cur_d_max = (
+			row["description_max_length"]
+			if row and "description_max_length" in row and row["description_max_length"] is not None
+			else 1800
+		)
+
+		final_t_min = t_min_val if t_min_val is not None else cur_t_min
+		final_t_max = t_max_val if t_max_val is not None else cur_t_max
+		if final_t_min > final_t_max:
+			raise CLIParseError(
+				f"Topic minimum length ({final_t_min}) cannot exceed maximum length ({final_t_max}).",
+				length_node,
+			)
+
+		final_d_min = d_min_val if d_min_val is not None else cur_d_min
+		final_d_max = d_max_val if d_max_val is not None else cur_d_max
+		if final_d_min > final_d_max:
+			raise CLIParseError(
+				f"Description minimum length ({final_d_min}) cannot exceed maximum length ({final_d_max}).",
+				length_node,
+			)
+
+		await ctx.bot.db.execute(
+			"""
+			INSERT INTO ticket_config (
+				guild_id,
+				topic_min_length,
+				topic_max_length,
+				description_min_length,
+				description_max_length
+			)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (guild_id) DO UPDATE SET
+				topic_min_length = $2,
+				topic_max_length = $3,
+				description_min_length = $4,
+				description_max_length = $5
+			""",
+			ctx.guild.id,
+			final_t_min,
+			final_t_max,
+			final_d_min,
+			final_d_max,
+		)
+
+		updates: list[str] = []
+		if t_min_val is not None or t_max_val is not None:
+			updates.append(f"Topic: Min {final_t_min} / Max {final_t_max}")
+		if d_min_val is not None or d_max_val is not None:
+			updates.append(f"Description: Min {final_d_min} / Max {final_d_max}")
+
+		return await ctx.send(content="```ansi\n[+] Ticket modal lengths updated:\n- " + "\n- ".join(updates) + "\n```")
+
+	length_node.callback = ticket_length
+	modal_node.callback = ticket_length
+
+	# topic subcommand
+	topic_node = ticket_node.create_subcommand("topic", description="Configure topic/subject min/max length.")
+	topic_node.add_option("min", "n", help="Minimum length for topic (1-4000, default 3)")
+	topic_node.add_option("max", "x", help="Maximum length for topic (1-4000, default 100)")
+	topic_node.add_argument("min_pos", required=False, help="Minimum length positional argument")
+	topic_node.add_argument("max_pos", required=False, help="Maximum length positional argument")
+
+	async def ticket_topic(
+		ctx: Context,
+		min: str | None = None,
+		max: str | None = None,
+		min_pos: str | None = None,
+		max_pos: str | None = None,
+		**kwargs: Any,
+	):
+		assert ctx.guild is not None
+		raw_min = min or min_pos
+		raw_max = max or max_pos
+
+		if raw_min is None and raw_max is None:
+			row = await ctx.bot.db.fetchrow(
+				"SELECT topic_min_length, topic_max_length FROM ticket_config WHERE guild_id = $1",
+				ctx.guild.id,
+			)
+			t_min = (
+				row["topic_min_length"]
+				if row and "topic_min_length" in row and row["topic_min_length"] is not None
+				else 3
+			)
+			t_max = (
+				row["topic_max_length"]
+				if row and "topic_max_length" in row and row["topic_max_length"] is not None
+				else 100
+			)
+			return await ctx.send(content=f"```ansi\nTicket Topic Length: Min {t_min} / Max {t_max}\n```")
+
+		t_min_val: int | None = None
+		t_max_val: int | None = None
+
+		if raw_min is not None:
+			try:
+				t_min_val = int(raw_min)
+				if t_min_val < 1 or t_min_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("Minimum length must be an integer between 1 and 4000.", topic_node)
+
+		if raw_max is not None:
+			try:
+				t_max_val = int(raw_max)
+				if t_max_val < 1 or t_max_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("Maximum length must be an integer between 1 and 4000.", topic_node)
+
+		row = await ctx.bot.db.fetchrow(
+			"SELECT topic_min_length, topic_max_length FROM ticket_config WHERE guild_id = $1",
+			ctx.guild.id,
+		)
+		cur_min = (
+			row["topic_min_length"] if row and "topic_min_length" in row and row["topic_min_length"] is not None else 3
+		)
+		cur_max = (
+			row["topic_max_length"]
+			if row and "topic_max_length" in row and row["topic_max_length"] is not None
+			else 100
+		)
+
+		final_min = t_min_val if t_min_val is not None else cur_min
+		final_max = t_max_val if t_max_val is not None else cur_max
+
+		if final_min > final_max:
+			raise CLIParseError(f"Minimum length ({final_min}) cannot exceed maximum length ({final_max}).", topic_node)
+
+		await ctx.bot.db.execute(
+			"""
+			INSERT INTO ticket_config (guild_id, topic_min_length, topic_max_length)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (guild_id) DO UPDATE SET
+				topic_min_length = $2,
+				topic_max_length = $3
+			""",
+			ctx.guild.id,
+			final_min,
+			final_max,
+		)
+		return await ctx.send(
+			content=f"```ansi\n[+] Ticket topic length set to: Min {final_min} / Max {final_max}\n```"
+		)
+
+	topic_node.callback = ticket_topic
+
+	# description subcommand
+	desc_node = ticket_node.create_subcommand("description", description="Configure description min/max length.")
+	desc_node.add_option("min", "n", help="Minimum length for description (1-4000, default 10)")
+	desc_node.add_option("max", "x", help="Maximum length for description (1-4000, default 1800)")
+	desc_node.add_argument("min_pos", required=False, help="Minimum length positional argument")
+	desc_node.add_argument("max_pos", required=False, help="Maximum length positional argument")
+
+	desc_alias_node = ticket_node.create_subcommand("desc", description="Configure description min/max length.")
+	desc_alias_node.add_option("min", "n", help="Minimum length for description (1-4000, default 10)")
+	desc_alias_node.add_option("max", "x", help="Maximum length for description (1-4000, default 1800)")
+	desc_alias_node.add_argument("min_pos", required=False, help="Minimum length positional argument")
+	desc_alias_node.add_argument("max_pos", required=False, help="Maximum length positional argument")
+
+	async def ticket_description(
+		ctx: Context,
+		min: str | None = None,
+		max: str | None = None,
+		min_pos: str | None = None,
+		max_pos: str | None = None,
+		**kwargs: Any,
+	):
+		assert ctx.guild is not None
+		raw_min = min or min_pos
+		raw_max = max or max_pos
+
+		if raw_min is None and raw_max is None:
+			row = await ctx.bot.db.fetchrow(
+				"SELECT description_min_length, description_max_length FROM ticket_config WHERE guild_id = $1",
+				ctx.guild.id,
+			)
+			d_min = (
+				row["description_min_length"]
+				if row and "description_min_length" in row and row["description_min_length"] is not None
+				else 10
+			)
+			d_max = (
+				row["description_max_length"]
+				if row and "description_max_length" in row and row["description_max_length"] is not None
+				else 1800
+			)
+			return await ctx.send(content=f"```ansi\nTicket Description Length: Min {d_min} / Max {d_max}\n```")
+
+		d_min_val: int | None = None
+		d_max_val: int | None = None
+
+		if raw_min is not None:
+			try:
+				d_min_val = int(raw_min)
+				if d_min_val < 1 or d_min_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("Minimum length must be an integer between 1 and 4000.", desc_node)
+
+		if raw_max is not None:
+			try:
+				d_max_val = int(raw_max)
+				if d_max_val < 1 or d_max_val > 4000:
+					raise ValueError
+			except ValueError:
+				raise CLIParseError("Maximum length must be an integer between 1 and 4000.", desc_node)
+
+		row = await ctx.bot.db.fetchrow(
+			"SELECT description_min_length, description_max_length FROM ticket_config WHERE guild_id = $1",
+			ctx.guild.id,
+		)
+		cur_min = (
+			row["description_min_length"]
+			if row and "description_min_length" in row and row["description_min_length"] is not None
+			else 10
+		)
+		cur_max = (
+			row["description_max_length"]
+			if row and "description_max_length" in row and row["description_max_length"] is not None
+			else 1800
+		)
+
+		final_min = d_min_val if d_min_val is not None else cur_min
+		final_max = d_max_val if d_max_val is not None else cur_max
+
+		if final_min > final_max:
+			raise CLIParseError(f"Minimum length ({final_min}) cannot exceed maximum length ({final_max}).", desc_node)
+
+		await ctx.bot.db.execute(
+			"""
+			INSERT INTO ticket_config (guild_id, description_min_length, description_max_length)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (guild_id) DO UPDATE SET
+				description_min_length = $2,
+				description_max_length = $3
+			""",
+			ctx.guild.id,
+			final_min,
+			final_max,
+		)
+		return await ctx.send(
+			content=f"```ansi\n[+] Ticket description length set to: Min {final_min} / Max {final_max}\n```"
+		)
+
+	desc_node.callback = ticket_description
+	desc_alias_node.callback = ticket_description
+
 	# status subcommand
 	status_node = ticket_node.create_subcommand("status", description="Show the current ticket configuration.")
 
@@ -345,6 +761,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 			role_str = "(None - Administrators only)"
 			limit_str = "1 per user"
 			dm_str = "Enabled"
+			topic_len_str = "Min 3 / Max 100"
+			desc_len_str = "Min 10 / Max 1800"
 		else:
 			is_on = bool(row["is_on"])
 			cat_id = int(row["category_id"]) if row["category_id"] else None
@@ -365,6 +783,23 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 			dm_t = bool(row["dm_transcript"]) if row["dm_transcript"] is not None else True
 			dm_str = "Enabled" if dm_t else "Disabled"
 
+			t_min = row["topic_min_length"] if "topic_min_length" in row and row["topic_min_length"] is not None else 3
+			t_max = (
+				row["topic_max_length"] if "topic_max_length" in row and row["topic_max_length"] is not None else 100
+			)
+			d_min = (
+				row["description_min_length"]
+				if "description_min_length" in row and row["description_min_length"] is not None
+				else 10
+			)
+			d_max = (
+				row["description_max_length"]
+				if "description_max_length" in row and row["description_max_length"] is not None
+				else 1800
+			)
+			topic_len_str = f"Min {t_min} / Max {t_max}"
+			desc_len_str = f"Min {d_min} / Max {d_max}"
+
 		content = (
 			f"```ansi\n"
 			f"Ticket Configuration ({ctx.guild.name})\n\n"
@@ -374,6 +809,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 			f"Support Role:  {role_str}\n"
 			f"Max Tickets:   {limit_str}\n"
 			f"DM Transcript: {dm_str}\n"
+			f"Modal Topic:   {topic_len_str}\n"
+			f"Modal Desc:    {desc_len_str}\n"
 			f"```"
 		)
 		return await ctx.send(content=content)

@@ -8,6 +8,7 @@ from core.bot import Bot
 from core.config import Config
 from core.context import Context
 from discord.ext import commands
+from discord.ext.commands.view import StringView
 
 
 @pytest.fixture
@@ -239,3 +240,24 @@ async def test_handle_error_sentry_dm_interaction_fallback(mock_config):
 			content="An error has occured and has been reported to the developers. Report ID: `55555`",
 			mention_author=False,
 		)
+
+
+@pytest.mark.asyncio
+async def test_context_send_filters_unexpected_kwargs():
+	message = MagicMock(spec=discord.Message)
+	bot = MagicMock()
+	bot.custom_response.get_message = AsyncMock(
+		return_value={
+			"content": "Hello",
+			"button": "Unexpected Button Text",
+			"custom_meta": 12345,
+		}
+	)
+
+	ctx = Context(message=message, bot=bot, view=StringView(""), prefix="?!")
+	with patch("discord.ext.commands.Context.send", new_callable=AsyncMock) as mock_super_send:
+		await ctx.send("test.key")
+		mock_super_send.assert_called_once()
+		assert mock_super_send.call_args.kwargs["content"] == "Hello"
+		assert "button" not in mock_super_send.call_args.kwargs
+		assert "custom_meta" not in mock_super_send.call_args.kwargs
