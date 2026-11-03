@@ -621,7 +621,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await warn.create(self.client.db)
 
@@ -649,7 +649,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			expiry_date,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await mute.create(self.client.db)
 
@@ -688,7 +688,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			member,
 			ctx.author,
 			reason,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await kick.create(self.client.db)
 
@@ -719,7 +719,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			ctx.author,
 			reason,
 			expiry_date,
-			ctx.message.reference.resolved.content if ctx.message.reference else None,
+			ctx.message.reference.resolved.content if ctx.message.reference else None,  # type: ignore
 		)
 		await ban.create(self.client.db)
 
@@ -775,7 +775,7 @@ class Cases(commands.Cog, name="Cases"):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
 
-	@group(user=False, l10n_key="caseinfo")
+	@group(user=False, l10n_key="caseinfo", name="case")
 	async def case(self, ctx: Context, case_id: str):
 		assert ctx.guild is not None
 		assert isinstance(ctx.author, discord.Member)

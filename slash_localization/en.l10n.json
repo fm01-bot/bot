@@ -244,7 +244,8 @@
       }
     },
     "desc": "Configure the bot with a command-line like interface",
-    "name": "config"
+    "name": "config",
+    "usage": "config [flags_and_args]"
   },
   "crime": {
     "desc": "Earn money by committing crime virtually ($500-$2000)",

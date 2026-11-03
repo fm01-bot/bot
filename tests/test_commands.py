@@ -431,3 +431,43 @@ class TestBanCommand:
 
 		with pytest.raises(commands.BadArgument):
 			await cog.ban.callback(cog, ctx, user=target_user, expires="invalid-duration", reason="Spamming")
+
+
+class TestCommandUsage:
+	def test_parameterless_command_has_no_usage_key(self, mock_bot):
+		from cogs.basic import Basic
+		from core.command import Command
+		from core.slash_localization import update_slash_localizations
+		from discord.ext import commands
+
+		update_slash_localizations()
+		cog = Basic(mock_bot)
+		assert cog.ping.usage is None
+
+		ctx = MagicMock(spec=commands.Context)
+		ctx.guild = MagicMock(spec=discord.Guild)
+		ctx.guild.preferred_locale = discord.Locale.american_english
+		ctx.clean_prefix = "?!"
+
+		cmd_data = Command.from_command(cog.ping, ctx)
+		assert cmd_data is not None
+		assert cmd_data.usage == "?!ping"
+
+	def test_parameterized_command_retains_usage_on_cog(self, mock_bot):
+		from cogs.mod import Moderation
+		from core.command import Command
+		from core.slash_localization import update_slash_localizations
+		from discord.ext import commands
+
+		update_slash_localizations()
+		cog = Moderation(mock_bot)
+		assert cog.ban.usage == "ban-usage"
+
+		ctx = MagicMock(spec=commands.Context)
+		ctx.guild = MagicMock(spec=discord.Guild)
+		ctx.guild.preferred_locale = discord.Locale.american_english
+		ctx.clean_prefix = "?!"
+
+		cmd_data = Command.from_command(cog.ban, ctx)
+		assert cmd_data is not None
+		assert cmd_data.usage == "?!ban [user] (duration) (reason)"

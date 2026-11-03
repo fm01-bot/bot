@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 import json
 import logging
@@ -88,6 +89,44 @@ def _parse_button_style(style: Any) -> discord.ButtonStyle:
 	return discord.ButtonStyle.secondary
 
 
+class CustomResponseFormatter(localization.CustomFormatter):
+	def format(self, format_string: str, /, *args: Any, **kwargs: Any) -> Any:
+		lines = format_string.split("\n")
+		kept_lines: list[str] = []
+		for line in lines:
+			has_none = False
+			for _, field_name, _, _ in self.parse(line):
+				if field_name is not None:
+					with contextlib.suppress(KeyError, AttributeError, IndexError):
+						val, _ = self.get_field(field_name, args, kwargs)
+						if val is None:
+							has_none = True
+							break
+			if not has_none:
+				kept_lines.append(line)
+
+		while kept_lines and not kept_lines[-1].strip():
+			kept_lines.pop()
+
+		new_format_string = "\n".join(kept_lines)
+		return super().format(new_format_string, *args, **kwargs)
+
+
+class CustomLocalization(localization.Localization):
+	_custom_formatter = CustomResponseFormatter()
+
+	@classmethod
+	def format_strings(cls, data: Any, *, placeholders: bool = True, **kwargs: Any) -> Any:
+		if isinstance(data, dict):
+			return {key: cls.format_strings(value, placeholders=placeholders, **kwargs) for key, value in data.items()}
+		elif isinstance(data, list):
+			return [cls.format_strings(item, placeholders=placeholders, **kwargs) for item in data]
+		elif isinstance(data, str):
+			return cls._custom_formatter.format(data, **kwargs) if placeholders else data.format(**kwargs)
+		else:
+			return data
+
+
 class CustomResponse:
 	def __init__(self, client: Bot, name: str | None = None) -> None:
 		"""A class to handle custom responses with localization.
@@ -100,7 +139,7 @@ class CustomResponse:
 		self.client = client
 		self.name = name
 		self.localizations: dict[str, dict] = {}
-		self._localizer: localization.Localization | None = None
+		self._localizer: CustomLocalization | None = None
 		self._last_debug_reload: float = 0
 
 		self.load_localizations()
@@ -179,6 +218,8 @@ class CustomResponse:
 			for c in comp.get("components", []):
 				ci = CustomResponse.convert_component(c)
 				if ci is None:
+					if children and isinstance(children[-1], discord.ui.Separator):
+						children.pop()
 					continue
 				if isinstance(
 					ci,
@@ -197,10 +238,17 @@ class CustomResponse:
 						for i in range(0, len(pending_row), 5):
 							children.append(discord.ui.ActionRow(*pending_row[i : i + 5]))
 						pending_row = []
+					if (
+						isinstance(ci, discord.ui.Separator)
+						and children
+						and isinstance(children[-1], discord.ui.Separator)
+					):
+						continue
 					children.append(ci)
 			if pending_row:
 				for i in range(0, len(pending_row), 5):
 					children.append(discord.ui.ActionRow(*pending_row[i : i + 5]))
+
 			return discord.ui.Container(*children, accent_color=accent, spoiler=spoiler)
 
 		elif raw_type in (9, "section"):
@@ -217,7 +265,10 @@ class CustomResponse:
 			return discord.ui.Section(*children_list, accessory=accessory)
 
 		elif raw_type in (10, "text_display", "text"):
-			return discord.ui.TextDisplay(str(comp.get("content", comp.get("text", ""))))
+			raw_content = str(comp.get("content", comp.get("text", "")))
+			if not raw_content.strip():
+				return None
+			return discord.ui.TextDisplay(raw_content)
 
 		elif raw_type in (14, "separator"):
 			visible = bool(comp.get("visible", comp.get("divider", True)))
@@ -398,7 +449,7 @@ class CustomResponse:
 					self.localizations.setdefault(lang, {}).update(translations)
 				else:
 					self.localizations[lang] = translations
-			self._localizer = localization.Localization(self.localizations, default_locale="en")
+			self._localizer = CustomLocalization(self.localizations, default_locale="en")
 		elif isinstance(data_or_path, str):
 			self.load_localizations(data_or_path)
 
@@ -415,7 +466,7 @@ class CustomResponse:
 			except (OSError, json.JSONDecodeError) as e:
 				logger.warning(f"Failed to load {file_path}: {e}")
 
-		self._localizer = localization.Localization(self.localizations, default_locale="en")
+		self._localizer = CustomLocalization(self.localizations, default_locale="en")
 
 	async def get_message(
 		self,
@@ -449,7 +500,7 @@ class CustomResponse:
 		original = locale
 
 		if isinstance(locale, (discord.Interaction, commands.Context, discord.Message)):
-			locale = locale.guild.preferred_locale if (locale.guild and locale.guild.preferred_locale) else "en"
+			locale = locale.guild.preferred_locale if locale.guild else "en"
 		elif isinstance(locale, discord.Guild):
 			locale = locale.preferred_locale or "en"
 		else:

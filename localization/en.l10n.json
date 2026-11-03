@@ -88,20 +88,21 @@
     ]
   },
   "cogs": {
-    "afk": "AFK",
-    "automod": "AutoMod",
-    "basic": "Basic",
-    "economy": "Economy",
-    "giveaway": "Giveaway",
-    "help": "Help",
-    "information": "Information",
-    "logging": "Logging",
-    "moderation": "Moderation",
-    "say": "Says",
-    "setup": "Setup",
-    "snapshot": "Snapshots",
-    "status": "Status",
-    "ticket": "Tickets"
+    "afk": "💤 AFK",
+    "automod": "🤖 AutoMod",
+    "basic": "⚙️ Basic",
+    "config": "🔧 Config",
+    "economy": "💰 Economy",
+    "shop": "🏪 Shop",
+    "giveaway": "🎉 Giveaway",
+    "information": "ℹ️ Information",
+    "level": "📊 Leveling",
+    "logging": "📜 Logging",
+    "moderation": "🛡️ Moderation",
+    "says": "💬 Says",
+    "setup": "🔧 Setup",
+    "snapshots": "📸 Snapshots",
+    "voice": "🔊 Voice"
   },
   "crime": {
     "embeds": [
@@ -337,59 +338,90 @@
   },
   "help": {
     "bot": {
-      "embeds": [
+      "components": [
         {
-          "description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "inline": true,
-              "name": "{module}",
-              "value": "{commands} commands"
+              "content": "# 📖 Bot Help\nHere is a list of groups and commands you can use with the bot.\nUse `{prefix}help [command|module]` or select a module from the dropdown menu below to view its commands.",
+              "type": "text_display"
             }
           ],
-          "title": "Help"
+          "type": "container"
         }
       ]
     },
     "cog": {
-      "embeds": [
+      "components": [
         {
-          "description": "This module contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# {cog} Module\nThis module contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{cog} Help"
+          "type": "container"
         }
       ]
     },
     "command": {
-      "embeds": [
+      "components": [
         {
-          "description": "{command.description}",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "Aliases",
-              "value": "{command.aliases}"
+              "content": "# 📖 `{command.usage}`\n{command.description}",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "**Aliases:** {command.aliases}",
+              "type": "text_display"
             }
           ],
-          "title": "{command.usage}"
+          "type": "container"
         }
       ]
     },
+    "dropdown": {
+      "overview": "Overview",
+      "overview_desc": "Return to the main help menu",
+      "placeholder": "Select a module to view commands...",
+      "commands": "{commands} commands"
+    },
+    "errors": {
+      "not_author": {
+        "content": "Only the person who ran this command can use this menu."
+      }
+    },
     "group": {
-      "embeds": [
+      "components": [
         {
-          "description": "This group contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# 📖 `{group.prefix}{group.name}` Help\nThis group contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{group.prefix}{group.name} Help"
+          "type": "container"
         }
       ]
     }

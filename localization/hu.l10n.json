@@ -88,18 +88,22 @@
     ]
   },
   "cogs": {
-    "afk": "AFK",
-    "basic": "Alap",
-    "economy": "Economy",
-    "giveaway": "Nyereményjáték",
-    "help": "Help",
-    "information": "Információ",
-    "logging": "Naplózás",
-    "moderation": "Moderáció",
-    "say": "Say",
-    "setup": "Beállítás",
-    "snapshot": "Snapshotok",
-    "status": "Státusz"
+    "afk": "💤 AFK",
+    "automod": "🤖 AutoMod",
+    "basic": "⚙️ Alap",
+    "config": "🔧 Konfiguráció",
+    "economy": "💰 Economy",
+    "shop": "🏪 Bolt",
+    "giveaway": "🎉 Nyereményjáték",
+    "information": "ℹ️ Információk",
+    "level": "📊 Szintrendszer",
+    "logging": "📜 Naplózás",
+    "moderation": "🛡️ Moderáció",
+    "cases": "⚔️ Esetek",
+    "says": "💬 Say",
+    "setup": "🔧 Setup",
+    "snapshots": "📸 Snapshotok",
+    "voice": "🔊 Zene"
   },
   "crime": {
     "embeds": [
@@ -334,59 +338,90 @@
   },
   "help": {
     "bot": {
-      "embeds": [
+      "components": [
         {
-          "description": "Itt találhatod a bot összes parancsát.\nHasználd a `{prefix}help (csoport)` parancsot egy csoport összes parancsának megtekintéséhez.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "inline": true,
-              "name": "{module}",
-              "value": "{commands} parancs"
+              "content": "# 📖 Segítség\nItt találhatod meg a bot összes parancsát.\nHasználd a `{prefix}help [parancs|modul]` parancsot vagy a legördülő listát részletesebb segítséghez.",
+              "type": "text_display"
             }
           ],
-          "title": "Segítség"
+          "type": "container"
         }
       ]
     },
     "cog": {
-      "embeds": [
+      "components": [
         {
-          "description": "A(z) {cog} csoportban {commands} parancs található.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# {cog} modul\nEbben a modulban **{commands}** parancs található.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "Segítség"
+          "type": "container"
         }
       ]
     },
     "command": {
-      "embeds": [
+      "components": [
         {
-          "description": "{command.description}",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "Alias",
-              "value": "{command.aliases}"
+              "content": "# 📖 `{command.usage}`\n{command.description}",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "**Alias:** {command.aliases}",
+              "type": "text_display"
             }
           ],
-          "title": "{command.usage}"
+          "type": "container"
         }
       ]
     },
+    "dropdown": {
+      "overview": "Áttekintés",
+      "overview_desc": "Menj vissza a főmenüre",
+      "placeholder": "Válassz egy modult...",
+      "commands": "{commands} parancs"
+    },
+    "errors": {
+      "not_author": {
+        "content": "Csak az eredeti felhasználó választhat ki elemeket."
+      }
+    },
     "group": {
-      "embeds": [
+      "components": [
         {
-          "description": "A(z) {group.name} csoportban {commands} parancs található.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# 📖 `{group.prefix}{group.name}` Segítség\nEz a csoport **{commands}** parancsot tartalmaz.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "Segítség"
+          "type": "container"
         }
       ]
     }

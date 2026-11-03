@@ -1,58 +1,97 @@
 import os
+import re
+import unicodedata
 from collections.abc import Iterable, Mapping
-from typing import Any, Literal, get_args, get_origin
+from typing import Any
 
 import discord
+import emoji
 from core import Bot, Command, Context, slash_command_localization
 from discord.ext import commands
 from discord.ext.localization import Localization
 from helpers import CustomResponse
 
+CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[a-zA-Z0-9_]+:\d+>")
+
+
+def clean_module_name(name: str) -> str:
+	"""Strips custom Discord emojis, Unicode emojis, and symbols from a module name."""
+	no_custom = CUSTOM_EMOJI_REGEX.sub("", name)
+	no_emoji = emoji.replace_emoji(no_custom, "")
+	filtered = "".join(
+		ch for ch in no_emoji if not unicodedata.category(ch).startswith("S") and unicodedata.category(ch) != "Mn"
+	)
+	return " ".join(filtered.split())
+
+
+class HelpSelect(discord.ui.Select["HelpLayoutView"]):
+	def __init__(
+		self,
+		help_command: "HelpCommand",
+		options: list[discord.SelectOption],
+		placeholder: str = "Select a module to view commands...",
+	) -> None:
+		super().__init__(placeholder=placeholder, min_values=1, max_values=1, options=options)
+		self.help_command = help_command
+
+	async def callback(self, interaction: discord.Interaction) -> None:
+		assert self.view is not None
+		help_view: HelpLayoutView = self.view
+
+		if interaction.user.id != help_view.author_id:
+			payload = await self.help_command.custom_response("help.errors.not_author", interaction)
+			await interaction.response.send_message(**payload, ephemeral=True)
+			return
+
+		selected = self.values[0]
+
+		if selected == "overview":
+			payload = await self.help_command.build_bot_help_payload(help_view, active_value="overview")
+		else:
+			cog = self.help_command.resolve_cog(selected)
+			if cog is None:
+				await interaction.response.defer()
+				return
+			payload = await self.help_command.build_cog_help_payload(cog, help_view, active_value=selected)
+
+		await interaction.response.edit_message(**payload)
+
+
+class HelpLayoutView(discord.ui.LayoutView):
+	message: discord.Message | None = None
+
+	def __init__(
+		self,
+		help_command: "HelpCommand",
+		author_id: int,
+		timeout: float | None = 180.0,
+	) -> None:
+		super().__init__(timeout=timeout)
+		self.help_command = help_command
+		self.author_id = author_id
+
+	async def on_timeout(self) -> None:
+		for item in self.walk_children():
+			if isinstance(item, discord.ui.Select):
+				item.disabled = True
+		if self.message:
+			try:
+				await self.message.edit(view=self)
+			except (discord.HTTPException, AttributeError):
+				pass
+
 
 class HelpCommand(commands.HelpCommand):
-	context: Context
+	context: Context  # ty: ignore[invalid-mutable-override]
 	custom_response: CustomResponse
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 		self.name = "help"
 
 	async def prepare_help_command(self, ctx: commands.Context[Any], command: str | None = None, /) -> None:
 		if not hasattr(self, "custom_response"):
-			self.custom_response = ctx.bot.custom_response
-
-	def get_command_signature(self, command: commands.Command[Any, ..., Any], /) -> str:
-		signature = []
-		for param in command.clean_params.values():
-			annotation = param.annotation
-			param_str = param.name
-
-			if get_origin(annotation) is Literal:
-				literals = get_args(annotation)
-				param_str = "|".join(map(str, literals))
-
-			elif get_origin(annotation) is commands.Range:
-				args = get_args(annotation)
-				if len(args) == 3:
-					typ, start, end = args
-					if typ is int:
-						param_str = f"{param.name}: {start}...{end}"
-					elif typ is str:
-						param_str = f"{param.name}: ...{end}"
-				elif len(args) == 2:
-					typ, end = args
-					if typ is int:
-						param_str = f"{param.name}: >{end}"
-					elif typ is str:
-						param_str = f"{param.name}: {end}..."
-
-			if param.default is param.empty:  # required parameter
-				param_str = f"[{param_str}]"
-			else:  # optional parameter
-				param_str = f"({param_str})"
-
-			signature.append(param_str)
-		return f"{command.qualified_name} {' '.join(signature)}"
+			self.custom_response = ctx.bot.custom_response  # type: ignore[attr-defined]
 
 	async def filter_commands(
 		self, commands: Iterable[commands.Command[Any, ..., Any]], /, *, sort: bool = False, key: Any = None
@@ -65,60 +104,99 @@ class HelpCommand(commands.HelpCommand):
 		]
 		return await super().filter_commands(filtered, sort=sort, key=key)
 
+	def get_context_locale(self) -> str:
+		raw_locale = None
+		interaction = getattr(self.context, "interaction", None)
+		guild = getattr(self.context, "guild", None)
+		if interaction is not None and getattr(interaction, "locale", None):
+			raw_locale = interaction.locale
+		elif guild is not None and getattr(guild, "preferred_locale", None):
+			raw_locale = guild.preferred_locale
+		if not raw_locale:
+			return "en"
+		loc_str = str(raw_locale).lower().replace("-", "_")
+		return loc_str.split("_")[0]
+
 	def resolve_cog(self, name: str) -> commands.Cog | None:
 		target = name.strip()
 		target_lower = target.lower()
 		if target_lower in ("jishaku", "jsk"):
 			return None
 
+		target_clean = clean_module_name(target)
+		target_clean_lower = target_clean.lower()
+		targets = {target_lower, target_clean_lower} - {""}
+		target_stems = {t.rstrip("s") for t in targets} - {""}
+
 		bot = self.context.bot
 
 		for cog_name, cog in bot.cogs.items():
 			if cog_name.lower() == "jishaku":
 				continue
-			if cog_name.lower() == target_lower:
+			raw_name = getattr(cog, "name", None)
+			cog_actual = raw_name if isinstance(raw_name, str) else cog_name
+			cog_clean = clean_module_name(cog_actual)
+			cog_candidates = {cog_actual.lower(), cog_name.lower(), cog_clean.lower()} - {""}
+			cog_stems = {c.rstrip("s") for c in cog_candidates} - {""}
+			if targets & cog_candidates or target_stems & cog_stems:
 				return cog
 
-		target_stem = target_lower.rstrip("s")
-		for cog_name, cog in bot.cogs.items():
-			if cog_name.lower() == "jishaku":
-				continue
-			if cog_name.lower().rstrip("s") == target_stem:
-				return cog
+		user_locale = self.get_context_locale()
 
 		if hasattr(self, "custom_response") and self.custom_response:
-			for loc_data in self.custom_response.localizations.values():
-				if not isinstance(loc_data, dict):
-					continue
+			loc_data = self.custom_response.localizations.get(user_locale)
+			if loc_data is None and user_locale != "en":
+				loc_data = self.custom_response.localizations.get("en")
+
+			if isinstance(loc_data, dict):
 				cogs_dict = loc_data.get("cogs", {})
 				if isinstance(cogs_dict, dict):
 					for key, val in cogs_dict.items():
 						key_s = str(key).lower()
 						val_s = str(val).lower()
-						if target_lower in (key_s, val_s) or (
-							target_stem and target_stem in (key_s.rstrip("s"), val_s.rstrip("s"))
-						):
+						key_clean = clean_module_name(str(key)).lower()
+						val_clean = clean_module_name(str(val)).lower()
+
+						candidates = {key_s, key_clean, val_s, val_clean} - {""}
+						cand_stems = {c.rstrip("s") for c in candidates} - {""}
+
+						if targets & candidates or target_stems & cand_stems:
 							for cog_name, cog in bot.cogs.items():
 								if cog_name.lower() == "jishaku":
 									continue
-								if cog_name.lower() in (key_s, val_s) or (
-									cog_name.lower().rstrip("s") in (key_s.rstrip("s"), val_s.rstrip("s"))
-								):
+								raw_cog_name = getattr(cog, "name", None)
+								cog_actual = raw_cog_name if isinstance(raw_cog_name, str) else cog_name
+								cog_cands = {
+									cog_actual.lower(),
+									cog_name.lower(),
+									clean_module_name(cog_actual).lower(),
+									clean_module_name(cog_name).lower(),
+								} - {""}
+								cog_c_stems = {c.rstrip("s") for c in cog_cands} - {""}
+								if cog_cands & {key_s, key_clean} or cog_c_stems & {
+									key_s.rstrip("s"),
+									key_clean.rstrip("s"),
+								}:
 									return cog
 
 		if slash_command_localization and slash_command_localization.file:
-			for loc_data in slash_command_localization.file.values():
-				if not isinstance(loc_data, dict):
-					continue
+			loc_data = slash_command_localization.file.get(user_locale)
+			if loc_data is None and user_locale != "en":
+				loc_data = slash_command_localization.file.get("en")
+
+			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
 					v_name = v if isinstance(v, str) else v.get("name", "") if isinstance(v, dict) else ""
-					if target_lower in (k.lower(), v_name.lower()):
+					cand_clean = clean_module_name(v_name)
+					candidates = {k.lower(), v_name.lower(), cand_clean.lower()} - {""}
+					cand_stems = {c.rstrip("s") for c in candidates} - {""}
+					if targets & candidates or target_stems & cand_stems:
 						for cog_name, cog in bot.cogs.items():
 							if cog_name.lower() == "jishaku":
 								continue
-							if cog_name.lower() == k.lower() or (
-								k.lower() == "mod" and cog_name.lower() == "moderation"
-							):
+							raw_cog_name = getattr(cog, "name", None)
+							cog_actual = raw_cog_name if isinstance(raw_cog_name, str) else cog_name
+							if cog_actual.lower() == k.lower() or cog_name.lower() == k.lower():
 								return cog
 
 		return None
@@ -152,10 +230,13 @@ class HelpCommand(commands.HelpCommand):
 			if c.name.lower().rstrip("s") == target_stem:
 				return c
 
+		user_locale = self.get_context_locale()
 		if slash_command_localization and slash_command_localization.file:
-			for loc_data in slash_command_localization.file.values():
-				if not isinstance(loc_data, dict):
-					continue
+			loc_data = slash_command_localization.file.get(user_locale)
+			if loc_data is None and user_locale != "en":
+				loc_data = slash_command_localization.file.get("en")
+
+			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
 					v_name = v if isinstance(v, str) else v.get("name", "") if isinstance(v, dict) else ""
 					if target_lower in (k.lower(), v_name.lower()) or (
@@ -193,10 +274,13 @@ class HelpCommand(commands.HelpCommand):
 			if c.name.lower().rstrip("s") == target_stem:
 				return c
 
+		user_locale = self.get_context_locale()
 		if slash_command_localization and slash_command_localization.file:
-			for loc_data in slash_command_localization.file.values():
-				if not isinstance(loc_data, dict):
-					continue
+			loc_data = slash_command_localization.file.get(user_locale)
+			if loc_data is None and user_locale != "en":
+				loc_data = slash_command_localization.file.get("en")
+
+			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
 					v_name = v if isinstance(v, str) else v.get("name", "") if isinstance(v, dict) else ""
 					if target_lower in (k.lower(), v_name.lower()):
@@ -205,6 +289,248 @@ class HelpCommand(commands.HelpCommand):
 								return c
 
 		return None
+
+	def get_command_obj(self, command: commands.Command[Any, ..., Any]) -> Command:
+		cmd_obj = Command.from_command(command, self.context)
+		if cmd_obj is not None:
+			return cmd_obj
+		return Command(
+			name=command.qualified_name,
+			description=command.description or command.help or "-",
+			usage=f"{self.context.clean_prefix}{command.qualified_name}",
+			prefix=self.context.clean_prefix,
+			aliases=", ".join(command.aliases) if command.aliases else None,
+		)
+
+	async def get_localized_string(self, key: str, fallback: str) -> str:
+		val = await self.custom_response(key, self.context)
+		if isinstance(val, str) and not val.startswith(key.split(".")[0] + "."):
+			return val
+		val_en = await self.custom_response(key, "en")
+		if isinstance(val_en, str) and not val_en.startswith(key.split(".")[0] + "."):
+			return val_en
+		return fallback
+
+	async def get_localized_cog_name(self, cog: commands.Cog) -> str:
+		raw_name = getattr(cog, "name", None)
+		cog_name = raw_name if isinstance(raw_name, str) else cog.qualified_name
+		key = getattr(cog, "l10n_key", None) or cog_name.lower()
+		for candidate in (key, key.rstrip("s")):
+			name = await self.custom_response(f"cogs.{candidate}", self.context)
+			if isinstance(name, str) and not name.startswith("cogs."):
+				return name
+		return cog_name
+
+	async def get_all_cog_options_data(self) -> list[tuple[commands.Cog, str, int]]:
+		options_data: list[tuple[commands.Cog, str, int]] = []
+		mapping = self.get_bot_mapping()
+
+		for cog, cog_commands in mapping.items():
+			if cog is None or cog.qualified_name.lower() in ("jishaku", "help", "status", "statesync"):
+				continue
+			filtered = await self.filter_commands(cog_commands, sort=True)
+			if not filtered:
+				continue
+
+			cmd_count = len(filtered)
+			if cmd_count == 1 and isinstance(filtered[0], commands.Group):
+				base_cmds = await self.filter_commands([filtered[0]])
+				sub_commands = await self.filter_commands(list(filtered[0].walk_commands()), sort=True)
+				cmd_count = len(base_cmds + sub_commands)
+
+			loc_name = await self.get_localized_cog_name(cog)
+			options_data.append((cog, loc_name, cmd_count))
+
+		return options_data
+
+	async def create_help_select(
+		self,
+		cog_options_data: list[tuple[commands.Cog, str, int]],
+		active_value: str = "overview",
+	) -> HelpSelect:
+		placeholder = await self.get_localized_string(
+			"help.dropdown.placeholder", "Select a module to view commands..."
+		)
+		overview_label = await self.get_localized_string("help.dropdown.overview", "Overview")
+		overview_desc = await self.get_localized_string("help.dropdown.overview_desc", "Return to the main help menu")
+		cmd_template = await self.get_localized_string("help.dropdown.commands", "{commands} commands")
+
+		options: list[discord.SelectOption] = [
+			discord.SelectOption(
+				label=overview_label,
+				value="overview",
+				description=overview_desc,
+				emoji="🏠",
+				default=(active_value == "overview"),
+			)
+		]
+
+		for cog, loc_name, count in cog_options_data:
+			cleaned_label = clean_module_name(loc_name)
+			emoji_part = loc_name.replace(cleaned_label, "").strip() if cleaned_label else ""
+
+			emoji_arg: str | discord.PartialEmoji | None = None
+			if emoji_part:
+				if CUSTOM_EMOJI_REGEX.match(emoji_part):
+					try:
+						emoji_arg = discord.PartialEmoji.from_str(emoji_part)
+					except (ValueError, TypeError):
+						emoji_arg = None
+				else:
+					emoji_arg = emoji_part
+
+			opt_label = (cleaned_label or loc_name)[:100]
+			raw_cog_name = getattr(cog, "name", None)
+			cog_name = raw_cog_name if isinstance(raw_cog_name, str) else cog.qualified_name
+			opt_desc = Localization.format_strings(cmd_template, commands=count)[:100]
+			options.append(
+				discord.SelectOption(
+					label=opt_label,
+					value=cog.qualified_name,
+					description=opt_desc,
+					emoji=emoji_arg or "📖",
+					default=(
+						cog.qualified_name.lower() == active_value.lower() or cog_name.lower() == active_value.lower()
+					),
+				)
+			)
+
+		return HelpSelect(self, options=options[:25], placeholder=placeholder[:100])
+
+	async def build_bot_help_payload(
+		self,
+		view: HelpLayoutView | None = None,
+		*,
+		active_value: str = "overview",
+	) -> dict[str, Any]:
+		cog_options_data = await self.get_all_cog_options_data()
+
+		message = await self.custom_response(
+			"help.bot",
+			self.context,
+			prefix=self.context.clean_prefix,
+		)
+
+		if view is None:
+			view = HelpLayoutView(self, author_id=self.context.author.id)
+
+		select_item = await self.create_help_select(cog_options_data, active_value=active_value)
+
+		if "view" in message and isinstance(message["view"], discord.ui.LayoutView):
+			layout_view = message["view"]
+			container = next((item for item in layout_view.children if isinstance(item, discord.ui.Container)), None)
+			if container is not None:
+				container.add_item(discord.ui.ActionRow(select_item))
+			else:
+				layout_view.add_item(discord.ui.ActionRow(select_item))
+			view.clear_items()
+			for child in list(layout_view.children):
+				view.add_item(child)
+
+		return {"view": view}
+
+	async def build_group_help_payload(
+		self,
+		group: commands.Group,
+		view: HelpLayoutView | None = None,
+		*,
+		active_value: str | None = None,
+	) -> dict[str, Any]:
+		base_commands = await self.filter_commands([group])
+		sub_commands = await self.filter_commands(list(group.walk_commands()), sort=True)
+		commands_list = base_commands + sub_commands
+
+		cmd_lines: list[str] = []
+		for command in commands_list:
+			cmd_obj = self.get_command_obj(command)
+			cmd_lines.append(f"**`{cmd_obj.usage}`**\n{cmd_obj.description}")
+
+		commands_text = "\n\n".join(cmd_lines) if cmd_lines else "-"
+		group_cmd_obj = self.get_command_obj(group)
+		message = await self.custom_response(
+			"help.group",
+			self.context,
+			group=group_cmd_obj,
+			commands=len(commands_list),
+			commands_list=commands_text,
+		)
+
+		if view is None:
+			view = HelpLayoutView(self, author_id=self.context.author.id)
+
+		cog_options_data = await self.get_all_cog_options_data()
+		cog = group.cog
+		raw_cog_name = getattr(cog, "name", None) if cog else None
+		cog_name = raw_cog_name if isinstance(raw_cog_name, str) else (cog.qualified_name if cog else group.name)
+		target_val = active_value or cog_name
+		select_item = await self.create_help_select(cog_options_data, active_value=target_val)
+
+		if "view" in message and isinstance(message["view"], discord.ui.LayoutView):
+			layout_view = message["view"]
+			container = next((item for item in layout_view.children if isinstance(item, discord.ui.Container)), None)
+			if container is not None:
+				container.add_item(discord.ui.ActionRow(select_item))
+			else:
+				layout_view.add_item(discord.ui.ActionRow(select_item))
+			view.clear_items()
+			for child in list(layout_view.children):
+				view.add_item(child)
+
+		return {"view": view}
+
+	async def build_cog_help_payload(
+		self,
+		cog: commands.Cog,
+		view: HelpLayoutView | None = None,
+		*,
+		active_value: str | None = None,
+	) -> dict[str, Any]:
+		filtered = await self.filter_commands(cog.get_commands(), sort=True)
+		raw_cog_name = getattr(cog, "name", None)
+		cog_name = raw_cog_name if isinstance(raw_cog_name, str) else cog.qualified_name
+		if len(filtered) == 1 and isinstance(filtered[0], commands.Group):
+			return await self.build_group_help_payload(
+				filtered[0],
+				view=view,
+				active_value=active_value or cog_name,
+			)
+
+		loc_name = await self.get_localized_cog_name(cog)
+
+		cmd_lines: list[str] = []
+		for command in filtered:
+			cmd_obj = self.get_command_obj(command)
+			cmd_lines.append(f"**`{cmd_obj.usage}`**\n{cmd_obj.description}")
+
+		commands_text = "\n\n".join(cmd_lines) if cmd_lines else "-"
+
+		message = await self.custom_response(
+			"help.cog",
+			self.context,
+			cog=loc_name,
+			commands=len(filtered),
+			commands_list=commands_text,
+		)
+
+		if view is None:
+			view = HelpLayoutView(self, author_id=self.context.author.id)
+
+		cog_options_data = await self.get_all_cog_options_data()
+		target_val = active_value or cog.qualified_name
+		select_item = await self.create_help_select(cog_options_data, active_value=target_val)
+
+		if "view" in message and isinstance(message["view"], discord.ui.LayoutView):
+			layout_view = message["view"]
+			container = next((item for item in layout_view.children if isinstance(item, discord.ui.Container)), None)
+			if container is not None:
+				container.add_item(discord.ui.ActionRow(select_item))
+			else:
+				layout_view.add_item(discord.ui.ActionRow(select_item))
+			view.clear_items()
+			for child in list(layout_view.children):
+				view.add_item(child)
+
+		return {"view": view}
 
 	async def command_callback(self, ctx: commands.Context[Any], /, *, command: str | None = None) -> None:
 		await self.prepare_help_command(ctx, command)
@@ -217,6 +543,10 @@ class HelpCommand(commands.HelpCommand):
 		if query.lower() in ("jishaku", "jsk"):
 			string = await discord.utils.maybe_coroutine(self.command_not_found, self.remove_mentions(query))
 			return await self.send_error_message(string)
+
+		found_cog = self.resolve_cog(query)
+		if found_cog and len(clean_module_name(query).split()) <= 1:
+			return await self.send_cog_help(found_cog)
 
 		keys = query.split()
 		if len(keys) == 1:
@@ -274,84 +604,21 @@ class HelpCommand(commands.HelpCommand):
 			return await self.send_group_help(cmd)
 		return await self.send_command_help(cmd)
 
-	async def send_bot_help(self, mapping: Mapping[commands.Cog | None, list[commands.Command]]):
-		message = await self.custom_response("help.bot", self.context, prefix=self.context.clean_prefix)
-		embeds: list[discord.Embed] = message.get("embeds")  # it's gonna be a list i promise
-
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if not template:
-				await self.get_destination().send(**message)
-				return
-			embeds[0].clear_fields()
-			for cog, cog_commands in mapping.items():
-				if len(embeds[0].fields) >= 25:
-					break
-				if cog is None or cog.qualified_name.lower() == "jishaku":
-					continue
-				filtered = await self.filter_commands(cog_commands, sort=True)
-				command_signatures = [self.get_command_signature(command) for command in filtered]
-				if not command_signatures:
-					continue
-
-				cmd_count = len(filtered)
-				if cmd_count == 1 and isinstance(filtered[0], commands.Group):
-					base_cmds = await self.filter_commands([filtered[0]])
-					sub_commands = await self.filter_commands(list(filtered[0].walk_commands()), sort=True)
-					cmd_count = len(base_cmds + sub_commands)
-
-				formatted = Localization.format_strings(template, module=cog.qualified_name or "-", commands=cmd_count)
-				embeds[0].add_field(**formatted)
-			message["embeds"] = self.custom_response.convert_embeds(embeds)
-
-		await self.get_destination().send(**message)
+	async def send_bot_help(self, mapping: Mapping[commands.Cog | None, list[commands.Command]]) -> None:
+		payload = await self.build_bot_help_payload()
+		msg = await self.get_destination().send(**payload)
+		if (view := payload.get("view")) and isinstance(view, HelpLayoutView):
+			view.message = msg
 
 	async def send_command_help(self, command: commands.Command[Any, ..., Any], /) -> None:
 		if (command.cog_name and command.cog_name.lower() == "jishaku") or command.name.lower() in ("jishaku", "jsk"):
 			string = await discord.utils.maybe_coroutine(self.command_not_found, command.name)
 			return await self.send_error_message(string)
 
-		await self.context.send("help.command", command=Command.from_command(command, self.context))
+		cmd_obj = self.get_command_obj(command)
+		await self.context.send("help.command", command=cmd_obj)
 
-	async def send_group_or_cog_help(self, group_or_cog: commands.Group | commands.Cog):
-		if isinstance(group_or_cog, commands.Cog):
-			cog_name = await self.custom_response(f"cogs.{group_or_cog.qualified_name.lower()}", self.context)
-			if isinstance(cog_name, str) and cog_name.startswith("cogs."):
-				cog_name = group_or_cog.qualified_name
-			commands_list = await self.filter_commands(group_or_cog.get_commands(), sort=True)
-			message = await self.custom_response("help.cog", self.context, cog=cog_name, commands=len(commands_list))
-		elif isinstance(group_or_cog, commands.Group):
-			base_commands = await self.filter_commands([group_or_cog])
-			sub_commands = await self.filter_commands(list(group_or_cog.walk_commands()), sort=True)
-			commands_list = base_commands + sub_commands
-			message = await self.custom_response(
-				"help.group",
-				self.context,
-				group=Command.from_command(group_or_cog, self.context),
-				commands=len(commands_list),
-			)
-		else:
-			raise commands.BadArgument
-		embeds: list[discord.Embed] = message.get("embeds")
-
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if not template:
-				await self.get_destination().send(**message)
-				return
-
-			embeds[0].clear_fields()
-
-			for command in commands_list:
-				if len(embeds[0].fields) >= 25:
-					break
-				formatted = Localization.format_strings(template, command=Command.from_command(command, self.context))
-				embeds[0].add_field(**formatted)
-			message["embeds"] = self.custom_response.convert_embeds(embeds)
-
-		await self.get_destination().send(**message)
-
-	async def send_cog_help(self, cog: commands.Cog):
+	async def send_cog_help(self, cog: commands.Cog) -> None:
 		if cog.qualified_name.lower() == "jishaku":
 			string = await discord.utils.maybe_coroutine(self.command_not_found, cog.qualified_name)
 			return await self.send_error_message(string)
@@ -360,14 +627,20 @@ class HelpCommand(commands.HelpCommand):
 		if len(filtered) == 1 and isinstance(filtered[0], commands.Group):
 			return await self.send_group_help(filtered[0])
 
-		await self.send_group_or_cog_help(cog)
+		payload = await self.build_cog_help_payload(cog)
+		msg = await self.get_destination().send(**payload)
+		if (view := payload.get("view")) and isinstance(view, HelpLayoutView):
+			view.message = msg
 
-	async def send_group_help(self, group: commands.Group):
+	async def send_group_help(self, group: commands.Group) -> None:
 		if (group.cog_name and group.cog_name.lower() == "jishaku") or group.name.lower() in ("jishaku", "jsk"):
 			string = await discord.utils.maybe_coroutine(self.command_not_found, group.name)
 			return await self.send_error_message(string)
 
-		await self.send_group_or_cog_help(group)
+		payload = await self.build_group_help_payload(group)
+		msg = await self.get_destination().send(**payload)
+		if (view := payload.get("view")) and isinstance(view, HelpLayoutView):
+			view.message = msg
 
 	async def send_error_message(self, error: str, /) -> None:
 		await self.context.send("errors.command_not_found", command=Command.from_ctx(self.context))

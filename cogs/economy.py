@@ -457,7 +457,7 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 
 		await ctx.send("pay.success", amount=amount, member=member)
 
-	@command(user=False)
+	@command(user=False, aliases=["bal"])
 	async def balance(self, ctx: Context, member: discord.Member | None):
 		assert ctx.guild is not None
 		target_member = member or (ctx.author if isinstance(ctx.author, discord.Member) else None)
