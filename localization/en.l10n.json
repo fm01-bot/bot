@@ -2521,6 +2521,22 @@
         ]
       }
     },
+    "remove": {
+      "errors": {
+        "not_found": {
+          "content": "Case not found."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "Case `{case.id}` has been marked as inactive.",
+            "title": "Case removed"
+          }
+        ]
+      }
+    },
     "edit": {
       "errors": {
         "invalid_time": {
@@ -2566,6 +2582,11 @@
                 "inline": false,
                 "name": "Given by",
                 "value": "{case.moderator.mention}"
+              },
+              {
+                "inline": false,
+                "name": "Status",
+                "value": "{case.status}"
               },
               {
                 "inline": false,
@@ -2632,7 +2653,7 @@
             "fields": [
               {
                 "inline": false,
-                "name": "{case.id} `{case.type.name}`",
+                "name": "{case.id} `{case.type.name}` ({case.status})",
                 "value": "Given by: {case.moderator.mention}\nReason: {case.reason}\nExpires: {case.length}"
               },
               {

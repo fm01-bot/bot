@@ -209,6 +209,11 @@ class Bot(commands.AutoShardedBot):
 			self.prefix_cache.pop(int(guild_id), None)
 		elif event_type == "INVALIDATE_LOG_CONFIG" and guild_id:
 			await self.refresh_logging_guilds()
+		elif event_type == "INVALIDATE_MOD_CONFIG" and guild_id:
+			mod_cog: Any = self.get_cog("Moderation")
+			if mod_cog and hasattr(mod_cog, "set_guild_retention"):
+				retention = event.get("retention", "keep")
+				mod_cog.set_guild_retention(int(guild_id), retention)
 
 	async def on_message(self, message: discord.Message) -> None:
 		if message.author.bot:

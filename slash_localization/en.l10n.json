@@ -158,6 +158,17 @@
   },
   "caselist": {
     "args": {
+      "filter": {
+        "active": "active",
+        "all": "all",
+        "desc": "Filter cases by status: active, expired, or all",
+        "expired": "expired",
+        "name": "filter"
+      },
+      "filter": {
+        "desc": "Filter cases by status: active, expired, or all",
+        "name": "filter"
+      },
       "user": {
         "desc": "The user you want to list cases for",
         "name": "user"
@@ -165,7 +176,18 @@
     },
     "desc": "List all cases for a user or yourself",
     "name": "caselist",
-    "usage": "case list (user)"
+    "usage": "case list (user) (filter)"
+  },
+  "caserem": {
+    "args": {
+      "case_id": {
+        "desc": "The case ID you want to remove or mark inactive",
+        "name": "case_id"
+      }
+    },
+    "desc": "Mark a case as inactive",
+    "name": "caserem",
+    "usage": "case remove [case_id]"
   },
   "channel": "channel",
   "channel_say": {

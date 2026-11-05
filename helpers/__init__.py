@@ -10,3 +10,4 @@ from .level_card import *
 from .leveling import *
 from .random_helper import *
 from .regex import *
+from .pagination import *
