@@ -499,10 +499,23 @@ class CustomResponse:
 		"""
 		original = locale
 
-		if isinstance(locale, (discord.Interaction, commands.Context, discord.Message)):
-			locale = locale.guild.preferred_locale if locale.guild else "en"
+		locale_cache = getattr(self.client, "locale_cache", None)
+		if isinstance(locale, (discord.Interaction, commands.Context, discord.Message)) or hasattr(locale, "guild"):
+			guild = getattr(locale, "guild", None)
+			guild_override = (
+				locale_cache[guild.id]
+				if guild and isinstance(locale_cache, dict) and getattr(guild, "id", None) in locale_cache
+				else None
+			)
+			guild_locale = getattr(guild, "preferred_locale", None) if guild else None
+			locale = guild_override or (str(guild_locale) if guild_locale else "en")
 		elif isinstance(locale, discord.Guild):
-			locale = locale.preferred_locale or "en"
+			guild_override = (
+				locale_cache[locale.id]
+				if isinstance(locale_cache, dict) and getattr(locale, "id", None) in locale_cache
+				else None
+			)
+			locale = guild_override or str(locale.preferred_locale)
 		else:
 			locale = str(locale)
 

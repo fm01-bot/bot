@@ -108,7 +108,11 @@ class HelpCommand(commands.HelpCommand):
 		raw_locale = None
 		interaction = getattr(self.context, "interaction", None)
 		guild = getattr(self.context, "guild", None)
-		if interaction is not None and getattr(interaction, "locale", None):
+		bot = getattr(self.context, "bot", None)
+		locale_cache = getattr(bot, "locale_cache", None)
+		if guild is not None and isinstance(locale_cache, dict) and guild.id in locale_cache:
+			raw_locale = locale_cache[guild.id]
+		elif interaction is not None and getattr(interaction, "locale", None):
 			raw_locale = interaction.locale
 		elif guild is not None and getattr(guild, "preferred_locale", None):
 			raw_locale = guild.preferred_locale
