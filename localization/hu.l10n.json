@@ -32,10 +32,39 @@
   "allowance": {
     "content": "Megkaptad a napi jutalmad, **{amount} Ft-ot**."
   },
+  "automod": {
+    "reasons": {
+      "invite": "[AutoMod] Szervermegh\u00edv\u00f3",
+      "lines": "[AutoMod] T\u00fal sok soros az \u00fczeneted",
+      "link": "[AutoMod] Link van az \u00fczenetedben",
+      "mention": "[AutoMod] T\u00fal sok eml\u00edt\u00e9s",
+      "phrase": "[AutoMod] Tiltott szavak az \u00fczenetedben",
+      "spam": "[AutoMod] Spammel\u00e9s"
+    },
+    "violation": {
+      "invite": {
+        "content": "***H\u00c9*** {member.mention}! Ezen a szerveren a Discord megh\u00edv\u00f3k bek\u00fcld\u00e9se nem enged\u00e9lyezett! :angry:"
+      },
+      "lines": {
+        "content": "***H\u00c9*** {member.mention}! Az \u00fczeneted t\u00fal sok sorb\u00f3l \u00e1ll! :angry:"
+      },
+      "link": {
+        "content": "***H\u00c9*** {member.mention}! Linkeket posztolni tilos ezen a szerveren! :angry:"
+      },
+      "mention": {
+        "content": "***H\u00c9*** {member.mention}! T\u00fal sok embert eml\u00edtett\u00e9l! :angry:"
+      },
+      "phrase": {
+        "content": "***H\u00c9*** {member.mention}! Az \u00fczeneted tiltott szavakat tartalmaz! :angry:"
+      },
+      "spam": {
+        "content": "***H\u00c9*** {member.mention}! Ezen a szerveren tilos spammelni! :angry:"
+      }
+    }
+  },
   "balance": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": true,
@@ -74,7 +103,6 @@
   "crime": {
     "embeds": [
       {
-        "color": 6656243,
         "description": "{random}",
         "title": "B\u0171n\u00f6z\u00e9s"
       }
@@ -108,7 +136,6 @@
     "bad_argument": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Helyes haszn\u00e1lat:\n```{command.usage}```",
           "fields": [
             {
@@ -125,7 +152,6 @@
     "bot_missing_permissions": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A botnak kellenek m\u00e9g jogok, hogy ezt a parancsot v\u00e9grehajthassa.",
           "fields": [
             {
@@ -141,7 +167,6 @@
     "channel_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A megadott csatorna nem tal\u00e1lhat\u00f3.",
           "title": "Nincs ilyen csatorna"
         }
@@ -150,7 +175,6 @@
     "command_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The command you tried to run does not exist.",
           "title": "Command not found"
         }
@@ -159,7 +183,6 @@
     "command_on_cooldown": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A **{command.name}** parancsot legk\u00f6zelebb `{retry_after}` id\u0151 m\u00falva haszn\u00e1lhatod \u00fajra.",
           "title": "Egy picit lass\u00edts!"
         }
@@ -168,7 +191,6 @@
     "emoji_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A megadott emoji nem tal\u00e1lhat\u00f3.",
           "title": "Nincs ilyen emoji"
         }
@@ -177,7 +199,6 @@
     "forbidden": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A bot 403-as (Forbidden) hib\u00e1ba \u00fctk\u00f6z\u00f6tt. K\u00e9rlek, ellen\u0151rizd a bot jogait \u00e9s a rang hierarchi\u00e1t.",
           "title": "Tiltott"
         }
@@ -186,7 +207,6 @@
     "member_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A megadott tag nem tal\u00e1lhat\u00f3.",
           "title": "Nincs ilyen tag"
         }
@@ -195,7 +215,6 @@
     "missing_permissions": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Egy\u00e9b jogok sz\u00fcks\u00e9gesek a parancs lefuttat\u00e1s\u00e1hoz.",
           "fields": [
             {
@@ -211,7 +230,6 @@
     "missing_required_argument": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Helyes haszn\u00e1lat:\n```{command.usage}```",
           "fields": [
             {
@@ -228,7 +246,6 @@
     "not_owner": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Ezt a parancsot csak a bot tulajdonosai haszn\u00e1lhatj\u00e1k.",
           "title": "Nem haszn\u00e1lhatod ezt a parancsot!"
         }
@@ -237,7 +254,6 @@
     "role_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A megadott rang nem tal\u00e1lhat\u00f3.",
           "title": "Nincs ilyen rang"
         }
@@ -246,7 +262,6 @@
     "user_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "A megadott felhaszn\u00e1l\u00f3 nem tal\u00e1lhat\u00f3.",
           "title": "Nincs ilyen felhaszn\u00e1l\u00f3"
         }
@@ -1191,7 +1206,6 @@
   "leaderboard": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -1211,7 +1225,6 @@
   "levels_leaderboard": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -1247,7 +1260,6 @@
       "action": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "A message by {execution.member.mention} was flagged.",
             "fields": [
               {
@@ -1288,7 +1300,6 @@
       "create": {
         "embeds": [
           {
-            "color": 3066993,
             "fields": [
               {
                 "inline": true,
@@ -1330,7 +1341,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15158332,
             "fields": [
               {
                 "inline": true,
@@ -1357,7 +1367,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "fields": [
               {
                 "inline": true,
@@ -1397,7 +1406,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
             "title": "Channel Created"
           }
@@ -1408,7 +1416,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
             "title": "Channel Deleted"
           }
@@ -1419,7 +1426,6 @@
       "pins": {
         "embeds": [
           {
-            "color": 2067276,
             "description": "The pins in {channel.mention} were updated.",
             "fields": [
               {
@@ -1437,7 +1443,6 @@
       "name": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The name of {after.mention} was updated by {updated_by.mention}.",
             "fields": [
               {
@@ -1458,7 +1463,6 @@
       "nsfw": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
             "fields": [
               {
@@ -1474,7 +1478,6 @@
       "permissions": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
             "title": "Channel Permissions Updated"
           }
@@ -1483,7 +1486,6 @@
       "position": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
             "title": "Channel Position Updated"
           }
@@ -1492,7 +1494,6 @@
       "slowmode_delay": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
             "title": "Channel Slowmode Updated"
           }
@@ -1501,7 +1502,6 @@
       "topic": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The topic of {after.mention} was updated {updated_by.mention}.",
             "fields": [
               {
@@ -1524,7 +1524,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
             "fields": [
               {
@@ -1552,7 +1551,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
             "title": "Invite Deleted"
           }
@@ -1594,7 +1592,6 @@
       "attachments": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1615,7 +1612,6 @@
       "content": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1634,7 +1630,6 @@
       "embeds": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1655,7 +1650,6 @@
       "pinned": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1686,7 +1680,6 @@
     "lose": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "{random}",
           "title": "Szerencse"
         }
@@ -1701,7 +1694,6 @@
     "win": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "{random}",
           "title": "Szerencse"
         }
@@ -1727,7 +1719,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "Ki lett\u00e9l tiltva a(z) **{guild}** szerverr\u0151l.",
             "fields": [
               {
@@ -1749,7 +1740,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "{ban.user.mention} ki lett tiltva.",
             "fields": [
               {
@@ -1778,7 +1768,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "`{case.id}` szankci\u00f3 t\u00f6r\u00f6lve.",
             "title": "Szankci\u00f3"
           }
@@ -1797,7 +1786,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "`{case.id}` szankci\u00f3 adatai szerkesztve.",
             "timestamp": "{now}",
             "title": "Szankci\u00f3 szerkesztve"
@@ -1814,7 +1802,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
@@ -1860,7 +1847,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "Ki lett\u00e9l r\u00fagva a(z) **{guild}** szerverr\u0151l.",
             "fields": [
               {
@@ -1878,7 +1864,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "{kick.user.mention} ki lett r\u00fagva {kick.reason} indokkal.",
             "footer": {
               "text": "{kick.id}"
@@ -1892,7 +1877,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
@@ -1922,7 +1906,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "Le lett\u00e9l n\u00e9m\u00edtva a(z) **{guild}** szerveren.",
             "fields": [
               {
@@ -1945,7 +1928,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "{mute.user.mention} le lett n\u00e9m\u00edtva.",
             "fields": [
               {
@@ -1967,7 +1949,6 @@
       "unmuted": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Feloldott\u00e1k a n\u00e9m\u00edt\u00e1sod a(z) **{guild}** szerveren.",
             "fields": [
               {
@@ -1991,7 +1972,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Set slowmode in {channel.mention} to `{time}`.",
             "timestamp": "{now}",
             "title": "Slowmode changed"
@@ -2006,7 +1986,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "**{user.name}** kitilt\u00e1sa feloldva.",
             "title": "Kitilt\u00e1s felold\u00e1sa"
           }
@@ -2025,7 +2004,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "{user.mention} n\u00e9m\u00edt\u00e1sa el lett t\u00e1vol\u00edtva.",
             "title": "N\u00e9m\u00edt\u00e1s feloldva"
           }
@@ -2044,7 +2022,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "Figyelmeztetve lett\u00e9l a(z) **{warn.guild}** szerveren.",
             "fields": [
               {
@@ -2088,7 +2065,6 @@
       "unwarned": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "A figyelmeztet\u00e9sed a(z) **{warn.guild}** szerveren el lett t\u00e1vol\u00edtva.",
             "fields": [
               {
@@ -2174,7 +2150,6 @@
   "ping": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -2284,7 +2259,6 @@
       "show": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
@@ -2336,7 +2310,6 @@
     "lose": {
       "embeds": [
         {
-          "color": 6656243,
           "fields": [
             {
               "inline": false,
@@ -2361,7 +2334,6 @@
     "win": {
       "embeds": [
         {
-          "color": 6656243,
           "fields": [
             {
               "inline": false,
@@ -2383,7 +2355,6 @@
     "create": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "A Snapshot sikeresen elk\u00e9sz\u00fclt.\nK\u00f3d: ```{code}```",
           "title": "Snapshot"
         }
@@ -2392,7 +2363,6 @@
     "load": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "A Snapshot sikeresen be lett t\u00f6ltve. A szerver el\u0151z\u0151 \u00e1llapot\u00e1t a **/snapshot load** paranccsal tudod vissza\u00e1ll\u00edtani, ezzel a k\u00f3ddal: ```{code}```.",
           "title": "Snapshot"
         }
@@ -2401,7 +2371,6 @@
     "not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Az \u00e1ltalad megadott Snapshot nem tal\u00e1lhat\u00f3.",
           "title": "Hib\u00e1s Snapshot"
         }
@@ -2410,7 +2379,6 @@
     "owner_alert": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "{author.name} bet\u00f6lt\u00f6tt egy Snapshot-ot a(z) {guild.name} szerveren. A szerver el\u0151z\u0151 \u00e1llapot\u00e1t a **/snapshot load** paranccsal tudod vissza\u00e1ll\u00edtani, ezzel a k\u00f3ddal: ```{code}```.",
           "title": "Snapshot bet\u00f6lt\u00e9s"
         }
@@ -2463,7 +2431,6 @@
     "np": {
       "embeds": [
         {
-          "color": 5793266,
           "description": "**[{track.title}]({track.url})**\n{progress_bar}",
           "fields": [
             {
@@ -2498,7 +2465,6 @@
       "now_playing": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{track.title}]({track.url})**",
             "fields": [
               {
@@ -2528,7 +2494,6 @@
       "playlist_enqueued": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{name}]({url})**\n**{count}** zenesz\u00e1m ker\u00fclt a lej\u00e1tsz\u00e1si sorhoz.",
             "footer": {
               "icon_url": "{author.avatar}",
@@ -2541,7 +2506,6 @@
       "track_enqueued": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{track.title}]({track.url})**",
             "fields": [
               {
@@ -2572,7 +2536,6 @@
     "queue": {
       "embeds": [
         {
-          "color": 5793266,
           "description": "{tracks}",
           "footer": {
             "text": "{page}./{total_pages} oldal | {total_tracks} zene \u00f6sszesen"
@@ -2652,7 +2615,6 @@
   "work": {
     "embeds": [
       {
-        "color": 6656243,
         "description": "{random}",
         "title": "Munka"
       }
@@ -2668,35 +2630,5 @@
       "Elment\u00e9l a boltba zacsk\u00f3s levest venni, de a kassz\u00e1s t\u00f6bbet adott vissza. Szerezt\u00e9l **{amount} Ft-ot** \u00e9s egy csomag zacsk\u00f3s levest.",
       "Neh\u00e9z napod volt a mez\u0151n - kapt\u00e1l **{amount} Ft-ot**."
     ]
-  },
-  "automod": {
-    "reasons": {
-      "invite": "[AutoMod] Szervermeghívó",
-      "lines": "[AutoMod] Túl sok soros az üzeneted",
-      "link": "[AutoMod] Link van az üzenetedben",
-      "mention": "[AutoMod] Túl sok említés",
-      "phrase": "[AutoMod] Tiltott szavak az üzenetedben",
-      "spam": "[AutoMod] Spammelés"
-    },
-    "violation": {
-      "invite": {
-        "content": "***HÉ*** {member.mention}! Ezen a szerveren a Discord meghívók beküldése nem engedélyezett! :angry:"
-      },
-      "lines": {
-        "content": "***HÉ*** {member.mention}! Az üzeneted túl sok sorból áll! :angry:"
-      },
-      "link": {
-        "content": "***HÉ*** {member.mention}! Linkeket posztolni tilos ezen a szerveren! :angry:"
-      },
-      "mention": {
-        "content": "***HÉ*** {member.mention}! Túl sok embert említettél! :angry:"
-      },
-      "phrase": {
-        "content": "***HÉ*** {member.mention}! Az üzeneted tiltott szavakat tartalmaz! :angry:"
-      },
-      "spam": {
-        "content": "***HÉ*** {member.mention}! Ezen a szerveren tilos spammelni! :angry:"
-      }
-    }
   }
 }

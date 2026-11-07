@@ -28,9 +28,12 @@ from discord.ext import commands, localization
 if TYPE_CHECKING:
 	from core.bot import Bot
 
-__all__ = ("CustomResponse",)
+__all__ = ("DEFAULT_COLOR", "DEFAULT_EMBED_COLOR", "CustomResponse")
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_COLOR = 0x6094EB
+DEFAULT_EMBED_COLOR = DEFAULT_COLOR
 
 KWARG_MAPPING = {
 	discord.Guild: Guild.from_guild,
@@ -45,7 +48,19 @@ KWARG_MAPPING = {
 
 
 def _parse_color(color: Any) -> discord.Color | int | None:
-	if color is None or isinstance(color, (discord.Color, int)):
+	"""Parses a color value from an int, hex string, or discord.Color.
+
+	Args:
+		color: The color representation, such as an int, hex string (e.g. ``"#6094EB"``,
+			``"0x6094EB"``), named color, or ``discord.Color``.
+
+	Returns:
+		discord.Color | int | None: The parsed color as a ``discord.Color`` or ``int``, or ``None`` if invalid.
+
+	"""
+	if color is None or isinstance(color, bool):
+		return None
+	if isinstance(color, (discord.Color, int)):
 		return color
 	if isinstance(color, str):
 		c = color.strip()
@@ -53,6 +68,8 @@ def _parse_color(color: Any) -> discord.Color | int | None:
 			c = c[1:]
 		elif c.startswith(("0x", "0X")):
 			c = c[2:]
+		if len(c) == 3 and all(ch in "0123456789abcdefABCDEF" for ch in c):
+			c = "".join(ch * 2 for ch in c)
 		try:
 			return discord.Color(int(c, 16))
 		except ValueError:
@@ -109,6 +126,8 @@ class CustomResponse:
 		"""Converts ``data``'s embed (dict) or embeds (list) keys' values into a ``discord.Embed``.
 
 		This converts in a smart way: if there are both an ``embed`` and ``embeds`` key, ``embed`` will be merged into ``embeds``.
+		Embeds without a color are assigned a default color (0x6094EB), and hex code strings (e.g. ``"#6094EB"`` or
+		``"0x6094EB"``) are supported.
 
 		Args:
 			data: The data that might contain an ``embed`` or an ``embeds`` key. Conversion is only performed if this is a ``dict``.
@@ -121,13 +140,23 @@ class CustomResponse:
 
 		"""
 		if isinstance(data, dict) and (data.get("embed") or data.get("embeds")):
+			if data.get("embed"):
+				single_embed = data.pop("embed")
+				if not data.get("embeds"):
+					data["embeds"] = [single_embed]
+				elif isinstance(data["embeds"], list):
+					data["embeds"].append(single_embed)
+
 			if len(data.get("embeds", [])) > 10:
 				raise ValueError(f"The maximum number of embeds is 10. You have {len(data['embeds'])} embeds.")
-			if data.get("embed") and not data.get("embeds"):
-				data["embeds"] = [data.pop("embed")]
 
 			cleaned_embeds = []
 			for embed_dict in data.get("embeds", []):
+				if isinstance(embed_dict, discord.Embed):
+					if embed_dict.color is None:
+						embed_dict.color = discord.Color(DEFAULT_COLOR)
+					cleaned_embeds.append(embed_dict)
+					continue
 				if not isinstance(embed_dict, dict):
 					continue
 				fields = embed_dict.get("fields", [])
@@ -144,6 +173,16 @@ class CustomResponse:
 					cleaned_fields.append(field)
 
 				embed_dict["fields"] = cleaned_fields
+
+				raw_color = embed_dict.pop("colour", None)
+				if "color" in embed_dict:
+					raw_color = embed_dict.pop("color")
+
+				parsed_color = _parse_color(raw_color) if raw_color is not None else None
+				if parsed_color is None:
+					parsed_color = DEFAULT_COLOR
+
+				embed_dict["color"] = parsed_color.value if isinstance(parsed_color, discord.Color) else parsed_color
 				cleaned_embeds.append(discord.Embed.from_dict(embed_dict))
 
 			data["embeds"] = cleaned_embeds

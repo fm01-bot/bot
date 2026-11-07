@@ -8,7 +8,7 @@ from args.guild import Guild
 from args.member import Member
 from args.user import User
 from discord.ext import commands
-from helpers.custom_response import KWARG_MAPPING, CustomResponse
+from helpers.custom_response import DEFAULT_COLOR, KWARG_MAPPING, CustomResponse
 
 
 @pytest.fixture
@@ -46,10 +46,71 @@ class TestCustomResponseEmbeds:
 		assert isinstance(embed, discord.Embed)
 		assert embed.title == "Test Title"
 		assert embed.description == "Test Desc"
+		assert embed.color == discord.Color(DEFAULT_COLOR)
 		assert len(embed.fields) == 3
 		assert embed.fields[0].value == "✅"
 		assert embed.fields[1].value == "❌"
 		assert embed.fields[2].value == "Regular value"
+
+	def test_convert_embeds_default_color(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		data = {"embeds": [{"title": "No color"}, {"title": "None color", "color": None}]}
+		result = cr.convert_embeds(data)
+		assert len(result["embeds"]) == 2
+		assert result["embeds"][0].color == discord.Color(0x6094EB)
+		assert result["embeds"][1].color == discord.Color(0x6094EB)
+
+	@pytest.mark.parametrize(
+		("color_input", "expected_value"),
+		[
+			("0x6094EB", 0x6094EB),
+			("0X6094EB", 0x6094EB),
+			("#6094EB", 0x6094EB),
+			("6094EB", 0x6094EB),
+			("6094eb", 0x6094EB),
+			("#ff0000", 0xFF0000),
+			("#fff", 0xFFFFFF),
+			("0x123456", 0x123456),
+			(16711680, 16711680),
+			(0x6094EB, 0x6094EB),
+			("red", discord.Color.red().value),
+		],
+	)
+	def test_convert_embeds_color_formats(self, mock_bot, color_input, expected_value):
+		cr = CustomResponse(mock_bot)
+		data = {"embed": {"title": "Color Test", "color": color_input}}
+		result = cr.convert_embeds(data)
+		assert result["embeds"][0].color == discord.Color(expected_value)
+
+	def test_convert_embeds_colour_key_support(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		data = {"embeds": [{"title": "Hex colour", "colour": "#6094EB"}, {"title": "Int colour", "colour": 0xFF0000}]}
+		result = cr.convert_embeds(data)
+		assert result["embeds"][0].color == discord.Color(0x6094EB)
+		assert result["embeds"][1].color == discord.Color(0xFF0000)
+
+	def test_convert_embeds_existing_embed_default_color(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		embed_without_color = discord.Embed(title="Existing Embed")
+		embed_with_color = discord.Embed(title="Colored Embed", color=0xFF0000)
+		data = {"embeds": [embed_without_color, embed_with_color]}
+		result = cr.convert_embeds(data)
+		assert result["embeds"][0].color == discord.Color(0x6094EB)
+		assert result["embeds"][1].color == discord.Color(0xFF0000)
+
+	def test_convert_embeds_merge_embed_and_embeds(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		data = {
+			"embed": {"title": "Merged One"},
+			"embeds": [{"title": "Existing List Item"}],
+		}
+		result = cr.convert_embeds(data)
+		assert "embed" not in result
+		assert len(result["embeds"]) == 2
+		assert result["embeds"][0].title == "Existing List Item"
+		assert result["embeds"][1].title == "Merged One"
+		assert result["embeds"][0].color == discord.Color(0x6094EB)
+		assert result["embeds"][1].color == discord.Color(0x6094EB)
 
 	def test_convert_embeds_too_many_embeds_raises(self, mock_bot):
 		cr = CustomResponse(mock_bot)

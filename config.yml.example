@@ -16,6 +16,7 @@ modules:
   # then feel free to remove the items below
   - admin
   - afk
+  - alerts
   - basic
   - config
   - economy
@@ -62,3 +63,10 @@ allowed_mentions:
   everyone: False # this one is scary, I don't recommend changing it
   roles: False
   users: False
+
+# Optional Twitch API credentials for Twitch live stream alerts
+twitch_client_id: null
+twitch_client_secret: null
+
+# Optional RSSHub or custom bridge URL for TikTok/Instagram feeds
+rsshub_url: null
