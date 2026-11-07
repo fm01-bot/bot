@@ -400,3 +400,81 @@ class TestCustomResponseComponentsV2:
 		assert isinstance(text_item, discord.ui.TextDisplay)
 		assert "# Ticket #99" in text_item.content
 		assert "User: Alice" in text_item.content
+
+
+class TestDiscardLinesWithNoneAndCleanup:
+	@pytest.mark.asyncio
+	async def test_discard_lines_with_none_placeholder(self, mock_bot):
+		cr = CustomResponse(mock_bot)
+		cr.update_localizations(
+			{
+				"en": {
+					"test": {
+						"card": {
+							"components": [
+								{
+									"type": "container",
+									"components": [
+										{
+											"type": "text_display",
+											"content": "Title\nAliases: {aliases}",
+										},
+										{
+											"type": "separator",
+										},
+										{
+											"type": "text_display",
+											"content": "Extra: {extra}",
+										},
+									],
+								}
+							]
+						}
+					}
+				}
+			}
+		)
+
+		ctx = MagicMock(spec=commands.Context)
+		ctx.guild = MagicMock(spec=discord.Guild)
+		ctx.guild.preferred_locale = "en"
+
+		# Case 1: extra is None -> extra text display is dropped and trailing separator pruned
+		res1 = await cr.get_message("test.card", ctx, aliases="a, b", extra=None)
+		view1 = res1["view"]
+		container1 = view1.children[0]
+		assert len(container1.children) == 1
+		assert container1.children[0].content == "Title\nAliases: a, b"
+
+		# Case 2: aliases is None -> line is removed, extra is present
+		res2 = await cr.get_message("test.card", ctx, aliases=None, extra="something")
+		view2 = res2["view"]
+		container2 = view2.children[0]
+		assert len(container2.children) == 3
+		assert container2.children[0].content == "Title"
+		assert isinstance(container2.children[1], discord.ui.Separator)
+		assert container2.children[2].content == "Extra: something"
+
+	@pytest.mark.asyncio
+	async def test_help_command_aliases_none_discards_line_and_component(self, mock_bot):
+		from core.command import Command
+
+		cr = CustomResponse(mock_bot)
+		ctx = MagicMock(spec=commands.Context)
+		ctx.guild = MagicMock(spec=discord.Guild)
+		ctx.guild.preferred_locale = discord.Locale.american_english
+
+		cmd_no_aliases = Command("ping", "Latency check", "?!ping", "?!", None)
+		msg_none = await cr.get_message("help.command", ctx, command=cmd_no_aliases)
+		view_none = msg_none["view"]
+		container_none = view_none.children[0]
+		assert len(container_none.children) == 1
+		assert "Aliases" not in container_none.children[0].content
+
+		cmd_with_aliases = Command("ping", "Latency check", "?!ping", "?!", "p, latency")
+		msg_some = await cr.get_message("help.command", ctx, command=cmd_with_aliases)
+		view_some = msg_some["view"]
+		container_some = view_some.children[0]
+		assert len(container_some.children) == 3
+		assert isinstance(container_some.children[1], discord.ui.Separator)
+		assert "Aliases" in container_some.children[2].content

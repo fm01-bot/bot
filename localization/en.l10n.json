@@ -152,7 +152,7 @@
           },
           {
             "inline": false,
-            "name": "\u26a0\ufe0f You are in debt.",
+            "name": "⚠️ You are in debt.",
             "value": "Any money you earn will be used to pay off your debt."
           }
         ],
@@ -161,20 +161,21 @@
     ]
   },
   "cogs": {
-    "afk": "AFK",
-    "automod": "AutoMod",
-    "basic": "Basic",
-    "economy": "Economy",
-    "giveaway": "Giveaway",
-    "help": "Help",
-    "information": "Information",
-    "logging": "Logging",
-    "moderation": "Moderation",
-    "say": "Says",
-    "setup": "Setup",
-    "snapshot": "Snapshots",
-    "status": "Status",
-    "ticket": "Tickets"
+    "afk": "💤 AFK",
+    "automod": "🤖 AutoMod",
+    "basic": "⚙️ Basic",
+    "config": "🔧 Config",
+    "economy": "💰 Economy",
+    "giveaway": "🎉 Giveaway",
+    "information": "ℹ️ Information",
+    "level": "📊 Leveling",
+    "logging": "📜 Logging",
+    "moderation": "🛡️ Moderation",
+    "says": "💬 Says",
+    "setup": "🔧 Setup",
+    "shop": "🏪 Shop",
+    "snapshots": "📸 Snapshots",
+    "voice": "🔊 Voice"
   },
   "crime": {
     "embeds": [
@@ -350,7 +351,7 @@
         "content": "No one joined the giveaway..."
       },
       "success": {
-        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
       }
     },
     "message": {
@@ -358,7 +359,7 @@
         "content": "You've already joined this giveaway!",
         "ephemeral": true
       },
-      "button": "\ud83c\udf89 {participants}",
+      "button": "🎉 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
@@ -388,7 +389,7 @@
             "footer": {
               "text": "Click the button below to enter!"
             },
-            "title": "\ud83c\udf89 Giveaway!"
+            "title": "🎉 Giveaway!"
           }
         ]
       }
@@ -396,59 +397,90 @@
   },
   "help": {
     "bot": {
-      "embeds": [
+      "components": [
         {
-          "description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "inline": true,
-              "name": "{module}",
-              "value": "{commands} commands"
+              "content": "# 📖 Bot Help\nHere is a list of groups and commands you can use with the bot.\nUse `{prefix}help [command|module]` or select a module from the dropdown menu below to view its commands.",
+              "type": "text_display"
             }
           ],
-          "title": "Help"
+          "type": "container"
         }
       ]
     },
     "cog": {
-      "embeds": [
+      "components": [
         {
-          "description": "This module contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# {cog} Module\nThis module contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{cog} Help"
+          "type": "container"
         }
       ]
     },
     "command": {
-      "embeds": [
+      "components": [
         {
-          "description": "{command.description}",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "Aliases",
-              "value": "{command.aliases}"
+              "content": "# 📖 `{command.usage}`\n{command.description}",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "**Aliases:** {command.aliases}",
+              "type": "text_display"
             }
           ],
-          "title": "{command.usage}"
+          "type": "container"
         }
       ]
     },
+    "dropdown": {
+      "commands": "{commands} commands",
+      "overview": "Overview",
+      "overview_desc": "Return to the main help menu",
+      "placeholder": "Select a module to view commands..."
+    },
+    "errors": {
+      "not_author": {
+        "content": "Only the person who ran this command can use this menu."
+      }
+    },
     "group": {
-      "embeds": [
+      "components": [
         {
-          "description": "This group contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# 📖 `{group.prefix}{group.name}` Help\nThis group contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{group.prefix}{group.name} Help"
+          "type": "container"
         }
       ]
     }
@@ -595,7 +627,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83c\udf99\ufe0f {channel.name}",
+              "name": "🎙️ {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -741,7 +773,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83d\udd0a {channel.name}",
+              "name": "🔊 {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -1690,12 +1722,12 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
                 "name": "Color",
-                "value": "`{before.color}` \u2192 `{after.color}`"
+                "value": "`{before.color}` → `{after.color}`"
               }
             ],
             "title": "Role Updated"
@@ -2273,7 +2305,7 @@
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
@@ -2517,6 +2549,11 @@
               },
               {
                 "inline": false,
+                "name": "Status",
+                "value": "{case.status}"
+              },
+              {
+                "inline": false,
                 "name": "Reason",
                 "value": "{case.reason}"
               },
@@ -2577,7 +2614,7 @@
             "fields": [
               {
                 "inline": false,
-                "name": "{case.id} `{case.type.name}`",
+                "name": "{case.id} `{case.type.name}` ({case.status})",
                 "value": "Given by: {case.moderator.mention}\nReason: {case.reason}\nExpires: {case.length}"
               },
               {
@@ -2657,6 +2694,22 @@
               "text": "{mute.id}"
             },
             "title": "Unmuted"
+          }
+        ]
+      }
+    },
+    "remove": {
+      "errors": {
+        "not_found": {
+          "content": "Case not found."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "Case `{case.id}` has been marked as inactive.",
+            "title": "Case removed"
           }
         ]
       }
@@ -3020,7 +3073,7 @@
             },
             {
               "inline": false,
-              "name": "\u26a0\ufe0f You are in debt.",
+              "name": "⚠️ You are in debt.",
               "value": "Any money you earn will be used to pay off your debt."
             }
           ],
@@ -3094,7 +3147,7 @@
             "accent_color": 15105570,
             "components": [
               {
-                "content": "# \ud83d\udce6 Ticket Archived\nThis ticket was archived by **{author.name}**.",
+                "content": "# 📦 Ticket Archived\nThis ticket was archived by **{author.name}**.",
                 "type": "text_display"
               },
               {
@@ -3117,7 +3170,7 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83d\udd01 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
+                "content": "# 🔁 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
                 "type": "text_display"
               },
               {
@@ -3150,7 +3203,7 @@
             "accent_color": 6656243,
             "components": [
               {
-                "content": "# \ud83c\udfab {topic}\n**Opened by:** {member.mention} | **Ticket ID:** `#{ticket_id}`",
+                "content": "# 🎫 {topic}\n**Opened by:** {member.mention} • **Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
@@ -3208,7 +3261,7 @@
             "accent_color": 15105570,
             "components": [
               {
-                "content": "# \ud83d\udce6 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 📦 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
@@ -3229,14 +3282,14 @@
             "accent_color": 15548997,
             "components": [
               {
-                "content": "# \ud83d\udcea Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 📪 Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "-# **Closed By:** {actor.mention} ({actor.id})\n-# **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n-# **Ticket Channel:** #{channel.name}\n-# **Topic:** {topic}",
+                "content": "• **Closed By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** #{channel.name}\n• **Topic:** {topic}",
                 "type": "text_display"
               }
             ],
@@ -3250,14 +3303,14 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83c\udfab Ticket Created\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 🎫 Ticket Created\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "-# **Ticket Creator:** {member.mention} ({member.id})\n-# **Ticket Channel:** {channel.mention} (#{channel.name})-# \n**Topic:** {topic}",
+                "content": "• **Ticket Creator:** {member.mention} ({member.id})\n• **Ticket Channel:** {channel.mention} (#{channel.name})\n• **Topic:** {topic}",
                 "type": "text_display"
               }
             ],
@@ -3271,14 +3324,14 @@
             "accent_color": 5763719,
             "components": [
               {
-                "content": "# \ud83d\udd01 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 🔁 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "-# **Action By:** {actor.mention} ({actor.id})\n-# **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n-# **Ticket Channel:** {channel.mention}",
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
                 "type": "text_display"
               }
             ],
@@ -3292,14 +3345,14 @@
             "accent_color": 3447003,
             "components": [
               {
-                "content": "# \ud83d\udcbe Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
+                "content": "# 💾 Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
                 "type": "text_display"
               },
               {
                 "type": "separator"
               },
               {
-                "content": "-# **Action By:** {actor.mention} ({actor.id})\n-# **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n-# **Ticket Channel:** {channel.mention}",
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
                 "type": "text_display"
               }
             ],
@@ -3325,7 +3378,7 @@
           "accent_color": 6656243,
           "components": [
             {
-              "content": "# \ud83c\udfab Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
+              "content": "# 🎫 Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
               "type": "text_display"
             },
             {
@@ -3521,7 +3574,7 @@
     },
     "shuffle": {
       "success": {
-        "content": "\ud83d\udd00 Shuffled **{count}** tracks in queue."
+        "content": "🔀 Shuffled **{count}** tracks in queue."
       }
     },
     "skip": {
@@ -3539,7 +3592,7 @@
     },
     "volume": {
       "current": {
-        "content": "\ud83d\udd0a Current volume: **{volume}%**."
+        "content": "🔊 Current volume: **{volume}%**."
       },
       "set": {
         "content": "Volume set to **{volume}%**."

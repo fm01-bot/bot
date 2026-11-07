@@ -111,6 +111,7 @@ class Bot(commands.AutoShardedBot):
 		self.message_logging_guilds: set[int] = set()
 		self._health_task: asyncio.Task | None = None
 		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
+		self.locale_cache: dict[int, str] = {}
 		self.custom_response = custom_response.CustomResponse(self)
 		self._error_webhook: discord.Webhook | None = None
 
@@ -154,6 +155,8 @@ class Bot(commands.AutoShardedBot):
 	async def on_guild_remove(self, guild: discord.Guild):
 		if guild.id in self.prefix_cache:
 			del self.prefix_cache[guild.id]
+		if guild.id in self.locale_cache:
+			del self.locale_cache[guild.id]
 
 	async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Any:
 		return await super().get_context(origin, cls=Context)
@@ -184,6 +187,7 @@ class Bot(commands.AutoShardedBot):
 
 		await self.load_cogs()
 		await self.cache_prefixes()
+		await self.cache_locales()
 		await self.refresh_logging_guilds()
 		await self.tree.set_translator(SlashCommandLocalizer())
 		self.session = aiohttp.ClientSession(
@@ -207,8 +211,19 @@ class Bot(commands.AutoShardedBot):
 		guild_id = event.get("guild_id")
 		if event_type == "INVALIDATE_PREFIX" and guild_id:
 			self.prefix_cache.pop(int(guild_id), None)
+		elif event_type == "INVALIDATE_LOCALE" and guild_id:
+			new_loc = event.get("locale")
+			if new_loc:
+				self.locale_cache[int(guild_id)] = new_loc
+			else:
+				self.locale_cache.pop(int(guild_id), None)
 		elif event_type == "INVALIDATE_LOG_CONFIG" and guild_id:
 			await self.refresh_logging_guilds()
+		elif event_type == "INVALIDATE_MOD_CONFIG" and guild_id:
+			mod_cog: Any = self.get_cog("Moderation")
+			if mod_cog and hasattr(mod_cog, "set_guild_retention"):
+				retention = event.get("retention", "keep")
+				mod_cog.set_guild_retention(int(guild_id), retention)
 
 	async def on_message(self, message: discord.Message) -> None:
 		if message.author.bot:
@@ -385,6 +400,15 @@ class Bot(commands.AutoShardedBot):
 		result = await self.db.fetch("SELECT guild_id, prefix, mention FROM guilds")
 		for row in result:
 			self.prefix_cache[row["guild_id"]] = (row["prefix"], row["mention"])
+
+	async def cache_locales(self):
+		self.logger.info("Caching locale overrides...")
+		try:
+			result = await self.db.fetch("SELECT guild_id, locale FROM guild_locale_overrides")
+			for row in result:
+				self.locale_cache[int(row["guild_id"])] = row["locale"]
+		except Exception:
+			self.logger.exception("Failed to cache guild locale overrides")
 
 	async def on_ready(self):
 		if not hasattr(self, "uptime"):

@@ -23,22 +23,6 @@ from emoji.unicode_codes import EMOJI_DATA
 from helpers.regex import DISCORD_TEMPLATE
 
 
-class PokemonStats:
-	def __init__(self, stats: dict[str, int]):
-		self.hp = stats.get("hp", 0)
-		self.attack = stats.get("attack", 0)
-		self.defense = stats.get("defense", 0)
-
-
-class PokemonInfo:
-	def __init__(self, dex: int, types: list[str], stats: dict[str, int], image: str):
-		self.dex = dex
-		self.types = types
-		self.type = "\n".join(types)
-		self.base_stats = PokemonStats(stats)
-		self.image = image
-
-
 class Info(commands.Cog, name="Information"):
 	def __init__(self, client: Bot):
 		self.client = client

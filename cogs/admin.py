@@ -14,7 +14,7 @@ class Admin(commands.GroupCog, name="admin"):
 	def __init__(self, client: Bot):
 		self.client: Bot = client
 
-	@command()
+	@command(hidden=True)
 	@commands.is_owner()
 	async def reload(self, ctx: Context, cog: str):
 		try:
@@ -31,7 +31,7 @@ class Admin(commands.GroupCog, name="admin"):
 		) as e:
 			await ctx.reply(content=f"Failed to reload extension `{cog}`: {e}")
 
-	@command()
+	@command(hidden=True)
 	@commands.is_owner()
 	async def load(self, ctx: Context, cog: str):
 		try:
@@ -48,7 +48,7 @@ class Admin(commands.GroupCog, name="admin"):
 		) as e:
 			await ctx.reply(content=f"Failed to load extension `{cog}`: {e}")
 
-	@command()
+	@command(hidden=True)
 	@commands.is_owner()
 	async def unload(self, ctx: Context, cog: str):
 		try:
@@ -65,7 +65,7 @@ class Admin(commands.GroupCog, name="admin"):
 		) as e:
 			await ctx.reply(content=f"Failed to unload extension `{cog}`: {e}")
 
-	@command()
+	@command(hidden=True)
 	@commands.is_owner()
 	async def l10nreload(self, ctx: Context, path: str = "./localization"):
 		from pathlib import Path
@@ -80,7 +80,7 @@ class Admin(commands.GroupCog, name="admin"):
 		await ctx.reply(content="Reloaded localization files.")
 		logger.info(f"{ctx.author.name} reloaded localization files from {target_path}.")
 
-	@command()
+	@command(hidden=True)
 	@commands.is_owner()
 	@app_commands.choices(
 		scope=[
