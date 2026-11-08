@@ -243,7 +243,7 @@ class Ticket(commands.Cog, name="Ticket"):
 		file: discord.File | None = None,
 		view: discord.ui.View | discord.ui.LayoutView | None = None,
 		**kwargs: Any,
-	) -> discord.Message | None:
+	) -> discord.Message | discord.InteractionCallbackResponse[Any] | None:
 		context: Any = (
 			target.guild
 			if isinstance(target, (discord.Interaction, discord.abc.GuildChannel)) and target.guild

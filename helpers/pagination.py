@@ -96,6 +96,7 @@ class PaginationView(discord.ui.LayoutView):
 	async def handle_button_click(self, interaction: discord.Interaction, action: str) -> None:
 		"""Handles previous / next button interactions."""
 		if self.author_id is not None and interaction.user.id != self.author_id:
+			await interaction.response.send_message("You cannot interact with this pagination menu.", ephemeral=True)
 			return
 
 		if action == "prev" and self.current_page > 0:

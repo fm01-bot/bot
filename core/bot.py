@@ -10,7 +10,7 @@ from io import StringIO
 from logging import getLogger
 from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import Any, cast
 
 import aiohttp
 import asyncpg
@@ -67,7 +67,6 @@ class Bot(commands.AutoShardedBot):
 		intents: discord.Intents = discord.Intents.all()
 		self.db: asyncpg.Pool | MISSING = None
 		self.session: aiohttp.ClientSession | None = None
-		self.owner_ids: set[int] = set(config.owner_ids)
 
 		shard_count = self.cluster_config.shard_count if self.cluster_config.is_clustered else None
 
@@ -85,6 +84,7 @@ class Bot(commands.AutoShardedBot):
 			allowed_contexts=app_commands.AppCommandContext(**config.allowed_contexts),
 			allowed_installs=app_commands.AppInstallationType(**config.allowed_installs),
 			allowed_mentions=discord.AllowedMentions(**config.allowed_mentions),
+			owner_ids=set(config.owner_ids),
 		)
 
 		if self.cluster_config.is_clustered:
@@ -232,7 +232,7 @@ class Bot(commands.AutoShardedBot):
 		if message.guild and message.guild.id in self.message_logging_guilds:
 			self.message_buffer.enqueue_message(message)
 
-		prefix_entry = self.prefix_cache.get(message.guild.id)
+		prefix_entry = self.prefix_cache.get(message.guild.id) if message.guild else None
 		if prefix_entry:
 			prefix, mention = prefix_entry
 			prefixes: list[str] = [prefix] if isinstance(prefix, str) else list(prefix)
@@ -606,6 +606,8 @@ class Bot(commands.AutoShardedBot):
 		if ctx.interaction:
 			return
 		try:
-			await ctx.message.remove_reaction(self.config.emojis.get("loading", ""), ctx.me)
+			await ctx.message.remove_reaction(
+				self.config.emojis.get("loading", ""), cast(discord.abc.Snowflake, ctx.me)
+			)
 		except discord.HTTPException:
 			pass

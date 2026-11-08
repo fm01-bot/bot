@@ -49,7 +49,8 @@ class Emoji(PartialEmoji):
 		"""The name of the emoji."""
 		return self._name
 
-	__str__ = name
+	def __str__(self) -> str:
+		return self.name
 
 	@property
 	def is_application_owned(self) -> bool:

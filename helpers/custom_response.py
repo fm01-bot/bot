@@ -516,7 +516,8 @@ class CustomResponse:
 		| discord.Interaction
 		| commands.Context
 		| Context
-		| discord.Message,
+		| discord.Message
+		| None = "en",
 		/,
 		*,
 		convert_embeds: bool = True,
@@ -536,6 +537,8 @@ class CustomResponse:
 			dict | str | list | int | float | bool: The message payload.
 
 		"""
+		if locale is None:
+			locale = "en"
 		original = locale
 
 		locale_cache = getattr(self.client, "locale_cache", None)

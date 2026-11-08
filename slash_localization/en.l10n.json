@@ -165,10 +165,6 @@
         "expired": "expired",
         "name": "filter"
       },
-      "filter": {
-        "desc": "Filter cases by status: active, expired, or all",
-        "name": "filter"
-      },
       "user": {
         "desc": "The user you want to list cases for",
         "name": "user"

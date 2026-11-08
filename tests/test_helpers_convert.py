@@ -102,7 +102,7 @@ class TestConvertToQuery:
 
 	def test_invalid_column_identifier(self):
 		with pytest.raises(ValueError, match="Invalid column identifier"):
-			convert_to_query("cases", **{"invalid-column!": "val"})  # type: ignore # the type error is expected
+			convert_to_query("cases", **{"invalid-column!": "val"})  # the type error is expected
 
 
 class TestTextToEmoji:
