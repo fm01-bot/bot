@@ -34,8 +34,8 @@
   },
   "automod": {
     "reasons": {
-      "invite": "[AutoMod] Server invite link posted",
-      "lines": "[AutoMod] Excessive message line count",
+      "invite": "[AutoMod] Szervermeghívó",
+      "lines": "[AutoMod] Túl sok soros az üzeneted",
       "link": "[AutoMod] Unauthorized link posted",
       "mention": "[AutoMod] Excessive mentions",
       "phrase": "[AutoMod] Message contained forbidden phrase",
