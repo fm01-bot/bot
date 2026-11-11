@@ -27,7 +27,8 @@ def upgrade() -> None:
 	op.create_table(
 		"mod_config",
 		sa.Column("guild_id", sa.Numeric(), nullable=False, primary_key=True),
-		sa.Column("case_retention", sa.Enum("keep", "delete"), nullable=False, server_default=sa.text("'keep'::text")),
+		sa.Column("case_retention", sa.Text(), nullable=False, server_default=sa.text("'keep'")),
+		sa.CheckConstraint("case_retention IN ('keep', 'delete')", name="ck_mod_config_case_retention"),
 	)
 
 

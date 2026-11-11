@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 
 from alembic import context
 from dotenv import load_dotenv
-from sqlalchemy import pool
+from sqlalchemy import exc, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -96,7 +96,7 @@ async def run_async_migrations() -> None:
 			async with connectable.connect() as connection:
 				await connection.run_sync(do_run_migrations)
 			break
-		except (OSError, Exception) as e:
+		except (OSError, exc.OperationalError, exc.InterfaceError) as e:
 			if attempt == max_retries:
 				raise
 			logger.warning(

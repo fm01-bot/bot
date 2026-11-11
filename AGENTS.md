@@ -170,3 +170,19 @@ If any check fails, fix the underlying issue immediately before presenting resul
 - **Anti-Vibe-Coding / Anti-AI-Slop**: Reject unprincipled code generation. Maintain strict architectural discipline, appropriate typing, modular structure, and error resilience.
 - **Token Efficiency**: Strive to minimize output tokens while conveying complete, accurate technical solutions.
 - **Prime Directive**: Provide an accurate, unvarnished reality grounded in verified code.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `fm01-bot/bot`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Reuses existing repo labels where possible (`question`, `help wanted`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.

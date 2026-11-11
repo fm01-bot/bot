@@ -23,7 +23,7 @@ def upgrade() -> None:
 	op.create_table(
 		"guild_locale_overrides",
 		sa.Column("guild_id", sa.Numeric(), nullable=False, primary_key=True),
-		sa.Column("locale", sa.Text(2), nullable=False),
+		sa.Column("locale", sa.Text(), nullable=False),
 	)
 
 
