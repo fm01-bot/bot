@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar, Unpack
+from typing import Any, ClassVar, Literal, Self, TypeVar
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import MISSING
-
-if TYPE_CHECKING:
-	from discord.ext.commands.hybrid import _HybridCommandDecoratorKwargs
 
 from core import slash_localization
 
@@ -179,6 +176,8 @@ class HybridAppCommand(commands.hybrid.HybridAppCommand):
 
 
 class HybridCommand(commands.HybridCommand):
+	callback: Any
+
 	def __init__(
 		self,
 		func: CommandCallback | Callable[..., Coroutine[Any, Any, Any]],
@@ -189,13 +188,19 @@ class HybridCommand(commands.HybridCommand):
 		l10n_key: str | None = None,
 		user: bool = True,
 		guild: bool = True,
+		usage: str | None = None,
 		**kwargs: Any,
 	):
-		super().__init__(func, name=name, description=description, **kwargs)
+		base = l10n_key or name or getattr(func, "__name__", None)
+		super().__init__(func, name=name, description=description, usage=usage, **kwargs)
 		self.permissions = permissions
 		self.l10n_key = l10n_key
 		self.user = user
 		self.guild = guild
+
+		if self.usage is None and bool(self.clean_params) and base:
+			self.usage = f"{base}-usage"
+			self.__original_kwargs__["usage"] = self.usage
 
 		if permissions:
 			perms_dict = {perm: True for perm in permissions}
@@ -213,8 +218,19 @@ class HybridCommand(commands.HybridCommand):
 				guild=guild, dm_channel=user, private_channel=user
 			)
 
+	def _ensure_assignment_on_copy(self, other: Self) -> Self:
+		other = super()._ensure_assignment_on_copy(other)
+		other.permissions = self.permissions
+		other.l10n_key = self.l10n_key
+		other.user = self.user
+		other.guild = self.guild
+		other.usage = self.usage
+		return other
+
 
 class HybridGroup(commands.HybridGroup):
+	callback: Any
+
 	def __init__(
 		self,
 		func: CommandCallback | Callable[..., Any],
@@ -226,6 +242,7 @@ class HybridGroup(commands.HybridGroup):
 		l10n_key: str | None = None,
 		user: bool = True,
 		guild: bool = True,
+		usage: str | None = None,
 		**kwargs: Any,
 	):
 		base = l10n_key or name or func.__name__  # type: ignore
@@ -236,11 +253,15 @@ class HybridGroup(commands.HybridGroup):
 		else:
 			resolved_fallback = None
 
-		super().__init__(func, name=name, description=description, fallback=resolved_fallback, **kwargs)
+		super().__init__(func, name=name, description=description, fallback=resolved_fallback, usage=usage, **kwargs)
 		self.permissions = permissions
 		self.l10n_key = l10n_key
 		self.user = user
 		self.guild = guild
+
+		if self.usage is None and bool(self.clean_params) and base:
+			self.usage = f"{base}-usage"
+			self.__original_kwargs__["usage"] = self.usage
 
 		if permissions:
 			perms_dict = {perm: True for perm in permissions}
@@ -262,12 +283,23 @@ class HybridGroup(commands.HybridGroup):
 			fallback_command = HybridAppCommand(self, name=getattr(self, "fallback_locale", None) or self.fallback)
 			self.app_command.add_command(fallback_command)
 
-	def add_command(self, command: HybridGroup[CogT, ..., Any] | HybridCommand[CogT, ..., Any], /) -> None:
+	def _ensure_assignment_on_copy(self, other: Self) -> Self:
+		other = super()._ensure_assignment_on_copy(other)
+		other.permissions = self.permissions
+		other.l10n_key = self.l10n_key
+		other.user = self.user
+		other.guild = self.guild
+		other.usage = self.usage
+		return other
+
+	def add_command(
+		self, command: commands.hybrid.HybridGroup[Any, ..., Any] | commands.hybrid.HybridCommand[Any, ..., Any], /
+	) -> None:
 		super().add_command(command)
 		if isinstance(command, commands.hybrid.HybridCommand) and command.app_command:
 			command.app_command._locale_name = _l10n_str(command.name, command.name)
 
-	def command(
+	def command(  # type: ignore[override]
 		self,
 		name: str | app_commands.locale_str | None = None,
 		*args: Any,
@@ -275,8 +307,8 @@ class HybridGroup(commands.HybridGroup):
 		with_app_command: bool = True,
 		user: bool = True,
 		guild: bool = True,
-		**kwargs: Unpack[_HybridCommandDecoratorKwargs],
-	) -> Callable[[CommandCallback], HybridCommand]:
+		**kwargs: Any,
+	) -> Callable[[CommandCallback], Any]:
 		def decorator(func: CommandCallback):
 			kwargs.setdefault("parent", self)
 			result = command(
@@ -286,8 +318,8 @@ class HybridGroup(commands.HybridGroup):
 				l10n_key=l10n_key,
 				user=user,
 				guild=guild,
-				**kwargs,
 				with_app_command=with_app_command,
+				**kwargs,
 			)(func)
 			self.add_command(result)
 			return result
@@ -336,6 +368,8 @@ def command(
 	user: bool = True,
 	guild: bool = True,
 	aliases: list[str] | None = None,
+	usage: str | None = None,
+	**kwargs: Any,
 ) -> Callable[[CommandCallback], HybridCommand]:
 	def decorator(func: CommandCallback) -> HybridCommand:
 		if isinstance(func, commands.Command):
@@ -344,8 +378,6 @@ def command(
 		base = l10n_key or name or func.__name__  # type: ignore
 
 		text_description = description or f"{base}-desc"
-
-		usage = f"{base}-usage"
 
 		cmd = HybridCommand(
 			func,
@@ -362,6 +394,7 @@ def command(
 			user=user,
 			guild=guild,
 			aliases=aliases or [],
+			**kwargs,
 		)
 
 		return cmd
@@ -381,6 +414,8 @@ def group(
 	l10n_key: str | None = None,
 	user: bool = True,
 	guild: bool = True,
+	usage: str | None = None,
+	**kwargs: Any,
 ) -> Callable[[Callable[..., Any]], HybridGroup]:
 	def decorator(func: Callable[..., Any]) -> HybridGroup:
 		if isinstance(func, commands.Command):
@@ -403,6 +438,8 @@ def group(
 			l10n_key=base,
 			user=user,
 			guild=guild,
+			usage=usage,
+			**kwargs,
 		)
 
 		result.app_command = _localize_app_command_attributes(result.app_command, base)  # type: ignore

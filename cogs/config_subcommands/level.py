@@ -27,6 +27,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	enable_node = level_node.create_subcommand("enable", description="Enable leveling system.")
 
 	async def level_enable(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		cog: Any = ctx.bot.get_cog("Level")
 		if cog:
 			await cog.enable_leveling(ctx.guild.id)
@@ -46,6 +47,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	disable_node = level_node.create_subcommand("disable", description="Disable leveling system.")
 
 	async def level_disable(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		cog: Any = ctx.bot.get_cog("Level")
 		if cog:
 			await cog.disable_leveling(ctx.guild.id)
@@ -76,6 +78,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		cooldown: str | None = None,
 		**kwargs: Any,
 	):
+		assert ctx.guild is not None
 		if min is None and max is None and multiplier is None and cooldown is None:
 			raise CLIParseError(
 				"Please specify at least one option: `--min`, `--max`, `--multiplier`, or `--cooldown`.", xp_node
@@ -176,6 +179,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		template_pos: list[str] | None = None,
 		**kwargs: Any,
 	):
+		assert ctx.guild is not None
 		tmpl_text = template or (" ".join(template_pos) if template_pos else None)
 
 		if mode is None and channel is None and tmpl_text is None:
@@ -231,6 +235,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	rewards_add_node.add_argument("role", required=True, help="Target role mention, ID, or name")
 
 	async def rewards_add(ctx: Context, level: str | None = None, role: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not level or not role:
 			raise CLIParseError("Usage: `config level rewards add <level> <role>`", rewards_add_node)
 
@@ -269,6 +274,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	rewards_rm_node.add_argument("role", required=False, help="Optional specific role to remove")
 
 	async def rewards_remove(ctx: Context, level: str | None = None, role: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not level:
 			raise CLIParseError("Usage: `config level rewards remove <level> [role]`", rewards_rm_node)
 
@@ -304,6 +310,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	rewards_stack_node.add_argument("stack", required=True, help="`true` (stack rewards) or `false` (replace previous)")
 
 	async def rewards_stack(ctx: Context, stack: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if stack is None or stack.lower() not in {"true", "false", "yes", "no", "1", "0"}:
 			raise CLIParseError("Please specify `true` (stack) or `false` (replace previous).", rewards_stack_node)
 
@@ -334,6 +341,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	rewards_list_node = rewards_node.create_subcommand("list", description="List all configured role rewards.")
 
 	async def rewards_list(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		rows = await ctx.bot.db.fetch(
 			"SELECT level, role_id FROM level_roles WHERE guild_id = $1 ORDER BY level ASC", ctx.guild.id
 		)
@@ -355,6 +363,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	ch_ignore_node.add_argument("channel", required=True, help="Target channel to ignore")
 
 	async def channel_ignore(ctx: Context, channel: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not channel:
 			raise CLIParseError("Usage: `config level channel ignore <channel>`", ch_ignore_node)
 		target_channel = resolve_channel(ctx.guild, channel)
@@ -383,6 +392,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	ch_unignore_node.add_argument("channel", required=True, help="Target channel to unignore")
 
 	async def channel_unignore(ctx: Context, channel: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not channel:
 			raise CLIParseError("Usage: `config level channel unignore <channel>`", ch_unignore_node)
 		target_channel = resolve_channel(ctx.guild, channel)
@@ -414,6 +424,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	async def channel_multiplier(
 		ctx: Context, channel: str | None = None, multiplier: str | None = None, **kwargs: Any
 	):
+		assert ctx.guild is not None
 		if not channel or not multiplier:
 			raise CLIParseError("Usage: `config level channel multiplier <channel> <multiplier>`", ch_mult_node)
 		target_channel = resolve_channel(ctx.guild, channel)
@@ -449,6 +460,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	ch_list_node = channel_node.create_subcommand("list", description="List channel XP overrides.")
 
 	async def channel_list(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		rows = await ctx.bot.db.fetch(
 			"SELECT channel_id, multiplier, is_ignored FROM level_channel_overrides WHERE guild_id = $1", ctx.guild.id
 		)
@@ -475,6 +487,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	role_ignore_node.add_argument("role", required=True, help="Target role")
 
 	async def role_ignore(ctx: Context, role: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not role:
 			raise CLIParseError("Usage: `config level role ignore <role>`", role_ignore_node)
 		target_role = resolve_role(ctx.guild, role)
@@ -503,6 +516,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	role_unignore_node.add_argument("role", required=True, help="Target role")
 
 	async def role_unignore(ctx: Context, role: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not role:
 			raise CLIParseError("Usage: `config level role unignore <role>`", role_unignore_node)
 		target_role = resolve_role(ctx.guild, role)
@@ -532,6 +546,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	role_mult_node.add_argument("multiplier", required=True, help="XP multiplier for this role (e.g. 1.5, 2.0)")
 
 	async def role_multiplier(ctx: Context, role: str | None = None, multiplier: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		if not role or not multiplier:
 			raise CLIParseError("Usage: `config level role multiplier <role> <multiplier>`", role_mult_node)
 		target_role = resolve_role(ctx.guild, role)
@@ -567,6 +582,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	role_list_node = role_node.create_subcommand("list", description="List role XP overrides.")
 
 	async def role_list(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		rows = await ctx.bot.db.fetch(
 			"SELECT role_id, multiplier, is_ignored FROM level_role_overrides WHERE guild_id = $1", ctx.guild.id
 		)
@@ -590,6 +606,7 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 	show_node = level_node.create_subcommand("show", description="Show full leveling configuration for this server.")
 
 	async def level_show(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		cog: Any = ctx.bot.get_cog("Level")
 		cfg = await cog.get_guild_config(ctx.guild.id) if cog else None
 

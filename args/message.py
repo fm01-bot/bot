@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass, field
+from typing import Any
 
 import discord
 
@@ -25,7 +28,7 @@ class Message:
 	_embeds: list[discord.Embed] = field(repr=False)
 	_attachments: list[discord.Attachment] = field(repr=False)
 	_stickers: list[discord.StickerItem] = field(repr=False)
-	_author: discord.User | discord.Member = field(repr=False)
+	_author: discord.User | discord.Member | None = field(repr=False)
 	_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.Messageable | None = field(repr=False)
 	_guild: discord.Guild | None = field(repr=False)
 	_created_at: datetime.datetime = field(repr=False)
@@ -69,6 +72,50 @@ class Message:
 			_poll=message.poll,
 		)
 
+	@classmethod
+	def from_snapshot(
+		cls,
+		data: dict[str, Any],
+		guild: discord.Guild | None = None,
+		channel: discord.abc.GuildChannel | discord.Thread | discord.abc.Messageable | None = None,
+		author: discord.User | discord.Member | None = None,
+	) -> Message:
+		"""Creates a Message object from a cached compact message snapshot."""
+		created_str = data.get("created_at")
+		created_at = datetime.datetime.fromisoformat(created_str) if created_str else discord.utils.utcnow()
+		msg_id = data.get("id", 0)
+		channel_id = data.get("channel_id", 0)
+		guild_id = data.get("guild_id", 0)
+		jump_url = f"https://discord.com/channels/{guild_id}/{channel_id}/{msg_id}"
+		author_id = data.get("author_id", 0)
+		resolved_author = author or (guild.get_member(author_id) if guild else None)
+
+		resolved_channel = channel or (guild.get_channel_or_thread(channel_id) if guild else None)
+
+		return cls(
+			id=msg_id,
+			content=data.get("content", ""),
+			_embeds=[],
+			_attachments=[],
+			_stickers=[],
+			_author=resolved_author,
+			_channel=resolved_channel,
+			_guild=guild,
+			_created_at=created_at,
+			_edited_at=None,
+			_pinned=False,
+			_tts=False,
+			_mention_everyone=False,
+			_mentions=[],
+			_role_mentions=[],
+			_channel_mentions=[],
+			_reference=None,
+			_flags=discord.MessageFlags(),
+			_components=[],
+			_jump_url=jump_url,
+			_poll=None,
+		)
+
 	@property
 	def jump_url(self) -> str:
 		"""The message's jump URL."""
@@ -92,8 +139,10 @@ class Message:
 		return len(self._stickers)
 
 	@property
-	def author(self) -> Member:
+	def author(self) -> Member | None:
 		"""The message's author."""
+		if not self._author:
+			return None
 		return (
 			Member.from_member(self._author)
 			if isinstance(self._author, discord.Member)

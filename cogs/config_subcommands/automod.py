@@ -17,6 +17,8 @@ SUPPORTED_FEATURES = ("phrase", "link", "invite", "spam", "mention", "lines")
 
 
 async def _get_cog_and_config(ctx: Context, node: CLINode) -> tuple[AutoMod, AutoModConfig]:
+	if not ctx.guild:
+		raise CLIParseError("This command can only be used in a server.", node)
 	cog: Any = ctx.bot.get_cog("AutoMod")
 	if not cog:
 		raise CLIParseError("AutoMod module is not currently loaded.", node)
@@ -51,6 +53,7 @@ def setup_automod_subcommands(parent_node: CLINode) -> CLINode:
 	status_node = automod_node.create_subcommand("status", description="Show server auto-moderation status.")
 
 	async def automod_status(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		_, config = await _get_cog_and_config(ctx, status_node)
 		rules = config.settings.get("rules", {})
 		bypasses = config.settings.get("bypasses", {})
@@ -675,12 +678,14 @@ def setup_automod_subcommands(parent_node: CLINode) -> CLINode:
 	bypass_list_node.add_option("feature", "f", help="Target feature name (omit for global and all features)")
 
 	async def bypass_list(ctx: Context, feature: str | None = None, **kwargs: Any):
+		assert ctx.guild is not None
 		_, config = await _get_cog_and_config(ctx, bypass_list_node)
 		feat = _validate_feature(feature, bypass_list_node)
 
 		bypasses = config.settings.get("bypasses", {})
 
 		def _format_scope(title: str, data: dict[str, Any]) -> list[str]:
+			assert ctx.guild is not None
 			out = [f"=== {title} ==="]
 			channels = data.get("channels", [])
 			categories = data.get("categories", [])

@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+import asyncio
 import datetime
+import heapq
+import logging
 from copy import deepcopy
 from enum import Enum
 from typing import Any, Literal, Self
@@ -9,9 +14,12 @@ from args import FormatDateTime, Guild, Member, TextChannel, User
 from core import Bot, Context
 from core.hybrid import command, group
 from discord import app_commands
-from discord.ext import commands, localization, tasks
+from discord.ext import commands, localization
 from discord.utils import MISSING
 from helpers import convert_to_query, custom_response, seconds_to_text, text_to_seconds
+from helpers.pagination import PaginationView
+
+logger = logging.getLogger(__name__)
 
 
 class CaseType(Enum):
@@ -29,11 +37,12 @@ class Case:
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		created: datetime.datetime = MISSING,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
 		message: str | None = None,
+		active: bool = True,
 	):
 		if created is MISSING:
 			created = datetime.datetime.now(tz=datetime.UTC)
@@ -47,14 +56,18 @@ class Case:
 		self._guild: discord.Guild = guild
 		self._user: discord.Member | discord.User = user
 		self._reason: str | None = reason
-		self._moderator: discord.User = moderator
+		self._moderator: discord.User | discord.Member = moderator
 		self.expires: datetime.datetime | None = expires
 		self.message: str | None = message
-		self.length: str | None = discord.utils.format_dt(self.expires, "R") if self.expires else self.expires
+		self.active: bool = active
+		self.length: str | None = discord.utils.format_dt(self.expires, "R") if self.expires else None
 		self._created: datetime.datetime = created or datetime.datetime.now(tz=datetime.UTC)
 
 	def __repr__(self):
-		return f"Case(type={self.type} user={self._user} reason={self.reason} moderator={self._moderator} duration={self.expires} message={self.message} id={self.id})"
+		return (
+			f"Case(type={self.type} user={self._user} reason={self.reason} moderator={self._moderator} "
+			f"duration={self.expires} message={self.message} id={self.id} active={self.active})"
+		)
 
 	def __eq__(self, other):
 		return self.id == other.id
@@ -78,6 +91,8 @@ class Case:
 		return self.id
 
 	def __bool__(self):
+		if not self.active:
+			return False
 		if self.expires is None:
 			return True
 		return self.expires > datetime.datetime.now(tz=datetime.UTC)
@@ -86,6 +101,15 @@ class Case:
 		if self.expires is None:
 			return 0
 		return datetime.datetime.now(tz=datetime.UTC) - self.expires
+
+	@property
+	def status(self) -> str:
+		"""Returns the status text: 'Active', 'Expired', or 'Inactive'."""
+		if not self.active:
+			return "Inactive"
+		if self.expires and self.expires <= datetime.datetime.now(tz=datetime.UTC):
+			return "Expired"
+		return "Active"
 
 	@classmethod
 	def from_dict(cls, data: dict, client: discord.Client, get_type: bool = False) -> Self:
@@ -107,6 +131,11 @@ class Case:
 		data["user"] = client.get_user(data.pop("user_id"))
 		data["moderator"] = client.get_user(data.pop("moderator_id"))
 
+		active = data.pop("active", True)
+		if active is None:
+			active = True
+		data["active"] = active
+
 		if not get_type:
 			data.pop("_type", None)
 		return cls(**data)
@@ -120,8 +149,9 @@ class Case:
 		guild: discord.Guild,
 		limit: int | None = None,
 		get_type: bool = True,
+		status_filter: str | None = None,
 	) -> list[Self]:
-		"""Generate a list of `Case`s from a user.
+		"""Generate a list of `Case`s from a user with optional status filtering.
 
 		Args:
 			db (asyncpg.Pool): The database connection pool.
@@ -130,12 +160,47 @@ class Case:
 			guild (discord.Guild): The guild to get the cases from.
 			limit (int, optional): The limit of cases to get. If None, it will get all cases.
 			get_type (bool): Whether to return the type of the case in the result dictionary.
+			status_filter (str, optional): Filter by 'active', 'expired', or 'all'.
 
 		Returns:
 			list[Case]: The list of cases.
 
 		"""
-		return await cls.from_db(db, client, guild, limit=limit, get_type=get_type, user=user)
+		now = datetime.datetime.now(tz=datetime.UTC)
+		if status_filter == "active":
+			query = (
+				"SELECT * FROM cases WHERE guild_id = $1 AND user_id = $2 "
+				"AND active = true AND (expires IS NULL OR expires > $3) ORDER BY created DESC"
+			)
+			params: list[Any] = [guild.id, user.id, now]
+		elif status_filter == "expired":
+			query = (
+				"SELECT * FROM cases WHERE guild_id = $1 AND user_id = $2 "
+				"AND (active = false OR (expires IS NOT NULL AND expires <= $3)) ORDER BY created DESC"
+			)
+			params = [guild.id, user.id, now]
+		else:
+			query = "SELECT * FROM cases WHERE guild_id = $1 AND user_id = $2 ORDER BY created DESC"
+			params = [guild.id, user.id]
+
+		if limit is not None:
+			query += f" LIMIT ${len(params) + 1}"
+			params.append(limit)
+
+		result = await db.fetch(query, *params)
+		case_mapping = {CaseType.WARN: Warn, CaseType.MUTE: Mute, CaseType.KICK: Kick, CaseType.BAN: Ban}
+
+		cases = []
+		for case_data in result:
+			base_case = cls.from_dict(case_data, client, get_type)
+			case_class = case_mapping.get(base_case.type, cls)
+			as_dict = base_case.to_dict()
+			if as_dict.get("_type") is None:
+				cases.append(cls(**as_dict))  # type: ignore
+			else:
+				as_dict.pop("_type", None)
+				cases.append(case_class(**as_dict))  # type: ignore
+		return cases
 
 	@classmethod
 	async def from_moderator(
@@ -223,13 +288,14 @@ class Case:
 				cases.append(cls(**as_dict))  # type: ignore
 			else:
 				as_dict.pop("_type", None)
-				cases.append(case_class(**as_dict))
+				cases.append(case_class(**as_dict))  # type: ignore
 		return cases
 
 	def to_dict(
 		self,
 	) -> dict[
-		str, CaseType | int | discord.Guild | discord.Member | discord.User | str | datetime.datetime | None | Bot
+		str,
+		CaseType | int | discord.Guild | discord.Member | discord.User | str | datetime.datetime | None | Bot | bool,
 	]:
 		"""Convert the `Case` to a dictionary."""
 		return {
@@ -242,19 +308,14 @@ class Case:
 			"reason": self.reason,
 			"expires": self.expires,
 			"message": self.message,
+			"active": self.active,
 		}
 
 	async def before_deletion(self):
-		"""An overrideable method that is called before a case is deleted. The default implementation does nothing.
-
-		Example usage: when deleting a Case(type=CaseType.MUTE), you want to remove the timeout from the user.
-		"""
+		"""An overrideable method that is called before a case is deleted or deactivated."""
 
 	async def after_deletion(self):
-		"""An overrideable method that is called after a case is deleted. The default implementation does nothing.
-
-		Example usage: when deleting a Case(type=CaseType.MUTE), you want to remove the timeout from the user.
-		"""
+		"""An overrideable method that is called after a case is deleted or deactivated."""
 
 	async def delete(self, db: asyncpg.Pool) -> None:
 		"""Delete the case from the database. This will also call `before_deletion` and `after_deletion`.
@@ -263,8 +324,26 @@ class Case:
 			db (asyncpg.Pool): The database connection pool.
 
 		"""
+		mod_cog: Any = self.bot.get_cog("Moderation")
+		if mod_cog and hasattr(mod_cog, "manager"):
+			mod_cog.manager.cancel(self.id)
 		await self.before_deletion()
 		await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
+		await self.after_deletion()
+
+	async def deactivate(self, db: asyncpg.Pool) -> None:
+		"""Mark the case as inactive in the database. This will also call `before_deletion` and `after_deletion`.
+
+		Args:
+			db (asyncpg.Pool): The database connection pool.
+
+		"""
+		mod_cog: Any = self.bot.get_cog("Moderation")
+		if mod_cog and hasattr(mod_cog, "manager"):
+			mod_cog.manager.cancel(self.id)
+		await self.before_deletion()
+		self.active = False
+		await db.execute("UPDATE cases SET active = false WHERE case_id = $1", self.id)
 		await self.after_deletion()
 
 	async def before_creation(self) -> None:
@@ -288,7 +367,10 @@ class Case:
 
 		await self.before_creation()
 		await db.execute(
-			"INSERT INTO cases (type, guild_id, case_id, user_id, moderator_id, reason, expires, message) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+			"""
+			INSERT INTO cases (type, guild_id, case_id, user_id, moderator_id, reason, expires, message, active)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			""",
 			self.type.value,
 			self._guild.id,
 			self.id,
@@ -297,12 +379,18 @@ class Case:
 			self.reason,
 			self.expires,
 			self.message,
+			self.active,
 		)
 		try:
 			await self.after_creation()
 		except Exception:
 			await db.execute("DELETE FROM cases WHERE case_id = $1", self.id)
 			raise
+
+		mod_cog: Any = self.bot.get_cog("Moderation")
+		if mod_cog and hasattr(mod_cog, "manager"):
+			mod_cog.manager.schedule(self)
+
 		return self
 
 	@staticmethod
@@ -318,18 +406,29 @@ class Case:
 			case (Case): The new case data; if something is not set in the new case, it will be set to the old case's data.
 
 		"""
+		self.active = case.active
+		self.reason = case.reason
+		self.expires = case.expires
+		self.message = case.message
+		self._user = case._user
 		await db.execute(
-			"UPDATE cases SET user_id = $1, reason = $2, expires = $3, message = $4 WHERE case_id = $5",
+			"UPDATE cases SET user_id = $1, reason = $2, expires = $3, message = $4, active = $5 WHERE case_id = $6",
 			case._user.id,
 			case.reason,
 			case.expires,
 			case.message,
+			case.active,
 			self.id,
 		)
+		mod_cog: Any = self.bot.get_cog("Moderation")
+		if mod_cog and hasattr(mod_cog, "manager"):
+			mod_cog.manager.reschedule(self.id, self._guild.id, case.expires)
 
 	def copy(self) -> Self:
 		"""Copy the case."""
-		return deepcopy(self)
+		new_case = object.__new__(self.__class__)
+		new_case.__dict__.update(self.__dict__)
+		return new_case
 
 	@property
 	def created(self) -> FormatDateTime:
@@ -341,7 +440,7 @@ class Case:
 		return self._reason
 
 	@reason.setter
-	def reason(self, value: str) -> None:
+	def reason(self, value: str | None) -> None:
 		self._reason = value
 
 	@property
@@ -364,15 +463,18 @@ class Warn(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
 		message: str | None = None,
 		created: datetime.datetime = MISSING,
+		active: bool = True,
 	):
 		self._user = user
 		self._guild = guild
-		super().__init__(CaseType.WARN, _id, bot, guild, user, moderator, created, reason, expires, message)
+		super().__init__(
+			CaseType.WARN, _id, bot, guild, user, moderator, created, reason, expires, message, active=active
+		)
 
 	async def after_creation(self) -> None:
 		"""Notifies the user about the warning."""
@@ -404,13 +506,16 @@ class Kick(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		message: str | None = None,
 		created: datetime.datetime = MISSING,
 		expires=None,
+		active: bool = True,
 	):
-		super().__init__(CaseType.KICK, _id, bot, guild, user, moderator, created, reason, expires, message)
+		super().__init__(
+			CaseType.KICK, _id, bot, guild, user, moderator, created, reason, expires, message, active=active
+		)
 
 	async def before_creation(self) -> None:
 		"""Notifies the user about the kick."""
@@ -436,13 +541,16 @@ class Mute(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		expires: datetime.datetime,
 		reason: str | None = None,
 		message: str | None = None,
 		created: datetime.datetime = MISSING,
+		active: bool = True,
 	):
-		super().__init__(CaseType.MUTE, _id, bot, guild, user, moderator, created, reason, expires, message)
+		super().__init__(
+			CaseType.MUTE, _id, bot, guild, user, moderator, created, reason, expires, message, active=active
+		)
 
 	async def before_creation(self) -> None:
 		"""Mutes the user."""
@@ -495,13 +603,16 @@ class Ban(Case):
 		bot: Bot,
 		guild: discord.Guild,
 		user: discord.Member | discord.User,
-		moderator: discord.User,
+		moderator: discord.User | discord.Member,
 		reason: str | None = None,
 		expires: datetime.datetime | None = None,
 		message: str | None = None,
 		created: datetime.datetime = MISSING,
+		active: bool = True,
 	):
-		super().__init__(CaseType.BAN, _id, bot, guild, user, moderator, created, reason, expires, message)
+		super().__init__(
+			CaseType.BAN, _id, bot, guild, user, moderator, created, reason, expires, message, active=active
+		)
 
 	async def before_creation(self) -> None:
 		"""Notifies the user about the ban."""
@@ -516,12 +627,12 @@ class Ban(Case):
 
 	async def after_creation(self) -> None:
 		"""Bans the user."""
-		await self._guild.ban(self._user, reason=f"Banned by {self._moderator}", delete_message_days=0)
+		await self._guild.ban(self._user, reason=f"Banned by {self._moderator}", delete_message_days=0)  # type: ignore
 
 	async def before_deletion(self) -> None:
 		"""Unbans the user."""
 		try:
-			await self._guild.unban(self._user, reason="Ban removed")
+			await self._guild.unban(self._user, reason="Ban removed")  # type: ignore
 		except discord.NotFound:
 			pass
 
@@ -538,50 +649,191 @@ class Ban(Case):
 				pass
 
 
+class CaseExpirationManager:
+	"""Event-driven priority queue manager for case expirations across shards."""
+
+	def __init__(self, bot: Bot):
+		self.bot = bot
+		self._queue: list[tuple[float, int, int]] = []
+		self._scheduled_ids: set[int] = set()
+		self._wake_event = asyncio.Event()
+		self._task: asyncio.Task[None] | None = None
+		self._running = False
+		self._retention_cache: dict[int, str] = {}
+
+	def is_guild_on_shard(self, guild_id: int) -> bool:
+		"""Check if the guild belongs to a shard handled by this bot instance."""
+		total_shards = self.bot.shard_count or len(self.bot.shards) or 1
+		shard_ids = self.bot.shard_ids if self.bot.shard_ids is not None else list(self.bot.shards.keys())
+		if not shard_ids:
+			return True
+		guild_shard = (guild_id >> 22) % total_shards
+		return guild_shard in shard_ids
+
+	async def get_guild_retention(self, guild_id: int) -> str:
+		"""Fetch the case retention setting ('keep' or 'delete') for a guild."""
+		if guild_id in self._retention_cache:
+			return self._retention_cache[guild_id]
+
+		row = await self.bot.db.fetchrow("SELECT case_retention FROM mod_config WHERE guild_id = $1", guild_id)
+		retention = row["case_retention"] if row else "keep"
+		self._retention_cache[guild_id] = retention
+		return retention
+
+	def set_guild_retention(self, guild_id: int, retention: str) -> None:
+		"""Update local retention cache for a guild."""
+		self._retention_cache[guild_id] = retention
+
+	def schedule(self, case: Case) -> None:
+		"""Schedule a case for expiration if it has an expiry date."""
+		if not case.expires or not case.active:
+			return
+		if not self.is_guild_on_shard(case._guild.id):
+			return
+
+		expires_ts = case.expires.timestamp()
+		heapq.heappush(self._queue, (expires_ts, case.id, case._guild.id))
+		self._scheduled_ids.add(case.id)
+		self._wake_event.set()
+
+	def reschedule(self, case_id: int, guild_id: int, new_expires: datetime.datetime | None) -> None:
+		"""Reschedule an existing case expiration."""
+		self._scheduled_ids.discard(case_id)
+		if new_expires and self.is_guild_on_shard(guild_id):
+			heapq.heappush(self._queue, (new_expires.timestamp(), case_id, guild_id))
+			self._scheduled_ids.add(case_id)
+		self._wake_event.set()
+
+	def cancel(self, case_id: int) -> None:
+		"""Cancel a pending case expiration."""
+		self._scheduled_ids.discard(case_id)
+		self._wake_event.set()
+
+	async def _process_expiration(self, case_id: int, guild_id: int) -> None:
+		"""Process an expired case: execute side effects and deactivate or delete."""
+		row = await self.bot.db.fetchrow("SELECT * FROM cases WHERE case_id = $1 AND active = true", case_id)
+		if not row:
+			return
+
+		base_case = Case.from_dict(row, self.bot, get_type=True)
+		if not base_case._guild:
+			await self.bot.db.execute("DELETE FROM cases WHERE case_id = $1", case_id)
+			return
+
+		case_mapping = {
+			CaseType.WARN: Warn,
+			CaseType.MUTE: Mute,
+			CaseType.KICK: Kick,
+			CaseType.BAN: Ban,
+		}
+		case_cls = case_mapping.get(base_case.type, Case)
+		as_dict = base_case.to_dict()
+		as_dict.pop("_type", None)
+		case: Case = case_cls(**as_dict)  # type: ignore
+
+		retention = await self.get_guild_retention(guild_id)
+		if retention == "delete":
+			await case.delete(self.bot.db)
+		else:
+			await case.deactivate(self.bot.db)
+
+	async def load_pending(self) -> None:
+		"""Load pending active cases for guilds on this bot's shards."""
+		await self.bot.wait_until_ready()
+		rows = await self.bot.db.fetch("SELECT * FROM cases WHERE active = true AND expires IS NOT NULL")
+		now = datetime.datetime.now(tz=datetime.UTC)
+
+		for row in rows:
+			guild_id = int(row["guild_id"])
+			if not self.is_guild_on_shard(guild_id):
+				continue
+
+			case_id = int(row["case_id"])
+			expires = row["expires"]
+			if expires and expires.tzinfo is None:
+				expires = expires.replace(tzinfo=datetime.UTC)
+
+			if expires <= now:
+				await self._process_expiration(case_id, guild_id)
+			else:
+				heapq.heappush(self._queue, (expires.timestamp(), case_id, guild_id))
+				self._scheduled_ids.add(case_id)
+
+		self._wake_event.set()
+
+	async def _runner(self) -> None:
+		"""Continuous runner sleeping until the next case expiration."""
+		await self.load_pending()
+
+		while self._running:
+			try:
+				now_ts = datetime.datetime.now(tz=datetime.UTC).timestamp()
+
+				while self._queue and self._queue[0][1] not in self._scheduled_ids:
+					heapq.heappop(self._queue)
+
+				if not self._queue:
+					self._wake_event.clear()
+					await self._wake_event.wait()
+					continue
+
+				earliest_ts, next_case_id, guild_id = self._queue[0]
+				delay = earliest_ts - now_ts
+
+				if delay <= 0:
+					heapq.heappop(self._queue)
+					self._scheduled_ids.discard(next_case_id)
+					await self._process_expiration(next_case_id, guild_id)
+					continue
+
+				self._wake_event.clear()
+				try:
+					await asyncio.wait_for(self._wake_event.wait(), timeout=delay)
+				except TimeoutError:
+					pass
+			except asyncio.CancelledError:
+				break
+			except Exception:
+				logger.exception("Error in CaseExpirationManager runner loop")
+				await asyncio.sleep(1)
+
+	def start(self) -> None:
+		"""Start the background runner."""
+		if not self._running:
+			self._running = True
+			self._task = asyncio.create_task(self._runner())
+
+	def stop(self) -> None:
+		"""Stop the background runner."""
+		self._running = False
+		if self._task and not self._task.done():
+			self._task.cancel()
+
+
 @commands.guild_only()
 @app_commands.guild_only()
 class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 	def __init__(self, client: Bot):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
+		self.manager = CaseExpirationManager(client)
 
-	@tasks.loop(seconds=30)
-	async def case_removal(self):
-		case_rows = await self.client.db.fetch(
-			"SELECT * FROM cases WHERE expires IS NOT NULL AND expires <= $1", datetime.datetime.now(tz=datetime.UTC)
-		)
-		for row in case_rows:
-			case = Case.from_dict(row, self.client, get_type=True)
-			if not case._guild:
-				await self.client.db.execute("DELETE FROM cases WHERE id = $1", row["id"])
-				continue
-
-			match case.type:
-				case CaseType.WARN:
-					case = Warn.from_dict(row, self.client)
-				case CaseType.MUTE:
-					case = Mute.from_dict(row, self.client)
-				case CaseType.KICK:
-					case = Kick.from_dict(row, self.client)
-				case CaseType.BAN:
-					case = Ban.from_dict(row, self.client)
-			await case.delete(self.client.db)
-
-	@case_removal.before_loop
-	async def before_case_removal(self):
-		await self.client.wait_until_ready()
+	def set_guild_retention(self, guild_id: int, retention: str) -> None:
+		"""Update retention setting in the expiration manager."""
+		self.manager.set_guild_retention(guild_id, retention)
 
 	async def cog_load(self):
-		if not self.case_removal.is_running():
-			self.case_removal.start()
+		self.manager.start()
 
 	async def cog_unload(self):
-		self.case_removal.cancel()
+		self.manager.stop()
 
 	@command(user=False, permissions=["moderate_members"])
 	async def warn(
 		self, ctx: Context, member: discord.Member, expires: str | None = None, *, reason: str | None = None
 	):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		try:
 			member = await commands.MemberConverter().convert(
 				ctx, str(member.name) if isinstance(member, discord.Member) else member
@@ -627,6 +879,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["moderate_members"])
 	async def mute(self, ctx: Context, member: discord.Member, expires: str, *, reason: str | None = None):
+		assert ctx.guild is not None
 		try:
 			seconds = text_to_seconds(expires)
 		except (ValueError, TypeError):
@@ -654,6 +907,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["moderate_members"])
 	async def unmute(self, ctx: Context, member: discord.Member):
+		assert ctx.guild is not None
 		if member.timed_out_until:
 			cases = await Mute.from_db(
 				self.client.db,
@@ -663,8 +917,12 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 				expires=member.timed_out_until.astimezone(datetime.UTC),
 			)
 			if cases:
+				retention = await self.manager.get_guild_retention(ctx.guild.id)
 				for case in cases:
-					await case.delete(self.client.db)
+					if retention == "delete":
+						await case.delete(self.client.db)
+					else:
+						await case.deactivate(self.client.db)
 			else:
 				await member.edit(timed_out_until=None)
 		await member.edit(timed_out_until=None)
@@ -673,6 +931,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["kick_members"])
 	async def kick(self, ctx: Context, member: discord.Member, *, reason: str | None = None):
+		assert ctx.guild is not None
 		if member == ctx.me:
 			await ctx.send("mod.kick.errors.bot")
 			return
@@ -691,6 +950,7 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["ban_members"])
 	async def ban(self, ctx: Context, user: discord.User, expires: str | None = None, *, reason: str | None = None):
+		assert ctx.guild is not None
 		try:
 			expiry_date = (
 				datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=text_to_seconds(expires))
@@ -721,11 +981,16 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["ban_members"])
 	async def unban(self, ctx: Context, user: discord.User):
+		assert ctx.guild is not None
 		cases = await Ban.from_db(self.client.db, self.client, ctx.guild, user=user)
 		if cases:
+			retention = await self.manager.get_guild_retention(ctx.guild.id)
 			for case in cases:
 				case._custom_response = self.custom_response
-				await case.delete(self.client.db)
+				if retention == "delete":
+					await case.delete(self.client.db)
+				else:
+					await case.deactivate(self.client.db)
 		else:
 			try:
 				await ctx.guild.unban(user, reason=f"Ban removed by {ctx.author}")
@@ -736,26 +1001,28 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 
 	@command(user=False, permissions=["manage_channels"], l10n_key="sm")
 	async def slowmode(self, ctx: Context, duration: str | None = None, channel: discord.TextChannel | None = None):
+		target_channel = channel or (ctx.channel if isinstance(ctx.channel, discord.TextChannel) else None)
+		if not target_channel:
+			raise commands.BadArgument("Channel is not a text channel")
 		if not duration:
-			await ctx.send("mod.slowmode.current_slowmode", channel=TextChannel.from_channel(ctx.channel))
+			await ctx.send("mod.slowmode.current_slowmode", channel=TextChannel.from_channel(target_channel))
 			return
 		if duration.lower() == "off":
 			duration = "0s"
-		channel = channel or ctx.channel
 		max_slowmode_delay = 60 * 60 * 6  # 6 hours
-		slowmode_before = channel.slowmode_delay
+		slowmode_before = target_channel.slowmode_delay
 		try:
-			seconds = text_to_seconds(duration, channel.slowmode_delay)
+			seconds = text_to_seconds(duration, target_channel.slowmode_delay)
 		except ValueError:
 			raise commands.BadArgument
 		seconds = max(
 			0, min(seconds, max_slowmode_delay)
 		)  # clamp between 0 and 6hrs (silently, but whatever, its easier for the user)
-		reason: str = await self.custom_response("mod.slowmode.reason", ctx, moderator=ctx.author)  # type: ignore
-		await channel.edit(slowmode_delay=seconds, reason=reason)
+		reason: str = await self.custom_response("mod.slowmode.reason", ctx, moderator=ctx.author)
+		await target_channel.edit(slowmode_delay=seconds, reason=reason)
 		await ctx.send(
 			"mod.slowmode.response",
-			channel=channel,
+			channel=target_channel,
 			time_before=seconds_to_text(slowmode_before),
 			time=seconds_to_text(seconds),
 		)
@@ -766,8 +1033,10 @@ class Cases(commands.Cog, name="Cases"):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
 
-	@group(user=False, l10n_key="caseinfo")
+	@group(user=False, l10n_key="caseinfo", name="case")
 	async def case(self, ctx: Context, case_id: str):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
 		try:
 			fetched_case_id = int(case_id)
 		except ValueError:
@@ -778,8 +1047,6 @@ class Cases(commands.Cog, name="Cases"):
 			await ctx.send("mod.info.errors.not_found", case_id=fetched_case_id)
 			return
 
-		# since we need the case's information but we don't want to duplicate db calls,
-		# we check inside the actual command
 		if case._user.id != ctx.author.id and not ctx.author.guild_permissions.moderate_members:
 			raise commands.MissingPermissions(["moderate_members"])
 
@@ -787,9 +1054,8 @@ class Cases(commands.Cog, name="Cases"):
 
 	@case.command(user=False, permissions=["moderate_members"], l10n_key="casedel")
 	async def delete(self, ctx: Context, case_id: str):
+		assert ctx.guild is not None
 		try:
-			# because discord's app commands only support int up to 2^54, but discord snowflakes are 2^64,
-			# we need to convert the case id to an int ourselves :(
 			fetched_case_id = int(case_id)
 		except ValueError:
 			raise commands.BadArgument("case_id")
@@ -812,6 +1078,40 @@ class Cases(commands.Cog, name="Cases"):
 
 		await ctx.send("mod.delete.response", case=case)
 
+	@case.command(user=False, permissions=["moderate_members"], l10n_key="caserem")
+	async def remove(self, ctx: Context, case_id: str):
+		assert ctx.guild is not None
+		try:
+			fetched_case_id = int(case_id)
+		except ValueError:
+			raise commands.BadArgument("case_id")
+		case = await Case.from_id(self.client.db, self.client, ctx.guild, fetched_case_id, get_type=True)
+		if not case:
+			await ctx.send("mod.remove.errors.not_found", case_id=fetched_case_id)
+			return
+
+		mod_cog: Any = self.client.get_cog("Moderation")
+		retention = "keep"
+		if mod_cog and hasattr(mod_cog, "manager"):
+			retention = await mod_cog.manager.get_guild_retention(ctx.guild.id)
+
+		match case.type:
+			case CaseType.WARN:
+				case = await Warn.from_id(self.client.db, self.client, ctx.guild, fetched_case_id)
+			case CaseType.MUTE:
+				case = await Mute.from_id(self.client.db, self.client, ctx.guild, fetched_case_id)
+			case CaseType.KICK:
+				case = await Kick.from_id(self.client.db, self.client, ctx.guild, fetched_case_id)
+			case CaseType.BAN:
+				case = await Ban.from_id(self.client.db, self.client, ctx.guild, fetched_case_id)
+
+		if retention == "delete":
+			await case.delete(self.client.db)  # type: ignore
+			await ctx.send("mod.delete.response", case=case)
+		else:
+			await case.deactivate(self.client.db)  # type: ignore
+			await ctx.send("mod.remove.response", case=case)
+
 	@case.command(user=False, permissions=["moderate_members"], l10n_key="caseedit")
 	@app_commands.choices(
 		value=[
@@ -821,6 +1121,7 @@ class Cases(commands.Cog, name="Cases"):
 		]
 	)
 	async def edit(self, ctx: Context, case_id: str, value: Literal["expires", "reason", "message"], *, new_value: str):
+		assert ctx.guild is not None
 		try:
 			fetched_case_id = int(case_id)
 		except ValueError:
@@ -848,39 +1149,78 @@ class Cases(commands.Cog, name="Cases"):
 		await ctx.send("mod.edit.response", case=case)
 
 	@case.command(user=False, l10n_key="caselist")
-	async def list(self, ctx: Context, user: discord.Member | None = None):
-		user = user or ctx.author
+	@app_commands.choices(
+		filter=[
+			app_commands.Choice(name="caselist-args-filter-active", value="active"),
+			app_commands.Choice(name="caselist-args-filter-expired", value="expired"),
+			app_commands.Choice(name="caselist-args-filter-all", value="all"),
+		]
+	)
+	async def list(
+		self,
+		ctx: Context,
+		user: discord.Member | None = None,
+		filter: Literal["active", "expired", "all"] | None = None,
+	):
+		assert ctx.guild is not None
+		assert isinstance(ctx.author, discord.Member)
+		target_user: discord.Member | discord.User = user or ctx.author
 
-		cases = await Case.from_user(self.client.db, user, self.client, ctx.guild, 10)
-
-		# since we need the case's information but we don't want to duplicate db calls,
-		# we check inside the actual command
-		if user.id != ctx.author.id and not ctx.author.guild_permissions.moderate_members:
+		is_moderator = ctx.author.guild_permissions.moderate_members
+		if target_user.id != ctx.author.id and not is_moderator:
 			raise commands.MissingPermissions(["moderate_members"])
 
-		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)  # type: ignore
+		effective_filter = filter or ("all" if is_moderator else "active")
+		if effective_filter not in ("active", "expired", "all"):
+			raise commands.BadArgument("Filter must be 'active', 'expired', or 'all'.")
+
+		cases = await Case.from_user(
+			self.client.db, target_user, self.client, ctx.guild, get_type=True, status_filter=effective_filter
+		)
+
+		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)
 		if isinstance(message, str):
 			await ctx.send(content=message)
 			return
 
-		embeds: list[discord.Embed] = message.get("embeds")  # type: ignore
+		embeds: list[discord.Embed] = message.get("embeds", [])
 		if not cases and isinstance(message, dict):
 			if embeds:
 				embeds[0].remove_field(0)
 			await ctx.send(**message)
 			return
 
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if not template:
-				await ctx.send(**message)
-				return
-			embeds[0].clear_fields()
-			for case in cases:
-				formatted = localization.Localization.format_strings(template, case=case)
-				embeds[0].add_field(**formatted)
+		if not embeds:
+			await ctx.send(**message)
+			return
 
-		await ctx.send(**message)
+		base_embed_dict = embeds[0].to_dict()
+		fields = base_embed_dict.get("fields", [])
+		template = fields[0] if fields else None
+		if not template:
+			await ctx.send(**message)
+			return
+
+		page_size = 5
+		total_pages = max(1, (len(cases) + page_size - 1) // page_size)
+		pages: list[discord.Embed] = []
+
+		for p in range(total_pages):
+			page_cases = cases[p * page_size : (p + 1) * page_size]
+			page_dict = deepcopy(base_embed_dict)
+			page_dict["fields"] = []
+			embed_page = discord.Embed.from_dict(page_dict)
+			for case in page_cases:
+				formatted = localization.Localization.format_strings(template, case=case)
+				embed_page.add_field(**formatted)
+			pages.append(embed_page)
+
+		if len(pages) > 1:
+			view = PaginationView(pages, author_id=ctx.author.id)
+			msg = await ctx.send(embed=pages[0], view=view)
+			view.message = msg
+		else:
+			await ctx.send(embed=pages[0])
 
 
 async def setup(client: Bot):

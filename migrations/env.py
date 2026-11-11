@@ -1,15 +1,18 @@
 import asyncio
+import logging
 import os
 from logging.config import fileConfig
 from urllib.parse import quote_plus
 
 from alembic import context
 from dotenv import load_dotenv
-from sqlalchemy import pool
+from sqlalchemy import exc, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 load_dotenv()
+
+logger = logging.getLogger("alembic.env")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -87,8 +90,19 @@ async def run_async_migrations() -> None:
 
 	connectable = async_engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
 
-	async with connectable.connect() as connection:
-		await connection.run_sync(do_run_migrations)
+	max_retries = 5
+	for attempt in range(1, max_retries + 1):
+		try:
+			async with connectable.connect() as connection:
+				await connection.run_sync(do_run_migrations)
+			break
+		except (OSError, exc.OperationalError, exc.InterfaceError) as e:
+			if attempt == max_retries:
+				raise
+			logger.warning(
+				"Database connection failed (attempt %d/%d): %s. Retrying in 2 seconds...", attempt, max_retries, e
+			)
+			await asyncio.sleep(2)
 
 	await connectable.dispose()
 

@@ -6,6 +6,28 @@ from discord.ext import commands
 __all__ = ("Context",)
 
 
+VALID_SEND_KWARGS = frozenset(
+	{
+		"content",
+		"tts",
+		"embed",
+		"embeds",
+		"file",
+		"files",
+		"stickers",
+		"nonce",
+		"allowed_mentions",
+		"reference",
+		"mention_author",
+		"view",
+		"suppress_embeds",
+		"ephemeral",
+		"silent",
+		"poll",
+	}
+)
+
+
 class Context(commands.Context):
 	async def send(  # type: ignore
 		self,
@@ -23,7 +45,7 @@ class Context(commands.Context):
 		allowed_mentions: discord.AllowedMentions | None = None,
 		reference: discord.Message | discord.MessageReference | discord.PartialMessage | None = None,
 		mention_author: bool | None = None,
-		view: discord.ui.View | None = None,
+		view: discord.ui.View | discord.ui.LayoutView | None = None,
 		suppress_embeds: bool = False,
 		ephemeral: bool = False,
 		silent: bool = False,
@@ -65,11 +87,15 @@ class Context(commands.Context):
 			localized_payload = content
 
 		if isinstance(localized_payload, dict):
+			if "view" in localized_payload and base_args.get("view") is not None:
+				base_args["view"] = self.bot.custom_response.merge_views(
+					base_args["view"], localized_payload.pop("view")
+				)
 			base_args.update(localized_payload)
 		else:
 			base_args["content"] = localized_payload
 
-		merged_args = {k: v for k, v in base_args.items() if v is not None}
+		merged_args = {k: v for k, v in base_args.items() if v is not None and k in VALID_SEND_KWARGS}
 
 		msg = await super().send(**merged_args)  # type: ignore
 		if delete_after is not None:

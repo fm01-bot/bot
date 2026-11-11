@@ -26,6 +26,7 @@ def setup_leave_subcommands(parent_node: CLINode) -> CLINode:
 		channel_pos: str | None = None,
 		**kwargs: Any,
 	):
+		assert ctx.guild is not None
 		ch_raw = channel or channel_pos
 		target_channel: discord.abc.GuildChannel | discord.Thread | None = None
 
@@ -37,7 +38,7 @@ def setup_leave_subcommands(parent_node: CLINode) -> CLINode:
 			row = await ctx.bot.db.fetchrow("SELECT channel FROM leave_config WHERE guild_id = $1", ctx.guild.id)
 			if row and row["channel"]:
 				target_channel = ctx.guild.get_channel(int(row["channel"]))
-			if not target_channel:
+			if not target_channel and isinstance(ctx.channel, (discord.abc.GuildChannel, discord.Thread)):
 				target_channel = ctx.channel
 
 		channel_id = target_channel.id if target_channel else None
@@ -81,6 +82,7 @@ def setup_leave_subcommands(parent_node: CLINode) -> CLINode:
 	disable_node = leave_node.create_subcommand("disable", description="Disable member leave messages.")
 
 	async def leave_disable(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		join_leave_cog: Any = ctx.bot.get_cog("JoinLeave")
 		if join_leave_cog:
 			await join_leave_cog.disable_leave(ctx.guild.id)
@@ -97,6 +99,7 @@ def setup_leave_subcommands(parent_node: CLINode) -> CLINode:
 	async def leave_message(
 		ctx: Context, message: str | None = None, message_pos: list[str] | None = None, **kwargs: Any
 	):
+		assert ctx.guild is not None
 		text = message or (" ".join(message_pos) if message_pos else None)
 		if not text:
 			raise CLIParseError('Please provide a message template via `--message "..."` or as arguments.', msg_node)
@@ -123,6 +126,7 @@ def setup_leave_subcommands(parent_node: CLINode) -> CLINode:
 	status_node = leave_node.create_subcommand("status", description="Show the current leave configuration.")
 
 	async def leave_status(ctx: Context, **kwargs: Any):
+		assert ctx.guild is not None
 		row = await ctx.bot.db.fetchrow("SELECT * FROM leave_config WHERE guild_id = $1", ctx.guild.id)
 		if not row:
 			return await ctx.send(content="```ansi\nLeave messages are not configured for this server.\n```")

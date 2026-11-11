@@ -158,6 +158,13 @@
   },
   "caselist": {
     "args": {
+      "filter": {
+        "active": "active",
+        "all": "all",
+        "desc": "Filter cases by status: active, expired, or all",
+        "expired": "expired",
+        "name": "filter"
+      },
       "user": {
         "desc": "The user you want to list cases for",
         "name": "user"
@@ -165,7 +172,18 @@
     },
     "desc": "List all cases for a user or yourself",
     "name": "caselist",
-    "usage": "case list (user)"
+    "usage": "case list (user) (filter)"
+  },
+  "caserem": {
+    "args": {
+      "case_id": {
+        "desc": "The case ID you want to remove or mark inactive",
+        "name": "case_id"
+      }
+    },
+    "desc": "Mark a case as inactive",
+    "name": "caserem",
+    "usage": "case remove [case_id]"
   },
   "channel": "channel",
   "channel_say": {
@@ -223,11 +241,11 @@
   "clapsay": {
     "args": {
       "message": {
-        "desc": "The\ud83d\udc4fmessage\ud83d\udc4fto\ud83d\udc4fclap",
+        "desc": "The👏message👏to👏clap",
         "name": "message"
       }
     },
-    "desc": "Clap\ud83d\udc4fa\ud83d\udc4fmessage\ud83d\udc4fwith\ud83d\udc4femojis",
+    "desc": "Clap👏a👏message👏with👏emojis",
     "name": "clap",
     "usage": "say clap [message: 1...500]"
   },
@@ -244,7 +262,8 @@
       }
     },
     "desc": "Configure the bot with a command-line like interface",
-    "name": "config"
+    "name": "config",
+    "usage": "config [flags_and_args]"
   },
   "crime": {
     "desc": "Earn money by committing crime virtually ($500-$2000)",
@@ -581,11 +600,11 @@
   "pokeinfo": {
     "args": {
       "pokemon_name": {
-        "desc": "The pok\u00e9mon you'd like information of",
+        "desc": "The pokémon you'd like information of",
         "name": "pokemon"
       }
     },
-    "desc": "Information about a Pok\u00e9mon",
+    "desc": "Information about a Pokémon",
     "name": "pokeinfo",
     "usage": "info pokemon [pokemon]"
   },

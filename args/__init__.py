@@ -15,6 +15,7 @@ from .forum_channel import ForumChannel
 from .guild import Guild
 from .invite import Invite
 from .ip_address import IPAddress
+from .media import Media, MediaAuthor
 from .member import Member
 from .message import Message
 from .network import Network

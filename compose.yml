@@ -36,12 +36,36 @@ services:
       retries: 5
       start_period: 15s
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  twilight-proxy:
+    image: ghcr.io/twilight-rs/http-proxy:latest
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: ${TOKEN:?Please set a bot token in .env}
+    ports:
+      - "127.0.0.1:3000:3000"
+    profiles:
+      - clustered
+
   bot:
     build: .
     depends_on:
       db:
         condition: service_healthy
       lavalink:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     environment:
@@ -55,6 +79,13 @@ services:
       LAVALINK_URI: ${LAVALINK_URI:-http://lavalink:2333}
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      BOT_MODE: ${BOT_MODE:-standalone}
+      SHARD_COUNT: ${SHARD_COUNT:-64}
+      SHARDS_PER_CLUSTER: ${SHARDS_PER_CLUSTER:-16}
+      CLUSTER_ID: ${CLUSTER_ID:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_MSG_URL: ${REDIS_MSG_URL:-redis://redis:6379/1}
+      DISCORD_PROXY_URL: ${DISCORD_PROXY_URL:-}
     volumes:
       - .:/bot
     command: sh -c "uv run alembic upgrade head && uv run --no-dev main.py"
