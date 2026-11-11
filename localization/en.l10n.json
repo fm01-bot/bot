@@ -25,6 +25,80 @@
       "content": "**{user.name}** is currently AFK: `{reason}`"
     }
   },
+  "alerts": {
+    "instagram": {
+      "embed": {
+        "author": {
+          "icon_url": "{media.author.avatar_url}",
+          "name": "{media.author.name}",
+          "url": "{media.author.url}"
+        },
+        "description": "{media.description}",
+        "footer": {
+          "text": "Instagram"
+        },
+        "image": {
+          "url": "{media.thumbnail}"
+        },
+        "title": "{media.title}",
+        "url": "{media.url}"
+      }
+    },
+    "tiktok": {
+      "embed": {
+        "author": {
+          "icon_url": "{media.author.avatar_url}",
+          "name": "{media.author.name}",
+          "url": "{media.author.url}"
+        },
+        "description": "{media.description}",
+        "footer": {
+          "text": "TikTok"
+        },
+        "image": {
+          "url": "{media.thumbnail}"
+        },
+        "title": "{media.title}",
+        "url": "{media.url}"
+      }
+    },
+    "twitch": {
+      "embed": {
+        "author": {
+          "icon_url": "{media.author.avatar_url}",
+          "name": "{media.author.name}",
+          "url": "{media.author.url}"
+        },
+        "description": "{media.description}",
+        "footer": {
+          "text": "Twitch"
+        },
+        "image": {
+          "url": "{media.thumbnail}"
+        },
+        "title": "{media.title}",
+        "url": "{media.url}"
+      }
+    },
+    "youtube": {
+      "embed": {
+        "author": {
+          "icon_url": "{media.author.avatar_url}",
+          "name": "{media.author.name}",
+          "url": "{media.author.url}"
+        },
+        "description": "{media.description}",
+        "footer": {
+          "text": "YouTube"
+        },
+        "image": {
+          "url": "{media.thumbnail}"
+        },
+        "title": "{media.title}",
+        "url": "{media.url}"
+      }
+    }
+  },
   "all": [
     "all",
     "everything"
@@ -65,7 +139,6 @@
   "balance": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": true,
@@ -79,7 +152,7 @@
           },
           {
             "inline": false,
-            "name": "\u26a0\ufe0f You are in debt.",
+            "name": "⚠️ You are in debt.",
             "value": "Any money you earn will be used to pay off your debt."
           }
         ],
@@ -88,24 +161,25 @@
     ]
   },
   "cogs": {
-    "afk": "AFK",
-    "automod": "AutoMod",
-    "basic": "Basic",
-    "economy": "Economy",
-    "giveaway": "Giveaway",
-    "help": "Help",
-    "information": "Information",
-    "logging": "Logging",
-    "moderation": "Moderation",
-    "say": "Says",
-    "setup": "Setup",
-    "snapshot": "Snapshots",
-    "status": "Status"
+    "afk": "💤 AFK",
+    "automod": "🤖 AutoMod",
+    "basic": "⚙️ Basic",
+    "config": "🔧 Config",
+    "economy": "💰 Economy",
+    "giveaway": "🎉 Giveaway",
+    "information": "ℹ️ Information",
+    "level": "📊 Leveling",
+    "logging": "📜 Logging",
+    "moderation": "🛡️ Moderation",
+    "says": "💬 Says",
+    "setup": "🔧 Setup",
+    "shop": "🏪 Shop",
+    "snapshots": "📸 Snapshots",
+    "voice": "🔊 Voice"
   },
   "crime": {
     "embeds": [
       {
-        "color": 6656243,
         "description": "{random}",
         "title": "Crime"
       }
@@ -139,7 +213,6 @@
     "bad_argument": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Correct usage:\n```{command.usage}```",
           "fields": [
             {
@@ -156,7 +229,6 @@
     "bot_missing_permissions": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The bot needs additional permissions to run this command.",
           "fields": [
             {
@@ -172,7 +244,6 @@
     "channel_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The channel you specified was not found.",
           "title": "Channel not found"
         }
@@ -181,7 +252,6 @@
     "command_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The command you tried to run does not exist.",
           "title": "Command not found"
         }
@@ -190,7 +260,6 @@
     "command_on_cooldown": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "You may use this command in `{retry_after}`.",
           "title": "You're on cooldown"
         }
@@ -199,7 +268,6 @@
     "emoji_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The emoji you specified was not found.",
           "title": "Emoji not found"
         }
@@ -208,7 +276,6 @@
     "forbidden": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The bot got a 403 Forbidden error. Please check for role hierarchy and bot permissions.",
           "title": "Forbidden"
         }
@@ -217,7 +284,6 @@
     "member_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The member you specified was not found.",
           "title": "Member not found"
         }
@@ -226,7 +292,6 @@
     "missing_permissions": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "You need additional permissions to run this command.",
           "fields": [
             {
@@ -242,7 +307,6 @@
     "missing_required_argument": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "Correct usage:\n```{command.usage}```",
           "fields": [
             {
@@ -259,7 +323,6 @@
     "not_owner": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "You are not an owner of this bot.",
           "title": "Not the owner"
         }
@@ -268,7 +331,6 @@
     "role_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The role you specified was not found.",
           "title": "Role not found"
         }
@@ -277,7 +339,6 @@
     "user_not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The user you specified was not found.",
           "title": "User not found"
         }
@@ -290,7 +351,7 @@
         "content": "No one joined the giveaway..."
       },
       "success": {
-        "content": "\ud83c\udf89 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
       }
     },
     "message": {
@@ -298,7 +359,7 @@
         "content": "You've already joined this giveaway!",
         "ephemeral": true
       },
-      "button": "\ud83c\udf89 {participants}",
+      "button": "🎉 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
@@ -328,7 +389,7 @@
             "footer": {
               "text": "Click the button below to enter!"
             },
-            "title": "\ud83c\udf89 Giveaway!"
+            "title": "🎉 Giveaway!"
           }
         ]
       }
@@ -336,59 +397,90 @@
   },
   "help": {
     "bot": {
-      "embeds": [
+      "components": [
         {
-          "description": "Here is a list of groups and commands you can use with the bot.\nUse `{prefix}help (group)` to get more information about a specific group.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "inline": true,
-              "name": "{module}",
-              "value": "{commands} commands"
+              "content": "# 📖 Bot Help\nHere is a list of groups and commands you can use with the bot.\nUse `{prefix}help [command|module]` or select a module from the dropdown menu below to view its commands.",
+              "type": "text_display"
             }
           ],
-          "title": "Help"
+          "type": "container"
         }
       ]
     },
     "cog": {
-      "embeds": [
+      "components": [
         {
-          "description": "This module contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# {cog} Module\nThis module contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{cog} Help"
+          "type": "container"
         }
       ]
     },
     "command": {
-      "embeds": [
+      "components": [
         {
-          "description": "{command.description}",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "Aliases",
-              "value": "{command.aliases}"
+              "content": "# 📖 `{command.usage}`\n{command.description}",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "**Aliases:** {command.aliases}",
+              "type": "text_display"
             }
           ],
-          "title": "{command.usage}"
+          "type": "container"
         }
       ]
     },
+    "dropdown": {
+      "commands": "{commands} commands",
+      "overview": "Overview",
+      "overview_desc": "Return to the main help menu",
+      "placeholder": "Select a module to view commands..."
+    },
+    "errors": {
+      "not_author": {
+        "content": "Only the person who ran this command can use this menu."
+      }
+    },
     "group": {
-      "embeds": [
+      "components": [
         {
-          "description": "This group contains {commands} commands.",
-          "fields": [
+          "accent_color": 6656243,
+          "components": [
             {
-              "name": "{command.usage}",
-              "value": "{command.description}"
+              "content": "# 📖 `{group.prefix}{group.name}` Help\nThis group contains **{commands}** commands.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "content": "{commands_list}",
+              "type": "text_display"
             }
           ],
-          "title": "{group.prefix}{group.name} Help"
+          "type": "container"
         }
       ]
     }
@@ -535,7 +627,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83c\udf99\ufe0f {channel.name}",
+              "name": "🎙️ {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -681,7 +773,7 @@
         "embeds": [
           {
             "author": {
-              "name": "\ud83d\udd0a {channel.name}",
+              "name": "🔊 {channel.name}",
               "url": "{channel.url}"
             },
             "fields": [
@@ -1222,7 +1314,6 @@
   "leaderboard": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -1245,7 +1336,6 @@
   "levels_leaderboard": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -1281,7 +1371,6 @@
       "action": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "A message by {execution.member.mention} was flagged.",
             "fields": [
               {
@@ -1322,7 +1411,6 @@
       "create": {
         "embeds": [
           {
-            "color": 3066993,
             "fields": [
               {
                 "inline": true,
@@ -1364,7 +1452,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15158332,
             "fields": [
               {
                 "inline": true,
@@ -1391,7 +1478,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "fields": [
               {
                 "inline": true,
@@ -1431,7 +1517,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "{count} messages were deleted in {channel.mention}.",
             "title": "Bulk Messages Deleted"
           }
@@ -1442,7 +1527,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Channel {channel.mention} (`{channel.name}`) was created by {created_by.mention}.",
             "title": "Channel Created"
           }
@@ -1453,7 +1537,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Channel `{channel.name}` was deleted by {deleted_by.mention}.",
             "title": "Channel Deleted"
           }
@@ -1464,7 +1547,6 @@
       "pins": {
         "embeds": [
           {
-            "color": 2067276,
             "description": "The pins in {channel.mention} were updated.",
             "fields": [
               {
@@ -1482,7 +1564,6 @@
       "name": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The name of {after.mention} was updated by {updated_by.mention}.",
             "fields": [
               {
@@ -1503,7 +1584,6 @@
       "nsfw": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The NSFW status of {after.mention} was updated {updated_by.mention}.",
             "fields": [
               {
@@ -1519,7 +1599,6 @@
       "permissions": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Permissions for {channel.mention} were updated by {updated_by.mention}.\n\n{diff}",
             "title": "Channel Permissions Updated"
           }
@@ -1528,7 +1607,6 @@
       "position": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "{after.mention} was moved from position `{before.position}` to `{after.position}`.",
             "title": "Channel Position Updated"
           }
@@ -1537,7 +1615,6 @@
       "slowmode_delay": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The slowmode of {after.mention} was changed from `{before.slowmode_delay}s` to `{after.slowmode_delay}s` by {updated_by.mention}.",
             "title": "Channel Slowmode Updated"
           }
@@ -1546,7 +1623,6 @@
       "topic": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The topic of {after.mention} was updated {updated_by.mention}.",
             "fields": [
               {
@@ -1569,7 +1645,6 @@
       "add": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{emojis}",
             "title": "Emoji Added"
           }
@@ -1578,7 +1653,6 @@
       "remove": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "{emojis}",
             "title": "Emoji Removed"
           }
@@ -1589,7 +1663,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "An integration was created, modified, or removed.",
             "title": "Integrations Updated"
           }
@@ -1600,7 +1673,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Role {role.mention} was created by {created_by.mention}.",
             "fields": [
               {
@@ -1628,7 +1700,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Role `{role.name}` was deleted by {deleted_by.mention}.",
             "fields": [
               {
@@ -1646,18 +1717,17 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Role {after.mention} was updated by {updated_by.mention}.",
             "fields": [
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
                 "name": "Color",
-                "value": "`{before.color}` \u2192 `{after.color}`"
+                "value": "`{before.color}` → `{after.color}`"
               }
             ],
             "title": "Role Updated"
@@ -1669,7 +1739,6 @@
       "add": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{stickers}",
             "title": "Sticker Added"
           }
@@ -1678,7 +1747,6 @@
       "remove": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "{stickers}",
             "title": "Sticker Removed"
           }
@@ -1689,7 +1757,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The server settings were updated by {updated_by.mention}.",
             "title": "Server Updated"
           }
@@ -1700,7 +1767,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Invite `{invite.code}` was created for {invite.channel.mention} by {invite.author.mention}.",
             "fields": [
               {
@@ -1728,7 +1794,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Invite `{invite.code}` for {invite.channel.mention} was deleted by {invite.author.mention}.",
             "title": "Invite Deleted"
           }
@@ -1739,7 +1804,6 @@
       "ban": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "{user.mention} (`{user.name}`) was banned by {banned_by.mention}.",
             "fields": [
               {
@@ -1757,7 +1821,6 @@
       "join": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{member.mention} (`{member.name}`) joined the server.",
             "fields": [
               {
@@ -1778,7 +1841,6 @@
       "kick": {
         "embeds": [
           {
-            "color": 15158332,
             "description": "{member.mention} (`{member.name}`) was kicked by {kicked_by.mention}.",
             "fields": [
               {
@@ -1797,7 +1859,6 @@
       "leave": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{member.mention} (`{member.name}`) left the server.",
             "fields": [
               {
@@ -1823,7 +1884,6 @@
       "unban": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{user.mention} (`{user.name}`) was unbanned by {unbanned_by.mention}.",
             "title": "Member Unbanned"
           }
@@ -1834,7 +1894,6 @@
       "avatar": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "{member.mention} changed their server avatar.",
             "thumbnail": {
               "url": "{member.avatar}"
@@ -1846,7 +1905,6 @@
       "nickname": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Nickname for {member.mention} was changed by {updated_by.mention}.",
             "fields": [
               {
@@ -1867,7 +1925,6 @@
       "roles": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Roles for {member.mention} were updated by {updated_by.mention}.",
             "fields": [
               {
@@ -1888,7 +1945,6 @@
       "timeout": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{member.mention} was timed out by {timed_out_by.mention}.",
             "fields": [
               {
@@ -1909,7 +1965,6 @@
       "timeout_removed": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "The timeout for {member.mention} was removed by {removed_by.mention}.",
             "title": "Timeout Removed"
           }
@@ -1951,7 +2006,6 @@
       "attachments": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Attachments in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1972,7 +2026,6 @@
       "content": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "A message from {after.author.mention} in {after.channel.mention} was edited. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -1991,7 +2044,6 @@
       "embeds": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Embeds in a message from {after.author.mention} in {after.channel.mention} were updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -2012,7 +2064,6 @@
       "pinned": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "The pin status of a message from {after.author.mention} in {after.channel.mention} was updated. [Jump to message]({after.jump_url})",
             "fields": [
               {
@@ -2029,7 +2080,6 @@
       "add": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "<@{user_id}> voted on answer `{answer_id}` in message `{message_id}`.",
             "title": "Poll Vote"
           }
@@ -2040,7 +2090,6 @@
       "remove": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "<@{user_id}> removed their vote for answer `{answer_id}` in message `{message_id}`.",
             "title": "Poll Vote Removed"
           }
@@ -2051,7 +2100,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Integration `{integration_id}` was deleted.",
             "title": "Integration Deleted"
           }
@@ -2062,7 +2110,6 @@
       "add": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{user.mention} reacted with {emoji} on a [message]({message_url}).",
             "title": "Reaction Added"
           }
@@ -2073,7 +2120,6 @@
       "clear": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "All {count} reactions were cleared from a [message]({message_url}).",
             "title": "Reactions Cleared"
           }
@@ -2084,7 +2130,6 @@
       "clear": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "All {emoji} reactions were removed from a [message]({message_url}).",
             "title": "Reaction Emoji Cleared"
           }
@@ -2095,7 +2140,6 @@
       "remove": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{user.mention} removed reaction {emoji} from a [message]({message_url}).",
             "title": "Reaction Removed"
           }
@@ -2106,7 +2150,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Event **{event.name}** was created.",
             "title": "Scheduled Event Created"
           }
@@ -2117,7 +2160,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Event **{event.name}** was deleted.",
             "title": "Scheduled Event Deleted"
           }
@@ -2128,7 +2170,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Event **{after.name}** was updated.",
             "title": "Scheduled Event Updated"
           }
@@ -2139,7 +2180,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Sound **{sound.name}** was created.",
             "title": "Soundboard Sound Created"
           }
@@ -2150,7 +2190,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Sound **{sound.name}** was deleted.",
             "title": "Soundboard Sound Deleted"
           }
@@ -2161,7 +2200,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Sound **{after.name}** was updated.",
             "title": "Soundboard Sound Updated"
           }
@@ -2172,7 +2210,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Stage with topic **{stage.topic}** was started.",
             "title": "Stage Started"
           }
@@ -2183,7 +2220,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Stage with topic **{stage.topic}** has ended.",
             "title": "Stage Ended"
           }
@@ -2194,7 +2230,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Stage topic changed from **{before.topic}** to **{after.topic}**.",
             "title": "Stage Updated"
           }
@@ -2205,7 +2240,6 @@
       "create": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "Thread {thread.mention} was created.",
             "title": "Thread Created"
           }
@@ -2216,7 +2250,6 @@
       "delete": {
         "embeds": [
           {
-            "color": 15548997,
             "description": "Thread `{thread.name}` was deleted.",
             "title": "Thread Deleted"
           }
@@ -2227,7 +2260,6 @@
       "join": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Joined thread {thread.mention}.",
             "title": "Bot Joined Thread"
           }
@@ -2238,7 +2270,6 @@
       "join": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "<@{user_id}> joined thread {thread.mention}.",
             "title": "Thread Member Join"
           }
@@ -2249,7 +2280,6 @@
       "leave": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "<@{user_id}> left thread {thread.mention}.",
             "title": "Thread Member Leave"
           }
@@ -2260,7 +2290,6 @@
       "remove": {
         "embeds": [
           {
-            "color": 10070709,
             "description": "Thread `{thread.name}` was removed from cache.",
             "title": "Thread Removed"
           }
@@ -2271,13 +2300,12 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Thread {after.mention} was updated.",
             "fields": [
               {
                 "inline": true,
                 "name": "Name",
-                "value": "`{before.name}` \u2192 `{after.name}`"
+                "value": "`{before.name}` → `{after.name}`"
               },
               {
                 "inline": true,
@@ -2299,7 +2327,6 @@
       "deafen": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{member.mention} was server deafened in {channel.mention}.",
             "title": "Server Deafened"
           }
@@ -2308,7 +2335,6 @@
       "join": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{member.mention} joined {channel.mention}.",
             "title": "Voice Channel Join"
           }
@@ -2317,7 +2343,6 @@
       "leave": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{member.mention} left {channel.mention}.",
             "title": "Voice Channel Leave"
           }
@@ -2326,7 +2351,6 @@
       "move": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "{member.mention} moved from {before_channel.mention} to {after_channel.mention}.",
             "title": "Voice Channel Switch"
           }
@@ -2335,7 +2359,6 @@
       "mute": {
         "embeds": [
           {
-            "color": 15105570,
             "description": "{member.mention} was server muted in {channel.mention}.",
             "title": "Server Muted"
           }
@@ -2344,7 +2367,6 @@
       "undeafen": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{member.mention} was server undeafened in {channel.mention}.",
             "title": "Server Undeafened"
           }
@@ -2353,7 +2375,6 @@
       "unmute": {
         "embeds": [
           {
-            "color": 5763719,
             "description": "{member.mention} was server unmuted in {channel.mention}.",
             "title": "Server Unmuted"
           }
@@ -2364,7 +2385,6 @@
       "update": {
         "embeds": [
           {
-            "color": 3447003,
             "description": "Webhooks in {channel.mention} were updated.",
             "title": "Webhooks Updated"
           }
@@ -2389,7 +2409,6 @@
     "lose": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "{random}",
           "title": "Luck"
         }
@@ -2404,7 +2423,6 @@
     "win": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "{random}",
           "title": "Luck"
         }
@@ -2430,7 +2448,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "You have been banned from **{guild}**.",
             "fields": [
               {
@@ -2452,7 +2469,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Banned {ban.user.mention}.",
             "fields": [
               {
@@ -2481,7 +2497,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Case `{case.id}` has been deleted.",
             "title": "Case deleted"
           }
@@ -2500,7 +2515,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Case `{case.id}` has been edited.",
             "timestamp": "{now}",
             "title": "Case edited"
@@ -2517,7 +2531,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
@@ -2533,6 +2546,11 @@
                 "inline": false,
                 "name": "Given by",
                 "value": "{case.moderator.mention}"
+              },
+              {
+                "inline": false,
+                "name": "Status",
+                "value": "{case.status}"
               },
               {
                 "inline": false,
@@ -2563,7 +2581,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "You have been kicked from **{guild}**.",
             "fields": [
               {
@@ -2581,7 +2598,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Kicked {kick.user.mention} for {kick.reason}.",
             "footer": {
               "text": "{kick.id}"
@@ -2595,11 +2611,10 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
-                "name": "{case.id} `{case.type.name}`",
+                "name": "{case.id} `{case.type.name}` ({case.status})",
                 "value": "Given by: {case.moderator.mention}\nReason: {case.reason}\nExpires: {case.length}"
               },
               {
@@ -2625,7 +2640,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "You have been muted in **{guild}**.",
             "fields": [
               {
@@ -2648,7 +2662,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Muted {mute.user.mention}.",
             "fields": [
               {
@@ -2670,7 +2683,6 @@
       "unmuted": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "You have been unmuted in **{guild}**.",
             "fields": [
               {
@@ -2686,6 +2698,22 @@
         ]
       }
     },
+    "remove": {
+      "errors": {
+        "not_found": {
+          "content": "Case not found."
+        }
+      },
+      "response": {
+        "embeds": [
+          {
+            "color": 6656243,
+            "description": "Case `{case.id}` has been marked as inactive.",
+            "title": "Case removed"
+          }
+        ]
+      }
+    },
     "slowmode": {
       "current_slowmode": {
         "content": "The current slowmode in {channel.mention} is `{channel.slowmode}`."
@@ -2694,7 +2722,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Set slowmode in {channel.mention} to `{time}`.",
             "timestamp": "{now}",
             "title": "Slowmode changed"
@@ -2709,7 +2736,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Unbanned {user.mention}.",
             "title": "Unban"
           }
@@ -2728,7 +2754,6 @@
       "response": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Unmuted {user.mention}.",
             "title": "Unmute"
           }
@@ -2747,7 +2772,6 @@
       "notify": {
         "embeds": [
           {
-            "color": 13369344,
             "description": "You have been warned in **{warn.guild}**.",
             "fields": [
               {
@@ -2791,7 +2815,6 @@
       "unwarned": {
         "embeds": [
           {
-            "color": 6656243,
             "description": "Your warn in **{warn.guild}** has been removed.",
             "fields": [
               {
@@ -2877,7 +2900,6 @@
   "ping": {
     "embeds": [
       {
-        "color": 6656243,
         "fields": [
           {
             "inline": false,
@@ -2987,7 +3009,6 @@
       "show": {
         "embeds": [
           {
-            "color": 6656243,
             "fields": [
               {
                 "inline": false,
@@ -3039,7 +3060,6 @@
     "lose": {
       "embeds": [
         {
-          "color": 6656243,
           "fields": [
             {
               "inline": false,
@@ -3053,7 +3073,7 @@
             },
             {
               "inline": false,
-              "name": "\u26a0\ufe0f You are in debt.",
+              "name": "⚠️ You are in debt.",
               "value": "Any money you earn will be used to pay off your debt."
             }
           ],
@@ -3064,7 +3084,6 @@
     "win": {
       "embeds": [
         {
-          "color": 6656243,
           "fields": [
             {
               "inline": false,
@@ -3086,7 +3105,6 @@
     "create": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "The snapshot has been created successfully.\nCode: ```{code}```",
           "title": "Snapshot"
         }
@@ -3095,7 +3113,6 @@
     "load": {
       "embeds": [
         {
-          "color": 6656243,
           "description": "The snapshot has been loaded successfully. You can restore the old state of the server by running the **/snapshot load** command with the code: ```{code}```.",
           "title": "Snapshot"
         }
@@ -3104,7 +3121,6 @@
     "not_found": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "The snapshot you specified was not found.",
           "title": "Snapshot not found"
         }
@@ -3113,7 +3129,6 @@
     "owner_alert": {
       "embeds": [
         {
-          "color": 13369344,
           "description": "{author.name} has loaded a snapshot in {guild.name}. You can restore the old state of the server by running the snapshot load command with the code `{code}`.",
           "title": "Snapshot load alert"
         }
@@ -3122,6 +3137,257 @@
     "strings": {
       "save_load_reason": "Lumin save load - {author.name}",
       "server_snapshot": "Snapshot of {guild.name}"
+    }
+  },
+  "ticket": {
+    "actions": {
+      "archived": {
+        "components": [
+          {
+            "accent_color": 15105570,
+            "components": [
+              {
+                "content": "# 📦 Ticket Archived\nThis ticket was archived by **{author.name}**.",
+                "type": "text_display"
+              },
+              {
+                "content": "-# Ticket #{ticket_id}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "closed": {
+        "generating": {
+          "content": "Generating transcript and closing ticket..."
+        }
+      },
+      "reopened": {
+        "components": [
+          {
+            "accent_color": 5763719,
+            "components": [
+              {
+                "content": "# 🔁 Ticket Reopened\nThis ticket was reopened by **{author.name}**.",
+                "type": "text_display"
+              },
+              {
+                "content": "-# Ticket #{ticket_id}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "saved": {
+        "content": "Transcript saved successfully!"
+      }
+    },
+    "buttons": {
+      "archive": "Archive",
+      "close": "Close",
+      "open": "Open Ticket",
+      "reopen": "Reopen",
+      "save": "Save Transcript"
+    },
+    "created": {
+      "ephemeral": {
+        "content": "Your ticket has been created: {channel.mention}"
+      },
+      "message": {
+        "components": [
+          {
+            "accent_color": 6656243,
+            "components": [
+              {
+                "content": "# 🎫 {topic}\n**Opened by:** {member.mention} • **Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "### Description\n{description}",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "*Please describe your issue in detail. Staff will assist you shortly.*",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      }
+    },
+    "dm": {
+      "closed": {
+        "content": "Your ticket in **{guild.name}** (#{channel_name}) has been closed. A transcript is attached below."
+      },
+      "saved": {
+        "content": "A transcript of your ticket in **{guild.name}** (#{channel_name}) has been saved."
+      }
+    },
+    "errors": {
+      "already_open": {
+        "content": "You already have {count} open ticket(s). The maximum allowed is {limit}."
+      },
+      "bot_perms": {
+        "content": "The bot is missing required permissions to create channels or manage ticket permissions."
+      },
+      "disabled": {
+        "content": "The ticket system is currently disabled on this server."
+      },
+      "no_permission": {
+        "content": "You do not have permission to manage this ticket."
+      },
+      "not_ticket": {
+        "content": "This channel is not an active ticket channel."
+      },
+      "unavailable": {
+        "content": "The ticket system is currently unavailable."
+      }
+    },
+    "logs": {
+      "archived": {
+        "components": [
+          {
+            "accent_color": 15105570,
+            "components": [
+              {
+                "content": "# 📦 Ticket Archived\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "Archived by {actor.mention} ({actor.id})\nTicket created by <@{ticket_user_id}> ({ticket_user_id})\nChannel: {channel.mention}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "closed": {
+        "components": [
+          {
+            "accent_color": 15548997,
+            "components": [
+              {
+                "content": "# 📪 Ticket Closed\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "• **Closed By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** #{channel.name}\n• **Topic:** {topic}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "created": {
+        "components": [
+          {
+            "accent_color": 5763719,
+            "components": [
+              {
+                "content": "# 🎫 Ticket Created\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "• **Ticket Creator:** {member.mention} ({member.id})\n• **Ticket Channel:** {channel.mention} (#{channel.name})\n• **Topic:** {topic}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "reopened": {
+        "components": [
+          {
+            "accent_color": 5763719,
+            "components": [
+              {
+                "content": "# 🔁 Ticket Reopened\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "saved": {
+        "components": [
+          {
+            "accent_color": 3447003,
+            "components": [
+              {
+                "content": "# 💾 Ticket Transcript Saved\n**Ticket ID:** `#{ticket_id}`",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "content": "• **Action By:** {actor.mention} ({actor.id})\n• **Ticket Creator:** <@{ticket_user_id}> ({ticket_user_id})\n• **Ticket Channel:** {channel.mention}",
+                "type": "text_display"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      }
+    },
+    "modal": {
+      "desc_label": "Description",
+      "desc_placeholder": "Please provide a detailed explanation of your issue...",
+      "error": {
+        "content": "An unexpected error occurred while creating your ticket."
+      },
+      "title": "Open a Ticket",
+      "topic_label": "Topic / Subject",
+      "topic_placeholder": "Brief summary of the issue"
+    },
+    "panel": {
+      "button": "Open Ticket",
+      "components": [
+        {
+          "accent_color": 6656243,
+          "components": [
+            {
+              "content": "# 🎫 Support Tickets\nNeed assistance? Click the button below to open a support ticket.",
+              "type": "text_display"
+            },
+            {
+              "type": "separator"
+            }
+          ],
+          "type": "container"
+        }
+      ]
     }
   },
   "voice": {
@@ -3169,7 +3435,6 @@
     "np": {
       "embeds": [
         {
-          "color": 5793266,
           "description": "**[{track.title}]({track.url})**\n{progress_bar}",
           "fields": [
             {
@@ -3204,7 +3469,6 @@
       "now_playing": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{track.title}]({track.url})**",
             "fields": [
               {
@@ -3234,7 +3498,6 @@
       "playlist_enqueued": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{name}]({url})**\nEnqueued **{count}** tracks.",
             "footer": {
               "icon_url": "{author.avatar}",
@@ -3247,7 +3510,6 @@
       "track_enqueued": {
         "embeds": [
           {
-            "color": 5793266,
             "description": "**[{track.title}]({track.url})**",
             "fields": [
               {
@@ -3278,7 +3540,6 @@
     "queue": {
       "embeds": [
         {
-          "color": 5793266,
           "description": "{tracks}",
           "footer": {
             "text": "Page {page}/{total_pages} | {total_tracks} total tracks"
@@ -3313,7 +3574,7 @@
     },
     "shuffle": {
       "success": {
-        "content": "\ud83d\udd00 Shuffled **{count}** tracks in queue."
+        "content": "🔀 Shuffled **{count}** tracks in queue."
       }
     },
     "skip": {
@@ -3331,7 +3592,7 @@
     },
     "volume": {
       "current": {
-        "content": "\ud83d\udd0a Current volume: **{volume}%**."
+        "content": "🔊 Current volume: **{volume}%**."
       },
       "set": {
         "content": "Volume set to **{volume}%**."
@@ -3358,7 +3619,6 @@
   "work": {
     "embeds": [
       {
-        "color": 6656243,
         "description": "{random}",
         "title": "Work"
       }
