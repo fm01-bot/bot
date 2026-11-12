@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import discord
 import pytest
-from cogs.mod import Case, Cases, Moderation, Warn
+from cogs.mod import Case, Cases, CaseType, Moderation, Warn
 from discord.ext import commands
 
 
@@ -236,3 +236,21 @@ async def test_case_list_pagination_components_v2(mock_bot, mock_ctx):
 	send_kwargs = mock_ctx.send.call_args.kwargs
 	assert "view" in send_kwargs
 	assert len(send_kwargs["view"].pages) == 2
+
+
+@pytest.mark.asyncio
+async def test_unban_only_queries_active_ban_cases(mock_bot, mock_ctx):
+	mod_cog = Moderation(mock_bot)
+	mock_bot.db.fetch = AsyncMock(return_value=[])
+	mock_ctx.guild.unban = AsyncMock()
+	user = MagicMock(spec=discord.User)
+	user.id = 42
+
+	await mod_cog.unban.callback(mod_cog, mock_ctx, user)
+
+	query, *params = mock_bot.db.fetch.call_args[0]
+	assert '"type" = ' in query
+	assert '"active" = ' in query
+	assert CaseType.BAN.value in params
+	assert True in params
+	mock_ctx.guild.unban.assert_awaited_once()
