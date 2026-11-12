@@ -117,6 +117,7 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 
 	@command(user=False)
 	async def play(self, ctx: Context, *, query: str):
+		await ctx.defer()  # slow: connects to voice and searches Lavalink
 		player = await self._get_player(ctx, connect=True)
 		if not player:
 			return

@@ -320,6 +320,7 @@ async def test_level_command_sends_card(level_cog):
 	ctx.author = MagicMock(spec=discord.Member)
 	ctx.author.id = 111
 	ctx.send = AsyncMock()
+	ctx.defer = AsyncMock()
 
 	level_cog.client.db.fetchrow.side_effect = [
 		{"xp": 120, "level": 1},  # user_levels row
@@ -422,3 +423,19 @@ async def test_overrides_are_cached_until_reported_changed(level_cog):
 	await level_cog.get_role_overrides(guild_id)
 	assert level_cog.client.db.fetch.await_count == 4
 	level_cog.client.event_bus.publish.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_level_command_defers_before_rendering(level_cog):
+	"""Rendering the card can exceed Discord's 3-second window, so the interaction is acknowledged first."""
+	ctx = MagicMock()
+	ctx.guild = None
+	ctx.defer = AsyncMock()
+	await level_cog.level_command.callback(level_cog, ctx)
+	ctx.defer.assert_not_awaited()  # DMs return before any work
+
+	ctx.guild = MagicMock()
+	ctx.author = MagicMock(spec=discord.User)  # not a member: no card, but the interaction was already acknowledged
+	ctx.send = AsyncMock()
+	await level_cog.level_command.callback(level_cog, ctx)
+	ctx.defer.assert_awaited_once()
