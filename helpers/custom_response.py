@@ -24,6 +24,7 @@ from args.text_channel import TextChannel
 from args.track import Track
 from args.user import User
 from core.context import Context
+from core.locale import resolve_locale
 from discord.ext import commands, localization
 
 if TYPE_CHECKING:
@@ -541,25 +542,7 @@ class CustomResponse:
 			locale = "en"
 		original = locale
 
-		locale_cache = getattr(self.client, "locale_cache", None)
-		if isinstance(locale, (discord.Interaction, commands.Context, discord.Message)) or hasattr(locale, "guild"):
-			guild = getattr(locale, "guild", None)
-			guild_override = (
-				locale_cache[guild.id]
-				if guild and isinstance(locale_cache, dict) and getattr(guild, "id", None) in locale_cache
-				else None
-			)
-			guild_locale = getattr(guild, "preferred_locale", None) if guild else None
-			locale = guild_override or (str(guild_locale) if guild_locale else "en")
-		elif isinstance(locale, discord.Guild):
-			guild_override = (
-				locale_cache[locale.id]
-				if isinstance(locale_cache, dict) and getattr(locale, "id", None) in locale_cache
-				else None
-			)
-			locale = guild_override or str(locale.preferred_locale)
-		else:
-			locale = str(locale)
+		locale = resolve_locale(locale, getattr(self.client, "locale_cache", None))
 
 		# these are variables that are always inserted into commands IF there is a context
 		context_formatting = {

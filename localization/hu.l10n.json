@@ -1269,6 +1269,9 @@
       }
     ]
   },
+  "level_card": {
+    "label": "szint"
+  },
   "levels_leaderboard": {
     "embeds": [
       {
