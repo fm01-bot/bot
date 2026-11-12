@@ -2937,7 +2937,18 @@
       "errors": {
         "hierarchy": {
           "content": "You can't unmute a user with a higher role than you."
+        },
+        "not_muted": {
+          "content": "{user.mention} isn't muted and has no active mute case."
         }
+      },
+      "no_case": {
+        "embeds": [
+          {
+            "description": "Removed {user.mention}'s timeout. There was no mute case on record.",
+            "title": "Unmute"
+          }
+        ]
       },
       "notify": {
         "content": "You have been unmuted in **{guild}**."
@@ -2946,6 +2957,14 @@
         "embeds": [
           {
             "description": "Unmuted {user.mention}.",
+            "title": "Unmute"
+          }
+        ]
+      },
+      "timeout_already_removed": {
+        "embeds": [
+          {
+            "description": "Closed {user.mention}'s mute case. Their timeout had already been removed.",
             "title": "Unmute"
           }
         ]
