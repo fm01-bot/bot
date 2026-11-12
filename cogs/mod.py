@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import asyncio
 import datetime
-import heapq
 import logging
 from copy import deepcopy
 from enum import Enum
@@ -18,6 +16,7 @@ from discord.ext import commands, localization
 from discord.utils import MISSING
 from helpers import convert_to_query, custom_response, seconds_to_text, text_to_seconds
 from helpers.pagination import PaginationView
+from helpers.scheduler import ExpiryScheduler
 
 logger = logging.getLogger(__name__)
 
@@ -649,26 +648,12 @@ class Ban(Case):
 				pass
 
 
-class CaseExpirationManager:
+class CaseExpirationManager(ExpiryScheduler[int]):
 	"""Event-driven priority queue manager for case expirations across shards."""
 
 	def __init__(self, bot: Bot):
-		self.bot = bot
-		self._queue: list[tuple[float, int, int]] = []
-		self._scheduled_ids: set[int] = set()
-		self._wake_event = asyncio.Event()
-		self._task: asyncio.Task[None] | None = None
-		self._running = False
+		super().__init__(bot)
 		self._retention_cache: dict[int, str] = {}
-
-	def is_guild_on_shard(self, guild_id: int) -> bool:
-		"""Check if the guild belongs to a shard handled by this bot instance."""
-		total_shards = self.bot.shard_count or len(self.bot.shards) or 1
-		shard_ids = self.bot.shard_ids if self.bot.shard_ids is not None else list(self.bot.shards.keys())
-		if not shard_ids:
-			return True
-		guild_shard = (guild_id >> 22) % total_shards
-		return guild_shard in shard_ids
 
 	async def get_guild_retention(self, guild_id: int) -> str:
 		"""Fetch the case retention setting ('keep' or 'delete') for a guild."""
@@ -688,26 +673,22 @@ class CaseExpirationManager:
 		"""Schedule a case for expiration if it has an expiry date."""
 		if not case.expires or not case.active:
 			return
-		if not self.is_guild_on_shard(case._guild.id):
-			return
-
-		expires_ts = case.expires.timestamp()
-		heapq.heappush(self._queue, (expires_ts, case.id, case._guild.id))
-		self._scheduled_ids.add(case.id)
-		self._wake_event.set()
+		self.schedule_at(case.id, case._guild.id, case.expires)
 
 	def reschedule(self, case_id: int, guild_id: int, new_expires: datetime.datetime | None) -> None:
 		"""Reschedule an existing case expiration."""
-		self._scheduled_ids.discard(case_id)
-		if new_expires and self.is_guild_on_shard(guild_id):
-			heapq.heappush(self._queue, (new_expires.timestamp(), case_id, guild_id))
-			self._scheduled_ids.add(case_id)
-		self._wake_event.set()
+		self.cancel(case_id)
+		if new_expires:
+			self.schedule_at(case_id, guild_id, new_expires)
 
-	def cancel(self, case_id: int) -> None:
-		"""Cancel a pending case expiration."""
-		self._scheduled_ids.discard(case_id)
-		self._wake_event.set()
+	async def fetch_pending(self) -> list[tuple[int, int, datetime.datetime]]:
+		"""Return every active case that has an expiry date."""
+		rows = await self.bot.db.fetch("SELECT * FROM cases WHERE active = true AND expires IS NOT NULL")
+		return [(int(row["case_id"]), int(row["guild_id"]), row["expires"]) for row in rows if row["expires"]]
+
+	async def process_expired(self, key: int, guild_id: int) -> None:
+		"""Process an expired case."""
+		await self._process_expiration(key, guild_id)
 
 	async def _process_expiration(self, case_id: int, guild_id: int) -> None:
 		"""Process an expired case: execute side effects and deactivate or delete."""
@@ -736,78 +717,6 @@ class CaseExpirationManager:
 			await case.delete(self.bot.db)
 		else:
 			await case.deactivate(self.bot.db)
-
-	async def load_pending(self) -> None:
-		"""Load pending active cases for guilds on this bot's shards."""
-		await self.bot.wait_until_ready()
-		rows = await self.bot.db.fetch("SELECT * FROM cases WHERE active = true AND expires IS NOT NULL")
-		now = datetime.datetime.now(tz=datetime.UTC)
-
-		for row in rows:
-			guild_id = int(row["guild_id"])
-			if not self.is_guild_on_shard(guild_id):
-				continue
-
-			case_id = int(row["case_id"])
-			expires = row["expires"]
-			if expires and expires.tzinfo is None:
-				expires = expires.replace(tzinfo=datetime.UTC)
-
-			if expires <= now:
-				await self._process_expiration(case_id, guild_id)
-			else:
-				heapq.heappush(self._queue, (expires.timestamp(), case_id, guild_id))
-				self._scheduled_ids.add(case_id)
-
-		self._wake_event.set()
-
-	async def _runner(self) -> None:
-		"""Continuous runner sleeping until the next case expiration."""
-		await self.load_pending()
-
-		while self._running:
-			try:
-				now_ts = datetime.datetime.now(tz=datetime.UTC).timestamp()
-
-				while self._queue and self._queue[0][1] not in self._scheduled_ids:
-					heapq.heappop(self._queue)
-
-				if not self._queue:
-					self._wake_event.clear()
-					await self._wake_event.wait()
-					continue
-
-				earliest_ts, next_case_id, guild_id = self._queue[0]
-				delay = earliest_ts - now_ts
-
-				if delay <= 0:
-					heapq.heappop(self._queue)
-					self._scheduled_ids.discard(next_case_id)
-					await self._process_expiration(next_case_id, guild_id)
-					continue
-
-				self._wake_event.clear()
-				try:
-					await asyncio.wait_for(self._wake_event.wait(), timeout=delay)
-				except TimeoutError:
-					pass
-			except asyncio.CancelledError:
-				break
-			except Exception:
-				logger.exception("Error in CaseExpirationManager runner loop")
-				await asyncio.sleep(1)
-
-	def start(self) -> None:
-		"""Start the background runner."""
-		if not self._running:
-			self._running = True
-			self._task = asyncio.create_task(self._runner())
-
-	def stop(self) -> None:
-		"""Stop the background runner."""
-		self._running = False
-		if self._task and not self._task.done():
-			self._task.cancel()
 
 
 @commands.guild_only()

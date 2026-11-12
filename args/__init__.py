@@ -12,6 +12,7 @@ from .disk import Disk
 from .format_date_time import FormatDateTime
 from .formattable import Formattable
 from .forum_channel import ForumChannel
+from .giveaway import Giveaway
 from .guild import Guild
 from .invite import Invite
 from .ip_address import IPAddress
