@@ -152,6 +152,13 @@ class Case:
 	async def after_deletion(self) -> None:
 		"""Called after an active case is closed (deleted or deactivated)."""
 
+	async def _audit_reason(self, key: str) -> str | None:
+		"""The localized audit-log reason for this case's Discord action."""
+		text = await custom_response.CustomResponse(self.bot, "mod").get_message(
+			key, self._guild, moderator=self._moderator, case=self
+		)
+		return text if isinstance(text, str) else None
+
 	async def _notify(self, key: str, **kwargs: Any) -> None:
 		message = await custom_response.CustomResponse(self.bot, "mod").get_message(key, self._guild, **kwargs)
 		try:
@@ -213,7 +220,7 @@ class Kick(Case):
 	async def after_creation(self) -> None:
 		"""Kicks the user."""
 		if isinstance(self._user, discord.Member):
-			await self._user.kick(reason=f"Kicked by {self._moderator}")
+			await self._user.kick(reason=await self._audit_reason("mod.kick.reason"))
 
 
 class Mute(Case):
@@ -236,13 +243,13 @@ class Mute(Case):
 
 	async def before_creation(self) -> None:
 		"""Times the member out until the case expires (Discord caps timeouts at 28 days)."""
-		reason = await custom_response.CustomResponse(self.bot, "mod")("mod.mute.reason", self._guild, mute=self)
+		reason = await self._audit_reason("mod.mute.reason")
 		if isinstance(self._user, discord.Member) and self.expires is not None:
 			now = datetime.datetime.now(tz=datetime.UTC)
 			expires_utc = min(self.expires.astimezone(datetime.UTC), now + datetime.timedelta(days=28))
 			if expires_utc <= now:
 				return
-			await self._user.timeout(expires_utc, reason=reason if isinstance(reason, str) else None)
+			await self._user.timeout(expires_utc, reason=reason)
 
 	async def after_creation(self) -> None:
 		"""Notifies the user about the mute."""
@@ -283,12 +290,13 @@ class Ban(Case):
 
 	async def after_creation(self) -> None:
 		"""Bans the user."""
-		await self._guild.ban(self._user, reason=f"Banned by {self._moderator}", delete_message_days=0)  # type: ignore
+		reason = await self._audit_reason("mod.ban.reason")
+		await self._guild.ban(self._user, reason=reason, delete_message_days=0)  # type: ignore
 
 	async def before_deletion(self) -> None:
 		"""Unbans the user."""
 		try:
-			await self._guild.unban(self._user, reason="Ban removed")  # type: ignore
+			await self._guild.unban(self._user, reason=await self._audit_reason("mod.unban.case_reason"))  # type: ignore
 		except discord.NotFound:
 			pass
 

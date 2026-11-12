@@ -154,7 +154,8 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 		elif cases:
 			await ctx.send("mod.unmute.timeout_already_removed", member=member, user=member)
 		elif was_timed_out:
-			await member.edit(timed_out_until=None, reason=f"Unmuted by {ctx.author}")
+			reason = await self.custom_response("mod.unmute.reason", ctx, moderator=ctx.author)
+			await member.edit(timed_out_until=None, reason=reason if isinstance(reason, str) else None)
 			await ctx.send("mod.unmute.no_case", member=member, user=member)
 		else:
 			await ctx.send("mod.unmute.errors.not_muted", member=member, user=member)
@@ -217,7 +218,8 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 			await self.cases.close(case)  # Ban.before_deletion lifts the ban
 		if not cases:
 			try:
-				await ctx.guild.unban(user, reason=f"Ban removed by {ctx.author}")
+				reason = await self.custom_response("mod.unban.reason", ctx, moderator=ctx.author)
+				await ctx.guild.unban(user, reason=reason if isinstance(reason, str) else None)
 			except discord.NotFound:
 				pass
 

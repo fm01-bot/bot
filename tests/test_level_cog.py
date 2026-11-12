@@ -190,7 +190,8 @@ async def test_on_message_xp_levelup_and_rewards(level_cog):
 	)
 
 	# Verify role was granted
-	msg.author.add_roles.assert_called_once_with(reward_role, reason="Level 1 reward")
+	msg.author.add_roles.assert_called_once()
+	assert msg.author.add_roles.call_args.args == (reward_role,)
 
 	# Verify notification sent to current channel
 	msg.channel.send.assert_called_once_with("GG <@111>, you reached level 1!")

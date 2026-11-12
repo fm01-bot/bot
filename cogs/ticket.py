@@ -280,6 +280,10 @@ class Ticket(commands.Cog, name="Ticket"):
 			return await msg_any.send(**send_kwargs)
 		return None
 
+	async def _string(self, key: str, guild: discord.Guild, **kwargs: Any) -> str:
+		text = await self.bot.custom_response.get_message(f"ticket.strings.{key}", guild, **kwargs)
+		return text if isinstance(text, str) else key
+
 	async def get_ticket_config(self, guild_id: int) -> dict | None:
 		if not self.bot.db:
 			return None
@@ -428,7 +432,8 @@ class Ticket(commands.Cog, name="Ticket"):
 				category = cat
 
 		if not category:
-			category = discord.utils.get(interaction.guild.categories, name="Tickets")
+			category_name = await self._string("category_name", interaction.guild)
+			category = discord.utils.get(interaction.guild.categories, name=category_name)
 			if not category and interaction.guild.me:
 				try:
 					cat_overwrites: dict[
@@ -446,7 +451,9 @@ class Ticket(commands.Cog, name="Ticket"):
 						),
 					}
 					category = await interaction.guild.create_category(
-						name="Tickets", overwrites=cat_overwrites, reason="Ticket system category"
+						name=category_name,
+						overwrites=cat_overwrites,
+						reason=await self._string("category_reason", interaction.guild),
 					)
 				except discord.Forbidden:
 					return await self.send_response("ticket.errors.bot_perms", interaction, ephemeral=True)
@@ -493,7 +500,7 @@ class Ticket(commands.Cog, name="Ticket"):
 				name=channel_name,
 				category=category,
 				overwrites=ch_overwrites,
-				reason=f"Ticket opened by {interaction.user} ({interaction.user.id})",
+				reason=await self._string("open_reason", interaction.guild, user=interaction.user),
 			)
 		except discord.Forbidden:
 			return await self.send_response("ticket.errors.bot_perms", interaction, ephemeral=True)
@@ -808,7 +815,9 @@ class Ticket(commands.Cog, name="Ticket"):
 
 		if isinstance(interaction.channel, discord.abc.GuildChannel):
 			try:
-				await interaction.channel.delete(reason=f"Ticket closed by {interaction.user} ({interaction.user.id})")
+				await interaction.channel.delete(
+					reason=await self._string("close_reason", interaction.guild, user=interaction.user)
+				)
 			except discord.HTTPException as e:
 				logger.warning(f"Failed to delete ticket channel: {e}")
 
