@@ -79,7 +79,7 @@ Dataclasses decorated with `@dataclass(slots=True)` that wrap Discord objects (e
 - `join_leave.py`: Welcome/leave announcement handlers and autorole assignment.
 - `level.py`: Message XP awarding, rank card generator (`?!level`), leaderboards (`?!levels`), and level role rewards.
 - `log.py`: Server event audit logger (message edits/deletions, member changes, channel updates).
-- `mod.py`: Moderation command suite (`ban`, `kick`, `mute`, `warn`, `clear`, case database logging).
+- `mod/`: Moderation command suite (`ban`, `kick`, `mute`, `warn`, `case`). `mod/cases.py` is the Case module: `CaseStore` owns every query on `cases`, retention, and expiry.
 - `say.py`: Echo and Minecraft achievement message generators.
 - `setup.py`: Interactive first-time server setup helper.
 - `snapshot.py`: Guild structural backup and restoration system.
@@ -185,4 +185,4 @@ Reuses existing repo labels where possible (`question`, `help wanted`, `wontfix`
 
 ### Domain docs
 
-Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
+Single-context: root `GLOSSARY.md` holds both the domain terms and the settled decisions (no `docs/adr/`). See `docs/agents/domain.md`.

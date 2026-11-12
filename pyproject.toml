@@ -36,7 +36,12 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0", "ruff>=0.14.8"]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.14.8",
+    "testcontainers[postgres]>=4.8",
+]
 
 [tool.setuptools]
 packages = ["helpers"]
@@ -64,3 +69,4 @@ convention = "google"
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["db: needs a throwaway PostgreSQL database (Docker)"]
