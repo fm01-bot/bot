@@ -618,11 +618,12 @@ class CustomResponse:
 				else:
 					payload["allowed_mentions"] = discord.AllowedMentions(**allowed_mentions)
 
-			if payload.get("ephemeral") or payload.get("delete_after"):
-				if not isinstance(original, discord.Interaction):
-					payload.pop("ephemeral", None)
-				else:
-					payload.pop("delete_after", None)
+			# Ephemeral only exists for interaction responses (slash commands via a Context included);
+			# a raw Interaction response can't take delete_after.
+			if isinstance(original, discord.Interaction):
+				payload.pop("delete_after", None)
+			elif not (isinstance(original, commands.Context) and getattr(original, "interaction", None)):
+				payload.pop("ephemeral", None)
 		return payload
 
 	__call__ = get_message

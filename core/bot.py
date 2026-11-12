@@ -10,7 +10,7 @@ from io import StringIO
 from logging import getLogger
 from pathlib import Path
 from time import perf_counter
-from typing import Any, cast
+from typing import Any
 
 import aiohttp
 import asyncpg
@@ -558,25 +558,3 @@ class Bot(commands.AutoShardedBot):
 
 	async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
 		await self.handle_error(await Context.from_interaction(interaction), error)
-
-	async def before_invoke(self, ctx: Context):  # type: ignore
-		if ctx.guild:
-			await self.prefix.get(ctx.guild.id)  # creates the guild's settings row on first use
-		try:
-			# Signals that the bot is still thinking / performing a task
-			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
-				await ctx.interaction.response.defer(thinking=True)
-			else:
-				await ctx.message.add_reaction(self.config.emojis.get("loading", ""))
-		except discord.HTTPException:
-			pass
-
-	async def after_invoke(self, ctx: Context):  # type: ignore
-		if ctx.interaction:
-			return
-		try:
-			await ctx.message.remove_reaction(
-				self.config.emojis.get("loading", ""), cast(discord.abc.Snowflake, ctx.me)
-			)
-		except discord.HTTPException:
-			pass

@@ -87,6 +87,7 @@ class Context(commands.Context):
 			localized_payload = content
 
 		if isinstance(localized_payload, dict):
+			delete_after = localized_payload.pop("delete_after", delete_after)
 			if "view" in localized_payload and base_args.get("view") is not None:
 				base_args["view"] = self.bot.custom_response.merge_views(
 					base_args["view"], localized_payload.pop("view")
