@@ -229,6 +229,8 @@ async def test_config_level_execution():
 	bot.db.fetch = AsyncMock(return_value=[])
 	bot.db.fetchrow = AsyncMock(return_value=None)
 	bot.get_cog.return_value = None
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 
 	ctx = MagicMock()
 	ctx.bot = bot

@@ -4,12 +4,20 @@ import argparse
 from typing import TYPE_CHECKING, Any
 
 import discord
+from cogs.ticket import ticket_config_setting
 from helpers.cli_parser import CLINode, CLIParseError
 
 from .helpers import resolve_category, resolve_channel, resolve_role
 
 if TYPE_CHECKING:
 	from core import Context
+
+
+async def _write(ctx: Context, query: str, *args: Any) -> None:
+	"""Run a ticket_config write and report it, so cached ticket configs (here and on other instances) refresh."""
+	assert ctx.guild is not None
+	await ctx.bot.db.execute(query, *args)
+	await ticket_config_setting(ctx.bot.settings).changed(ctx.guild.id)
 
 
 def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
@@ -20,7 +28,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def ticket_enable(ctx: Context, **kwargs: Any):
 		assert ctx.guild is not None
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, is_on)
 			VALUES ($1, true)
@@ -37,7 +46,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def ticket_disable(ctx: Context, **kwargs: Any):
 		assert ctx.guild is not None
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, is_on)
 			VALUES ($1, false)
@@ -190,7 +200,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 	):
 		assert ctx.guild is not None
 		if clear:
-			await ctx.bot.db.execute(
+			await _write(
+				ctx,
 				"""
 				INSERT INTO ticket_config (guild_id, category_id)
 				VALUES ($1, NULL)
@@ -210,7 +221,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if not resolved:
 			raise CLIParseError(f"Category `{cat_raw}` was not found.", cat_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, category_id)
 			VALUES ($1, $2)
@@ -238,7 +250,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 	):
 		assert ctx.guild is not None
 		if disable:
-			await ctx.bot.db.execute(
+			await _write(
+				ctx,
 				"""
 				INSERT INTO ticket_config (guild_id, log_channel_id)
 				VALUES ($1, NULL)
@@ -256,7 +269,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if not resolved or not isinstance(resolved, discord.abc.Messageable):
 			raise CLIParseError(f"Channel `{ch_raw}` was not found or is not a valid text channel.", log_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, log_channel_id)
 			VALUES ($1, $2)
@@ -285,7 +299,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 	):
 		assert ctx.guild is not None
 		if clear:
-			await ctx.bot.db.execute(
+			await _write(
+				ctx,
 				"""
 				INSERT INTO ticket_config (guild_id, support_role_id)
 				VALUES ($1, NULL)
@@ -303,7 +318,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if not resolved:
 			raise CLIParseError(f"Role `{r_raw}` was not found.", role_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, support_role_id)
 			VALUES ($1, $2)
@@ -341,7 +357,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		except ValueError:
 			raise CLIParseError("Maximum tickets must be a non-negative integer (0 for unlimited).", limit_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, max_tickets)
 			VALUES ($1, $2)
@@ -368,7 +385,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 			raise CLIParseError("Please specify `--enable` or `--disable`.", dm_node)
 
 		new_val = bool(enable)
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, dm_transcript)
 			VALUES ($1, $2)
@@ -521,7 +539,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 				length_node,
 			)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (
 				guild_id,
@@ -629,7 +648,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if final_min > final_max:
 			raise CLIParseError(f"Minimum length ({final_min}) cannot exceed maximum length ({final_max}).", topic_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, topic_min_length, topic_max_length)
 			VALUES ($1, $2, $3)
@@ -729,7 +749,8 @@ def setup_ticket_subcommands(parent_node: CLINode) -> CLINode:
 		if final_min > final_max:
 			raise CLIParseError(f"Minimum length ({final_min}) cannot exceed maximum length ({final_max}).", desc_node)
 
-		await ctx.bot.db.execute(
+		await _write(
+			ctx,
 			"""
 			INSERT INTO ticket_config (guild_id, description_min_length, description_max_length)
 			VALUES ($1, $2, $3)
