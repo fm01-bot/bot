@@ -137,3 +137,23 @@ async def test_forget_guild_drops_every_setting(instances):
 async def test_registering_a_key_twice_returns_the_same_setting(instances):
 	a, _ = instances
 	assert retention_setting(a.settings) is a.retention
+
+
+async def test_targeted_write_reported_with_changed_reaches_other_instances(db, instances):
+	a, b = instances
+
+	async def load(pool: asyncpg.Pool, guild_id: int) -> bool:
+		return bool(await pool.fetchval("SELECT stack_roles FROM level_config WHERE guild_id = $1", guild_id))
+
+	stack_a = a.settings.add("test.stack", load)
+	stack_b = b.settings.add("test.stack", load)
+	assert await stack_b.get(GUILD) is False
+
+	await db.execute("INSERT INTO level_config (guild_id, stack_roles) VALUES ($1, true)", GUILD)
+	await stack_a.changed(GUILD)
+	await settle()
+
+	assert await stack_a.get(GUILD) is True
+	assert await stack_b.get(GUILD) is True
+	with pytest.raises(TypeError):
+		await stack_a.set(GUILD, False)

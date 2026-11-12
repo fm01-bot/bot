@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import discord
 import pytest
-from cogs.level import Level
+from cogs.level import Level, LevelOverrides
+from core.settings import GuildSettings
 from helpers.leveling import GuildLevelConfig, LevelupMessage
 
 
@@ -27,7 +28,20 @@ def mock_bot():
 		}
 	)
 	bot.custom_response.convert_embeds = MagicMock(side_effect=lambda x: x)
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	return bot
+
+
+def seed_override(cog: Level, *, channel=None, role=None) -> None:
+	"""Cache an XP override for guild 999 without touching the database."""
+	current = cog.overrides.cache.get(999, LevelOverrides())
+	channels, roles = dict(current.channels), dict(current.roles)
+	if channel:
+		channels[channel[0]] = channel[1]
+	if role:
+		roles[role[0]] = role[1]
+	cog.overrides.remember(999, LevelOverrides(channels, roles))
 
 
 @pytest.fixture
@@ -60,7 +74,7 @@ async def test_on_message_xp_disabled_guild(level_cog):
 	msg.author = MagicMock(spec=discord.Member)
 	msg.author.roles = []
 
-	level_cog.guild_configs[999] = GuildLevelConfig(guild_id=999, is_on=False)
+	level_cog.config.remember(999, GuildLevelConfig(guild_id=999, is_on=False))
 	await level_cog.on_message_xp(msg)
 	assert not level_cog.client.db.fetchrow.called
 
@@ -74,8 +88,8 @@ async def test_on_message_xp_ignored_channel(level_cog):
 	msg.author = MagicMock(spec=discord.Member)
 	msg.author.roles = []
 
-	level_cog.guild_configs[999] = GuildLevelConfig(guild_id=999, is_on=True)
-	level_cog.channel_overrides[(999, 444)] = (1.0, True)  # Ignored
+	level_cog.config.remember(999, GuildLevelConfig(guild_id=999, is_on=True))
+	seed_override(level_cog, channel=(444, (1.0, True)))  # Ignored
 
 	await level_cog.on_message_xp(msg)
 	assert not level_cog.client.db.fetchrow.called
@@ -93,8 +107,8 @@ async def test_on_message_xp_ignored_role(level_cog):
 	msg.author = MagicMock(spec=discord.Member)
 	msg.author.roles = [role]
 
-	level_cog.guild_configs[999] = GuildLevelConfig(guild_id=999, is_on=True)
-	level_cog.role_overrides[(999, 777)] = (1.0, True)  # Ignored
+	level_cog.config.remember(999, GuildLevelConfig(guild_id=999, is_on=True))
+	seed_override(level_cog, role=(777, (1.0, True)))  # Ignored
 
 	await level_cog.on_message_xp(msg)
 	assert not level_cog.client.db.fetchrow.called
@@ -110,9 +124,9 @@ async def test_on_message_xp_cooldown(level_cog):
 	msg.author.id = 111
 	msg.author.roles = []
 
-	level_cog.guild_configs[999] = GuildLevelConfig(guild_id=999, is_on=True, cooldown=60)
-	level_cog.channel_overrides[(999, 444)] = (1.0, False)
-	level_cog.role_overrides[(999, 111)] = (1.0, False)
+	level_cog.config.remember(999, GuildLevelConfig(guild_id=999, is_on=True, cooldown=60))
+	seed_override(level_cog, channel=(444, (1.0, False)))
+	seed_override(level_cog, role=(111, (1.0, False)))
 	level_cog.client.db.fetchrow.return_value = {"xp": 20, "level": 0}
 
 	# 1st message -> awards XP
@@ -141,16 +155,19 @@ async def test_on_message_xp_levelup_and_rewards(level_cog):
 	msg.channel.send = AsyncMock()
 
 	# User gains enough XP to go from level 0 (0 XP) to level 1 (100 XP)
-	level_cog.guild_configs[999] = GuildLevelConfig(
-		guild_id=999,
-		is_on=True,
-		cooldown=0,
-		min_xp=100,
-		max_xp=100,
-		message_mode=LevelupMessage.CURRENT,
-		levelup_message="GG {user}, you reached level {level}!",
+	level_cog.config.remember(
+		999,
+		GuildLevelConfig(
+			guild_id=999,
+			is_on=True,
+			cooldown=0,
+			min_xp=100,
+			max_xp=100,
+			message_mode=LevelupMessage.CURRENT,
+			levelup_message="GG {user}, you reached level {level}!",
+		),
 	)
-	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	seed_override(level_cog, channel=(444, (1.0, False)))
 
 	# Mock user_levels insert returning 100 XP, old level 0
 	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
@@ -160,7 +177,7 @@ async def test_on_message_xp_levelup_and_rewards(level_cog):
 	reward_role.id = 888
 	reward_role.name = "Novice"
 	msg.guild.get_role.return_value = reward_role
-	level_cog.role_rewards[999] = [(1, 888)]
+	level_cog.rewards.remember(999, [(1, 888)])
 
 	await level_cog.on_message_xp(msg)
 
@@ -189,16 +206,19 @@ async def test_on_message_xp_levelup_localized_default(level_cog):
 	msg.channel.send = AsyncMock()
 
 	# Config with levelup_message=None
-	level_cog.guild_configs[999] = GuildLevelConfig(
-		guild_id=999,
-		is_on=True,
-		cooldown=0,
-		min_xp=100,
-		max_xp=100,
-		message_mode=LevelupMessage.CURRENT,
-		levelup_message=None,
+	level_cog.config.remember(
+		999,
+		GuildLevelConfig(
+			guild_id=999,
+			is_on=True,
+			cooldown=0,
+			min_xp=100,
+			max_xp=100,
+			message_mode=LevelupMessage.CURRENT,
+			levelup_message=None,
+		),
 	)
-	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	seed_override(level_cog, channel=(444, (1.0, False)))
 	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
 	level_cog.client.custom_response.get_message.return_value = "Localized GG!"
 
@@ -220,16 +240,19 @@ async def test_on_message_xp_levelup_dict_payload_with_reply(level_cog):
 	msg.author.roles = []
 	msg.channel.send = AsyncMock()
 
-	level_cog.guild_configs[999] = GuildLevelConfig(
-		guild_id=999,
-		is_on=True,
-		cooldown=0,
-		min_xp=100,
-		max_xp=100,
-		message_mode=LevelupMessage.CURRENT,
-		levelup_message=None,
+	level_cog.config.remember(
+		999,
+		GuildLevelConfig(
+			guild_id=999,
+			is_on=True,
+			cooldown=0,
+			min_xp=100,
+			max_xp=100,
+			message_mode=LevelupMessage.CURRENT,
+			levelup_message=None,
+		),
 	)
-	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	seed_override(level_cog, channel=(444, (1.0, False)))
 	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
 
 	embed = MagicMock(spec=discord.Embed)
@@ -260,17 +283,20 @@ async def test_on_message_xp_levelup_dict_payload_separate_channel_strips_refere
 	target_ch.send = AsyncMock()
 	msg.guild.get_channel.return_value = target_ch
 
-	level_cog.guild_configs[999] = GuildLevelConfig(
-		guild_id=999,
-		is_on=True,
-		cooldown=0,
-		min_xp=100,
-		max_xp=100,
-		message_mode=LevelupMessage.CHANNEL,
-		message_channel=555,
-		levelup_message=None,
+	level_cog.config.remember(
+		999,
+		GuildLevelConfig(
+			guild_id=999,
+			is_on=True,
+			cooldown=0,
+			min_xp=100,
+			max_xp=100,
+			message_mode=LevelupMessage.CHANNEL,
+			message_channel=555,
+			levelup_message=None,
+		),
 	)
-	level_cog.channel_overrides[(999, 444)] = (1.0, False)
+	seed_override(level_cog, channel=(444, (1.0, False)))
 	level_cog.client.db.fetchrow.return_value = {"xp": 100, "level": 0}
 
 	embed = MagicMock(spec=discord.Embed)
@@ -371,22 +397,24 @@ async def test_levels_command_empty_leaderboard(level_cog):
 
 
 @pytest.mark.asyncio
-async def test_role_overrides_caching_and_invalidation(level_cog):
+async def test_overrides_are_cached_until_reported_changed(level_cog):
 	guild_id = 999
-	level_cog.client.db.fetch.return_value = [{"role_id": 123, "multiplier": 1.5, "is_ignored": False}]
 
-	# First call -> fetches from DB
-	res1 = await level_cog.get_role_overrides(guild_id)
-	assert res1 == {123: (1.5, False)}
-	assert level_cog.client.db.fetch.call_count == 1
+	async def fetch(query, *args):
+		if "level_role_overrides" in query:
+			return [{"role_id": 123, "multiplier": 1.5, "is_ignored": False}]
+		return [{"channel_id": 456, "multiplier": 2.0, "is_ignored": True}]
 
-	# Second call -> uses in-memory cache
-	res2 = await level_cog.get_role_overrides(guild_id)
-	assert res2 == {123: (1.5, False)}
-	assert level_cog.client.db.fetch.call_count == 1
+	level_cog.client.db.fetch = AsyncMock(side_effect=fetch)
 
-	# Invalidate cache
-	level_cog.invalidate_cache(guild_id)
-	res3 = await level_cog.get_role_overrides(guild_id)
-	assert res3 == {123: (1.5, False)}
-	assert level_cog.client.db.fetch.call_count == 2
+	assert await level_cog.get_role_overrides(guild_id) == {123: (1.5, False)}
+	assert await level_cog.get_channel_override(guild_id, 456) == (2.0, True)
+	assert level_cog.client.db.fetch.await_count == 2  # one load: channel and role overrides
+
+	await level_cog.get_role_overrides(guild_id)
+	assert level_cog.client.db.fetch.await_count == 2
+
+	await level_cog.set_role_multiplier(guild_id, 123, 3.0)
+	await level_cog.get_role_overrides(guild_id)
+	assert level_cog.client.db.fetch.await_count == 4
+	level_cog.client.event_bus.publish.assert_awaited()
