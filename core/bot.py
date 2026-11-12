@@ -136,6 +136,7 @@ class Bot(commands.AutoShardedBot):
 			self.session_persister = NullSessionPersister()
 
 		self.message_logging_guilds: set[int] = set()
+		"""Guilds whose messages are buffered for deletion/edit logging; maintained by the log setting."""
 		self._health_task: asyncio.Task | None = None
 		self.settings = GuildSettings(lambda: self.db, self.event_bus)
 		self.prefix: GuildSetting[Prefix] = self.settings.add(
@@ -199,7 +200,6 @@ class Bot(commands.AutoShardedBot):
 
 		await self.load_cogs()
 		await self.settings.preload()
-		await self.refresh_logging_guilds()
 		await self.tree.set_translator(SlashCommandLocalizer())
 		self.session = aiohttp.ClientSession(
 			connector=aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver(), family=socket.AF_INET)
@@ -207,21 +207,8 @@ class Bot(commands.AutoShardedBot):
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Initial setup hook complete in {end:.2f}s")
 
-	async def refresh_logging_guilds(self) -> None:
-		try:
-			rows = await self.db.fetch(
-				"SELECT guild_id FROM log WHERE is_on = true AND ('on_message_delete' = ANY(modules) OR 'on_message_edit' = ANY(modules))"
-			)
-			self.message_logging_guilds = {int(r["guild_id"]) for r in rows}
-			self.logger.debug(f"Cached {len(self.message_logging_guilds)} active message logging guilds")
-		except Exception:
-			self.logger.exception("Failed to load message logging guilds")
-
 	async def _on_cluster_event(self, event: dict[str, Any]) -> None:
-		if await self.settings.handle_event(event):
-			return
-		if event.get("type") == "INVALIDATE_LOG_CONFIG" and event.get("guild_id"):
-			await self.refresh_logging_guilds()
+		await self.settings.handle_event(event)
 
 	async def on_message(self, message: discord.Message) -> None:
 		if message.author.bot:

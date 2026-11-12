@@ -80,12 +80,12 @@ Dataclasses decorated with `@dataclass(slots=True)` that wrap Discord objects (e
 - `info.py`: Server, user, role, and bot diagnostic inspection commands.
 - `join_leave.py`: Welcome/leave announcement handlers and autorole assignment.
 - `level.py`: Message XP awarding, rank card generator (`?!level`), leaderboards (`?!levels`), and level role rewards.
-- `log.py`: Server event audit logger (message edits/deletions, member changes, channel updates).
+- `log.py`: Server event audit logger (message edits/deletions, member changes, channel updates). `LogSettings` is the log configuration guild setting; the config commands use it too.
 - `mod/`: Moderation command suite (`ban`, `kick`, `mute`, `warn`, `case`). `mod/cases.py` is the Case module: `CaseStore` owns every query on `cases`, retention, and expiry.
 - `say.py`: Echo and Minecraft achievement message generators.
 - `setup.py`: Interactive first-time server setup helper.
 - `snapshot.py`: Guild structural backup and restoration system.
-- `state_sync.py`: Distributed cluster sync listeners (invalidating prefix/log caches across instances).
+- `state_sync.py`: Mirrors guild, channel and role data into the cluster `StateStore`. (Setting caches are invalidated by `core/settings.py`, not here.)
 - `status.py`: Presence and bot activity status cycler.
 - `ticket.py`: Interactive support ticket system with components, modals, and transcript export.
 - `voice.py`: Lavalink v4 music playback controls via Wavelink.
