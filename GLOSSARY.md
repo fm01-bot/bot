@@ -26,6 +26,8 @@ The words this codebase uses for its own concepts, and the decisions that shape 
 
 **Message buffering**: the bot keeps recent message content for guilds whose log configuration has message deletion or edit logging on (`Bot.message_logging_guilds`), so deleted and edited messages can be logged. Maintained automatically from the log configuration.
 
+**Ledger**: `Ledger` in `cogs/economy.py`, the only code that changes `economy` balances. Each operation (`credit`, `debit`, `move`, `transfer`) is one transaction over row-locked accounts. Cash never goes negative; the bank goes negative only as **debt** (admin removals), and money credited while in debt pays it off first. A **Balance** is a member's `cash` and `bank` in one guild.
+
 ## Decisions
 
 **Config commands are temporary.** The `?!config` command tree (`cogs/config_subcommands/`) exists only until the web dashboard replaces it, after which the bot, backend, website and dashboard move into one monorepo. Fix bugs there and let it reuse shared modules when that costs nothing, but don't put architecture work into it (localizing its strings, restructuring, new tests).

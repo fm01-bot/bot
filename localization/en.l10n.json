@@ -3045,6 +3045,9 @@
       },
       "positive": {
         "content": "You can't transfer a negative amount!"
+      },
+      "self": {
+        "content": "You can't pay yourself!"
       }
     },
     "success": {
@@ -3203,6 +3206,9 @@
         },
         "not_found": {
           "content": "This item doesn't exist!"
+        },
+        "role_failed": {
+          "content": "I couldn't give you the **{item.role.name}** role, so you weren't charged."
         },
         "role_not_found": {
           "content": "The role for this item doesn't exist! Ask an admin to remove it."
