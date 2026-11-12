@@ -7,7 +7,7 @@ import random
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import discord
 from args import User
@@ -416,7 +416,9 @@ class Level(commands.Cog, name="Level"):
 			entries.append(
 				{
 					"number": offset + idx + 1,
-					"user": User.from_user(cached_user) if cached_user else f"User {user_id}",
+					"user": User.from_user(cached_user)
+					if cached_user
+					else await self.client.custom_response.get_message("level_unknown_user", ctx, user_id=user_id),
 					"level": row["level"],
 					"xp": f"{int(row['xp']):,}",
 				}
@@ -425,6 +427,10 @@ class Level(commands.Cog, name="Level"):
 			"levels_leaderboard", ctx, entries, page=page, pages=total_pages
 		)
 		await ctx.send(**message)
+
+	async def _reward_reason(self, member: discord.Member, key: str, **kwargs: Any) -> str | None:
+		text = await self.client.custom_response.get_message(f"level_reward.{key}", member.guild, **kwargs)
+		return text if isinstance(text, str) else None
 
 	async def handle_role_rewards(
 		self, member: discord.Member, old_level: int, new_level: int, stack_roles: bool
@@ -447,7 +453,7 @@ class Level(commands.Cog, name="Level"):
 					role = member.guild.get_role(r_id)
 					if role and role not in member.roles:
 						try:
-							await member.add_roles(role, reason=f"Level {lvl} reward")
+							await member.add_roles(role, reason=await self._reward_reason(member, "reason", level=lvl))
 						except (discord.Forbidden, discord.HTTPException):
 							logger.warning(f"Failed to add role {role.name} to {member.name} in {member.guild.name}")
 		else:
@@ -465,13 +471,17 @@ class Level(commands.Cog, name="Level"):
 				]
 				if roles_to_remove:
 					try:
-						await member.remove_roles(*roles_to_remove, reason="Replacing lower level role reward")
+						await member.remove_roles(
+							*roles_to_remove, reason=await self._reward_reason(member, "replace_reason")
+						)
 					except (discord.Forbidden, discord.HTTPException):
 						pass
 
 				if highest_role and highest_role not in member.roles:
 					try:
-						await member.add_roles(highest_role, reason=f"Level {highest_lvl} reward")
+						await member.add_roles(
+							highest_role, reason=await self._reward_reason(member, "reason", level=highest_lvl)
+						)
 					except (discord.Forbidden, discord.HTTPException):
 						logger.warning(
 							f"Failed to add highest role {highest_role.name} to {member.name} in {member.guild.name}"

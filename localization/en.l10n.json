@@ -1592,6 +1592,11 @@
   "level_card": {
     "label": "lvl"
   },
+  "level_reward": {
+    "reason": "Level {level} reward",
+    "replace_reason": "Replacing lower level role reward"
+  },
+  "level_unknown_user": "User {user_id}",
   "levels_leaderboard": {
     "embeds": [
       {
@@ -2728,6 +2733,7 @@
           }
         ]
       },
+      "reason": "Banned by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -2857,6 +2863,7 @@
           }
         ]
       },
+      "reason": "Kicked by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -2992,9 +2999,11 @@
       }
     },
     "unban": {
+      "case_reason": "Ban case {case.id} closed",
       "notify": {
         "content": "You have been unbanned from **{guild}**."
       },
+      "reason": "Ban removed by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -3024,6 +3033,7 @@
       "notify": {
         "content": "You have been unmuted in **{guild}**."
       },
+      "reason": "Unmuted by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -3421,6 +3431,9 @@
         }
       ]
     },
+    "restore_failed": {
+      "content": "⚠️ An error occurred while restoring snapshot `{code}`: {error}. You can restore the previous state with the backup code `{backup}`."
+    },
     "strings": {
       "save_load_reason": "Lumin save load - {author.name}",
       "server_snapshot": "Snapshot of {guild.name}"
@@ -3675,6 +3688,12 @@
           "type": "container"
         }
       ]
+    },
+    "strings": {
+      "category_name": "Tickets",
+      "category_reason": "Ticket system category",
+      "close_reason": "Ticket closed by {user.name} ({user.id})",
+      "open_reason": "Ticket opened by {user.name} ({user.id})"
     }
   },
   "voice": {

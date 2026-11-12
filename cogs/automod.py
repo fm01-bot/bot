@@ -356,7 +356,8 @@ class AutoMod(commands.Cog, name="AutoMod"):
 		moderator: Any = self.client.user or guild.me
 		if not moderator:
 			return
-		reason = f"[AutoMod] {feature.title()} rule violation"
+		localized = await self.client.custom_response.get_message(f"automod.reasons.{feature}", guild)
+		reason = localized if isinstance(localized, str) else None
 		from cogs.mod import Moderation, Mute, Warn
 
 		mod_cog = self.client.get_cog("Moderation")
