@@ -7,9 +7,10 @@ The `Case` subclasses only carry data and the Discord side effects of opening an
 
 from __future__ import annotations
 
+import asyncio
 import datetime
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
@@ -383,7 +384,7 @@ class CaseStore:
 			user.id,
 			case_type.value,
 		)
-		return [await self._from_row(row, guild, user) for row in rows]
+		return await self._from_rows(rows, guild, user)
 
 	async def for_user(
 		self, guild: discord.Guild, user: discord.Member | discord.User, status: CaseStatus = "all"
@@ -404,7 +405,7 @@ class CaseStore:
 			query += " AND (active = false OR (expires IS NOT NULL AND expires <= $3))"
 			params.append(datetime.datetime.now(tz=datetime.UTC))
 		rows = await self._db.fetch(query + " ORDER BY created DESC", *params)
-		return [await self._from_row(row, guild, user) for row in rows]
+		return await self._from_rows(rows, guild, user)
 
 	async def open(self, case: Case) -> Case | None:
 		"""Record a new case and perform its side effects.
@@ -524,23 +525,48 @@ class CaseStore:
 	async def _from_row(
 		self, row: asyncpg.Record, guild: discord.Guild, user: discord.Member | discord.User | None = None
 	) -> Case:
-		"""Build the `Case` subclass matching the row's type, resolving users from cache or the API."""
-		active = row["active"]
-		return CASE_CLASSES[CaseType(row["type"])](
-			_id=int(row["case_id"]),
-			bot=self._bot,
-			guild=guild,
-			user=user or await self._resolve_user(int(row["user_id"])),
-			moderator=await self._resolve_user(int(row["moderator_id"])),
-			reason=row["reason"],
-			expires=row["expires"],
-			message=row["message"],
-			created=row["created"],
-			active=True if active is None else active,
-		)
+		(case,) = await self._from_rows([row], guild, user)
+		return case
 
-	async def _resolve_user(self, user_id: int) -> discord.User:
-		return self._bot.get_user(user_id) or await self._bot.fetch_user(user_id)
+	async def _from_rows(
+		self, rows: Sequence[asyncpg.Record], guild: discord.Guild, user: discord.Member | discord.User | None = None
+	) -> list[Case]:
+		"""Build the `Case` subclass for each row, resolving every distinct user once (cache, then the API)."""
+		ids = {int(row["moderator_id"]) for row in rows}
+		if user is None:
+			ids |= {int(row["user_id"]) for row in rows}
+		users = await self._resolve_users(ids)
+		cases = []
+		for row in rows:
+			active = row["active"]
+			cases.append(
+				CASE_CLASSES[CaseType(row["type"])](
+					_id=int(row["case_id"]),
+					bot=self._bot,
+					guild=guild,
+					user=user or users[int(row["user_id"])],
+					moderator=users[int(row["moderator_id"])],
+					reason=row["reason"],
+					expires=row["expires"],
+					message=row["message"],
+					created=row["created"],
+					active=True if active is None else active,
+				)
+			)
+		return cases
+
+	async def _resolve_users(self, user_ids: set[int]) -> dict[int, discord.User]:
+		resolved = {uid: cached for uid in user_ids if (cached := self._bot.get_user(uid)) is not None}
+		missing = [uid for uid in user_ids if uid not in resolved]
+		if missing:
+			limit = asyncio.Semaphore(5)
+
+			async def fetch(uid: int) -> discord.User:
+				async with limit:
+					return await self._bot.fetch_user(uid)
+
+			resolved.update(zip(missing, await asyncio.gather(*(fetch(uid) for uid in missing)), strict=True))
+		return resolved
 
 
 class CaseExpirationManager(ExpiryScheduler[int]):
