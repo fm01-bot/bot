@@ -14,7 +14,6 @@ from args import User
 from core import Bot, Context, command
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.localization import Localization
 from helpers.level_card import create_level_card
 from helpers.leveling import GuildLevelConfig, LevelupMessage, level_from_total_xp
 
@@ -410,39 +409,21 @@ class Level(commands.Cog, name="Level"):
 			offset,
 		)
 
-		message = await self.client.custom_response.get_message("levels_leaderboard", ctx)
-		if not isinstance(message, dict):
-			raise TypeError("levels_leaderboard response is not a dict")
-
-		embeds: list[discord.Embed] = message.get("embeds", [])
-		if not rows:
-			if embeds and len(embeds[0].fields) > 1:
-				embeds[0].remove_field(0)
-				embeds[0].set_footer(text=f"Page {page}/{total_pages}")
-			await ctx.send(**message)
-			return
-
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if template:
-				embeds[0].clear_fields()
-				for idx, row in enumerate(rows):
-					rank_num = offset + idx + 1
-					user_id = int(row["user_id"])
-					cached_user = self.client.get_user(user_id)
-					user_arg = User.from_user(cached_user) if cached_user else None
-					user_name_str = f"@{cached_user.name}" if cached_user else f"User {user_id}"
-					formatted = Localization.format_strings(
-						template,
-						number=rank_num,
-						user=user_arg or user_name_str,
-						level=row["level"],
-						xp=f"{int(row['xp']):,}",
-					)
-					embeds[0].add_field(**formatted)
-				embeds[0].set_footer(text=f"Page {page}/{total_pages}")
-				message["embeds"] = self.client.custom_response.convert_embeds(embeds)
-
+		entries = []
+		for idx, row in enumerate(rows):
+			user_id = int(row["user_id"])
+			cached_user = self.client.get_user(user_id)
+			entries.append(
+				{
+					"number": offset + idx + 1,
+					"user": User.from_user(cached_user) if cached_user else f"User {user_id}",
+					"level": row["level"],
+					"xp": f"{int(row['xp']):,}",
+				}
+			)
+		(message,) = await self.client.custom_response.get_list(
+			"levels_leaderboard", ctx, entries, page=page, pages=total_pages
+		)
 		await ctx.send(**message)
 
 	async def handle_role_rewards(
