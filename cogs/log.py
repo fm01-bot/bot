@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import datetime
 import json
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass, field, replace
 from logging import getLogger
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 import discord
 from args import AutoModAction, AutoModRule, Invite, Member, Message, User
@@ -15,6 +16,7 @@ from helpers import custom_response
 if TYPE_CHECKING:
 	import asyncpg
 	from core import Bot
+	from core.settings import GuildSetting, GuildSettings
 
 logger = getLogger(__name__)
 
@@ -75,34 +77,173 @@ LOG_MODULES: frozenset[str] = frozenset(
 AVAILABLE_MODULES = LOG_MODULES
 
 
+ALL_MODULES = "*"
+"""Stored in ``log.modules`` (it is the column default) to mean every module, including ones added later."""
+
+MESSAGE_MODULES = frozenset({"on_message_delete", "on_message_edit"})
+"""Modules that need message content, which the bot buffers for logging guilds (see ``Bot.on_message``)."""
+
+
+@dataclass(frozen=True, slots=True)
 class LogConfig:
-	"""Cached per-guild log configuration."""
+	"""A guild's log configuration (one row of ``log``)."""
 
-	__slots__ = ("channel_id", "channels", "guild_id", "is_on", "modules", "webhook_url")
+	guild_id: int
+	is_on: bool = False
+	channel_id: int | None = None
+	channels: Mapping[str, int] = field(default_factory=dict)
+	modules: frozenset[str] = frozenset({ALL_MODULES})
+	webhook_url: str | None = None
 
-	def __init__(self, row: dict[str, Any] | asyncpg.Record):
-		self.guild_id: int = int(row["guild_id"])
-		self.is_on: bool = bool(row["is_on"])
-		self.webhook_url: str | None = row.get("webhook")
-		self.channel_id: int | None = int(row["channel"]) if row.get("channel") else None
-
+	@classmethod
+	def from_row(cls, row: Mapping[str, Any]) -> LogConfig:
+		"""Build a config from a ``log`` row."""
 		raw_channels = row.get("channels") or {}
 		if isinstance(raw_channels, str):
 			try:
 				raw_channels = json.loads(raw_channels)
 			except (json.JSONDecodeError, TypeError, ValueError):
 				raw_channels = {}
-		self.channels: dict[str, int] = (
-			{str(k): int(v) for k, v in raw_channels.items() if v} if isinstance(raw_channels, dict) else {}
+		return cls(
+			guild_id=int(row["guild_id"]),
+			is_on=bool(row["is_on"]),
+			channel_id=int(row["channel"]) if row.get("channel") else None,
+			channels={str(k): int(v) for k, v in raw_channels.items() if v} if isinstance(raw_channels, dict) else {},
+			modules=frozenset(row.get("modules") or ()),
+			webhook_url=row.get("webhook"),
 		)
-		self.modules: set[str] = set(row.get("modules") or [])
+
+	@property
+	def enabled_modules(self) -> frozenset[str]:
+		"""The modules in effect, with ``*`` expanded."""
+		return LOG_MODULES if ALL_MODULES in self.modules else self.modules & LOG_MODULES
 
 	def is_enabled(self, event: str) -> bool:
-		return self.is_on and event in self.modules
+		return self.is_on and event in self.enabled_modules
+
+	@property
+	def logs_messages(self) -> bool:
+		"""Whether the bot must buffer this guild's messages so deletions and edits can be logged."""
+		return any(self.is_enabled(module) for module in MESSAGE_MODULES)
 
 	def channel_for(self, event: str) -> int | None:
 		"""Return the per-event channel ID override, or the default channel."""
 		return self.channels.get(event) or self.channel_id
+
+	def with_modules(self, added: Iterable[str] = (), removed: Iterable[str] = ()) -> LogConfig:
+		"""Return a copy with modules enabled and disabled. Expands ``*`` when something is removed."""
+		removed = frozenset(removed)
+		base = self.enabled_modules if removed else self.modules
+		if ALL_MODULES in base:
+			return self
+		return replace(self, modules=(base | frozenset(added)) - removed)
+
+
+async def _load_log_config(db: asyncpg.Pool, guild_id: int) -> LogConfig | None:
+	row = await db.fetchrow("SELECT * FROM log WHERE guild_id = $1", guild_id)
+	return LogConfig.from_row(row) if row else None
+
+
+async def _load_all_log_configs(db: asyncpg.Pool) -> dict[int, LogConfig | None]:
+	return {cfg.guild_id: cfg for cfg in map(LogConfig.from_row, await db.fetch("SELECT * FROM log"))}
+
+
+async def _save_log_config(db: asyncpg.Pool, guild_id: int, cfg: LogConfig | None) -> None:
+	if cfg is None:
+		await db.execute("DELETE FROM log WHERE guild_id = $1", guild_id)
+		return
+	await db.execute(
+		"""
+		INSERT INTO log (guild_id, is_on, channel, modules, channels, webhook)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (guild_id) DO UPDATE
+		SET is_on = EXCLUDED.is_on, channel = EXCLUDED.channel, modules = EXCLUDED.modules,
+		    channels = EXCLUDED.channels, webhook = EXCLUDED.webhook
+		""",
+		guild_id,
+		cfg.is_on,
+		cfg.channel_id,
+		sorted(cfg.modules),
+		dict(cfg.channels),
+		cfg.webhook_url,
+	)
+
+
+class LogHost(Protocol):
+	"""What `LogSettings` needs from the bot."""
+
+	settings: GuildSettings
+	message_logging_guilds: set[int]
+
+
+class LogSettings:
+	"""A guild's log configuration as a guild setting, and the changes the log commands make to it.
+
+	Usable without the Logging cog loaded (the config commands use it directly). Keeps
+	``Bot.message_logging_guilds`` in step with which guilds log message deletions or edits.
+	"""
+
+	def __init__(self, bot: LogHost) -> None:
+		def track_message_logging(guild_id: int, cfg: LogConfig | None) -> None:
+			if cfg is not None and cfg.logs_messages:
+				bot.message_logging_guilds.add(guild_id)
+			else:
+				bot.message_logging_guilds.discard(guild_id)
+
+		self.setting: GuildSetting[LogConfig | None] = bot.settings.add(
+			"log",
+			_load_log_config,
+			_save_log_config,
+			load_all=_load_all_log_configs,
+			on_change=track_message_logging,
+		)
+
+	async def get(self, guild_id: int) -> LogConfig | None:
+		"""The guild's configuration, or ``None`` if logging was never set up."""
+		return await self.setting.get(guild_id)
+
+	async def _update(self, guild_id: int, change: Callable[[LogConfig], LogConfig]) -> LogConfig:
+		cfg = change(await self.get(guild_id) or LogConfig(guild_id))
+		await self.setting.set(guild_id, cfg)
+		return cfg
+
+	async def enable(self, guild_id: int, channel_id: int | None = None) -> LogConfig:
+		"""Turn logging on, optionally moving it to ``channel_id``. New guilds log every module."""
+		return await self._update(
+			guild_id, lambda cfg: replace(cfg, is_on=True, channel_id=channel_id or cfg.channel_id)
+		)
+
+	async def disable(self, guild_id: int) -> LogConfig:
+		"""Turn logging off, keeping the rest of the configuration."""
+		return await self._update(guild_id, lambda cfg: replace(cfg, is_on=False))
+
+	async def add_modules(self, guild_id: int, modules: Iterable[str]) -> LogConfig:
+		"""Enable event modules. Unknown names are ignored."""
+		valid = frozenset(modules) & LOG_MODULES
+		return await self._update(guild_id, lambda cfg: cfg.with_modules(added=valid))
+
+	async def remove_modules(self, guild_id: int, modules: Iterable[str]) -> LogConfig:
+		"""Disable event modules."""
+		return await self._update(guild_id, lambda cfg: cfg.with_modules(removed=modules))
+
+	async def set_event_channel(self, guild_id: int, event_name: str, channel_id: int | None) -> LogConfig:
+		"""Set or clear a per-event channel override."""
+
+		def change(cfg: LogConfig) -> LogConfig:
+			channels = {k: v for k, v in cfg.channels.items() if k != event_name}
+			if channel_id is not None:
+				channels[event_name] = channel_id
+			return replace(cfg, channels=channels)
+
+		return await self._update(guild_id, change)
+
+	async def set_default_channel(self, guild_id: int, channel_id: int) -> LogConfig:
+		"""Set the fallback log channel."""
+		return await self._update(guild_id, lambda cfg: replace(cfg, channel_id=channel_id))
+
+	async def set_webhook(self, guild_id: int, webhook_url: str | None) -> LogConfig:
+		"""Set or clear the webhook the logs are sent through."""
+		return await self._update(guild_id, lambda cfg: replace(cfg, webhook_url=webhook_url))
 
 
 class _UnknownActor:
@@ -185,110 +326,7 @@ class Logging(commands.Cog, name="Logging"):
 	def __init__(self, client: Bot):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "log")
-		self._config_cache: dict[int, LogConfig | None] = {}
-
-	async def cog_load(self):
-		try:
-			rows = await self.client.db.fetch("SELECT * FROM log")
-			for row in rows:
-				cfg = LogConfig(row)
-				self._config_cache[cfg.guild_id] = cfg
-		except Exception:
-			logger.exception("Failed to load log configurations")
-
-	def get_config(self, guild_id: int) -> LogConfig | None:
-		"""Return the cached config for a guild, if present."""
-		return self._config_cache.get(guild_id)
-
-	async def _ensure_config(self, guild_id: int) -> LogConfig | None:
-		if guild_id in self._config_cache:
-			return self._config_cache[guild_id]
-		row = await self.client.db.fetchrow("SELECT * FROM log WHERE guild_id = $1", guild_id)
-		if row:
-			cfg = LogConfig(row)
-			self._config_cache[guild_id] = cfg
-			return cfg
-		self._config_cache[guild_id] = None
-		return None
-
-	def invalidate_cache(self, guild_id: int):
-		"""Remove cached config so it gets re-fetched on next event."""
-		self._config_cache.pop(guild_id, None)
-		if hasattr(self.client, "event_bus"):
-			asyncio.create_task(
-				self.client.event_bus.publish("fm01:events", {"type": "INVALIDATE_LOG_CONFIG", "guild_id": guild_id})
-			)
-
-	async def enable_log(self, guild_id: int, channel_id: int | None = None) -> LogConfig:
-		"""Enable logging for a guild, creating the DB row if not present."""
-		modules = list(LOG_MODULES)
-		row = await self.client.db.fetchrow(
-			"""
-			INSERT INTO log (guild_id, is_on, channel, modules, channels)
-			VALUES ($1, true, $2, $3, '{}'::jsonb)
-			ON CONFLICT (guild_id) DO UPDATE
-			SET is_on = true,
-			    channel = COALESCE($2, log.channel)
-			RETURNING *
-			""",
-			guild_id,
-			channel_id,
-			modules,
-		)
-		cfg = LogConfig(row)
-		self._config_cache[guild_id] = cfg
-		return cfg
-
-	async def disable_log(self, guild_id: int) -> None:
-		"""Disable logging for a guild."""
-		await self.client.db.execute("UPDATE log SET is_on = false WHERE guild_id = $1", guild_id)
-		self.invalidate_cache(guild_id)
-
-	async def add_module(self, guild_id: int, module_name: str) -> bool:
-		"""Add an event module to the guild's active logging modules."""
-		if module_name not in LOG_MODULES:
-			return False
-		await self.client.db.execute(
-			"""
-			UPDATE log
-			SET modules = array_append(array_remove(modules, $1), $1)
-			WHERE guild_id = $2
-			""",
-			module_name,
-			guild_id,
-		)
-		self.invalidate_cache(guild_id)
-		return True
-
-	async def remove_module(self, guild_id: int, module_name: str) -> bool:
-		"""Remove an event module from the guild's active logging modules."""
-		await self.client.db.execute(
-			"UPDATE log SET modules = array_remove(modules, $1) WHERE guild_id = $2", module_name, guild_id
-		)
-		self.invalidate_cache(guild_id)
-		return True
-
-	async def set_event_channel(self, guild_id: int, event_name: str, channel_id: int | None) -> None:
-		"""Set or clear a per-event channel override."""
-		cfg = await self._ensure_config(guild_id)
-		channels = dict(cfg.channels) if cfg else {}
-		if channel_id is None:
-			channels.pop(event_name, None)
-		else:
-			channels[event_name] = channel_id
-
-		await self.client.db.execute("UPDATE log SET channels = $1 WHERE guild_id = $2", channels, guild_id)
-		self.invalidate_cache(guild_id)
-
-	async def set_default_channel(self, guild_id: int, channel_id: int) -> None:
-		"""Set the fallback/default log channel for a guild."""
-		await self.client.db.execute("UPDATE log SET channel = $1 WHERE guild_id = $2", channel_id, guild_id)
-		self.invalidate_cache(guild_id)
-
-	async def set_webhook(self, guild_id: int, webhook_url: str | None) -> None:
-		"""Set or clear the webhook URL for a guild."""
-		await self.client.db.execute("UPDATE log SET webhook = $1 WHERE guild_id = $2", webhook_url, guild_id)
-		self.invalidate_cache(guild_id)
+		self.config = LogSettings(client)
 
 	async def _send(self, guild: discord.Guild, event_name: str, key: str, /, **kwargs: Any):
 		"""Resolve the localized payload and send it to the configured log channel.
@@ -300,7 +338,7 @@ class Logging(commands.Cog, name="Logging"):
 			**kwargs: Formatting variables, converted to custom args where applicable.
 
 		"""
-		cfg = await self._ensure_config(guild.id)
+		cfg = await self.config.get(guild.id)
 		if not cfg or not cfg.is_enabled(event_name):
 			return
 

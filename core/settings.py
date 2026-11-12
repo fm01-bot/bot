@@ -28,6 +28,7 @@ INVALIDATE_SETTING = "INVALIDATE_SETTING"
 type Loader[T] = Callable[[asyncpg.Pool, int], Awaitable[T]]
 type Saver[T] = Callable[[asyncpg.Pool, int, T], Awaitable[None]]
 type BulkLoader[T] = Callable[[asyncpg.Pool], Awaitable[Mapping[int, T]]]
+type ChangeHook[T] = Callable[[int, T | None], None]
 
 
 class GuildSetting[T]:
@@ -36,16 +37,26 @@ class GuildSetting[T]:
 	A setting with ``load_all`` is *preloaded*: every guild's value is cached at startup, so `cache` can be read
 	synchronously, and invalidations reload the value immediately. Other settings load lazily on first `get`, and
 	invalidations drop the cached value.
+
+	``on_change`` is called with ``(guild_id, value)`` whenever the cached value changes, and with
+	``(guild_id, None)`` when it is dropped. Use it to keep derived state (an index, a set of guild IDs) in step.
 	"""
 
 	def __init__(
-		self, registry: GuildSettings, key: str, load: Loader[T], save: Saver[T], load_all: BulkLoader[T] | None
+		self,
+		registry: GuildSettings,
+		key: str,
+		load: Loader[T],
+		save: Saver[T],
+		load_all: BulkLoader[T] | None,
+		on_change: ChangeHook[T] | None,
 	) -> None:
 		self.key = key
 		self._registry = registry
 		self._load = load
 		self._save = save
 		self._load_all = load_all
+		self._on_change = on_change
 		self._cache: dict[int, T] = {}
 		self.cache: Mapping[int, T] = MappingProxyType(self._cache)
 		"""Read-only live view of the cached values. Complete only for preloaded settings."""
@@ -58,37 +69,49 @@ class GuildSetting[T]:
 	async def get(self, guild_id: int) -> T:
 		"""Return the guild's value, loading it from the database if it isn't cached."""
 		if guild_id not in self._cache:
-			self._cache[guild_id] = await self._load(self._registry.db, guild_id)
+			self._store(guild_id, await self._load(self._registry.db, guild_id))
 		return self._cache[guild_id]
 
 	async def set(self, guild_id: int, value: T) -> None:
 		"""Persist the guild's value and tell the other instances to reload it."""
 		await self._save(self._registry.db, guild_id, value)
-		self._cache[guild_id] = value
+		self._store(guild_id, value)
 		await self._registry.announce(self.key, guild_id)
 
 	def remember(self, guild_id: int, value: T) -> None:
 		"""Cache a value that is already persisted (e.g. a row just read elsewhere) without announcing it."""
-		self._cache[guild_id] = value
+		self._store(guild_id, value)
 
 	def forget(self, guild_id: int) -> None:
 		"""Drop the guild's cached value, e.g. when the bot leaves the guild."""
-		self._cache.pop(guild_id, None)
+		self._drop(guild_id)
 
 	async def refresh(self, guild_id: int) -> None:
 		"""Bring the guild's cached value up to date after another instance changed it."""
 		if self.preloaded:
-			self._cache[guild_id] = await self._load(self._registry.db, guild_id)
+			self._store(guild_id, await self._load(self._registry.db, guild_id))
 		else:
-			self._cache.pop(guild_id, None)
+			self._drop(guild_id)
 
 	async def preload(self) -> None:
 		"""Cache every guild's value. Does nothing for lazily loaded settings."""
 		if self._load_all is None:
 			return
 		values = await self._load_all(self._registry.db)
-		self._cache.clear()
-		self._cache.update(values)
+		for guild_id in self._cache.keys() - values.keys():
+			self._drop(guild_id)
+		for guild_id, value in values.items():
+			self._store(guild_id, value)
+
+	def _store(self, guild_id: int, value: T) -> None:
+		self._cache[guild_id] = value
+		if self._on_change is not None:
+			self._on_change(guild_id, value)
+
+	def _drop(self, guild_id: int) -> None:
+		self._cache.pop(guild_id, None)
+		if self._on_change is not None:
+			self._on_change(guild_id, None)
 
 
 class GuildSettings:
@@ -110,7 +133,13 @@ class GuildSettings:
 		return self._db()
 
 	def add[T](
-		self, key: str, load: Loader[T], save: Saver[T], *, load_all: BulkLoader[T] | None = None
+		self,
+		key: str,
+		load: Loader[T],
+		save: Saver[T],
+		*,
+		load_all: BulkLoader[T] | None = None,
+		on_change: ChangeHook[T] | None = None,
 	) -> GuildSetting[T]:
 		"""Register a setting.
 
@@ -119,13 +148,14 @@ class GuildSettings:
 			load: Reads one guild's value. It decides the default for guilds without a row.
 			save: Writes one guild's value.
 			load_all: Reads every guild's value; makes the setting preloaded.
+			on_change: Called when a cached value changes or is dropped (see `GuildSetting`).
 
 		Returns:
 			GuildSetting: The registered setting. Registering an existing key returns the existing setting.
 		"""
 		if key in self._settings:
 			return self._settings[key]
-		setting = GuildSetting(self, key, load, save, load_all)
+		setting = GuildSetting(self, key, load, save, load_all, on_change)
 		self._settings[key] = setting
 		return setting
 

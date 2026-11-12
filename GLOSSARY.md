@@ -22,6 +22,10 @@ The words this codebase uses for its own concepts, and the decisions that shape 
 
 **Locale override**: a guild's chosen bot language (`guild_locale_overrides`), set with `?!config locale`. It takes precedence over the user's Discord client locale and the guild's preferred locale; see `core/locale.py`.
 
+**Log configuration**: a guild's event logging setup (`log` table, `LogConfig`, `LogSettings` in `cogs/log.py`): on/off, default channel, per-event channels, webhook and enabled modules. `modules = {'*'}` (the column default) means every module, including ones added later.
+
+**Message buffering**: the bot keeps recent message content for guilds whose log configuration has message deletion or edit logging on (`Bot.message_logging_guilds`), so deleted and edited messages can be logged. Maintained automatically from the log configuration.
+
 ## Decisions
 
 **Config commands are temporary.** The `?!config` command tree (`cogs/config_subcommands/`) exists only until the web dashboard replaces it, after which the bot, backend, website and dashboard move into one monorepo. Fix bugs there and let it reuse shared modules when that costs nothing, but don't put architecture work into it (localizing its strings, restructuring, new tests).

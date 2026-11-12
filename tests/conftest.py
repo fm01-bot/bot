@@ -47,7 +47,9 @@ def postgres_dsn() -> Iterator[str]:
 @pytest.fixture
 async def db(postgres_dsn: str) -> AsyncIterator[asyncpg.Pool]:
 	"""Yield a connection pool to an empty, fully migrated database."""
-	pool = await asyncpg.create_pool(postgres_dsn, min_size=1, max_size=4)
+	from core.bot import Bot
+
+	pool = await asyncpg.create_pool(postgres_dsn, min_size=1, max_size=4, init=Bot.db_connection_init)
 	assert pool is not None
 	tables = await pool.fetch(
 		"SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> 'alembic_version'"

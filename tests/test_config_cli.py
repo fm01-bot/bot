@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import discord
 import pytest
 from cogs.config import Config
+from core.settings import GuildSettings
 from helpers.cli_parser import CLIParseError, CLIParser, HelpRequested
 
 
@@ -114,7 +115,11 @@ def test_unknown_subcommand_error():
 async def test_full_execution_flow():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.db.fetchrow.return_value = None
 	bot.get_cog.return_value = None
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
+	bot.message_logging_guilds = set()
 
 	guild = MagicMock()
 	guild.id = 12345
@@ -167,7 +172,8 @@ async def test_full_execution_flow():
 		config_cog, ctx, flags_and_args="log modules enable on_message_delete on_message_edit"
 	)
 	assert ctx.send.called
-	assert bot.db.execute.call_count >= 2
+	assert bot.db.execute.called
+	assert 12345 in bot.message_logging_guilds
 	check_code_block_response(ctx.send)
 
 	# 4. Execute: log modules disable on_message_delete
@@ -176,6 +182,7 @@ async def test_full_execution_flow():
 	await config_cog.config_command.callback(config_cog, ctx, flags_and_args="log modules disable on_message_delete")
 	assert ctx.send.called
 	assert bot.db.execute.called
+	assert 12345 in bot.message_logging_guilds  # on_message_edit still needs the message buffer
 	check_code_block_response(ctx.send)
 
 	# 5. Execute: join enable --channel #join --message "Welcome {user} to the server!"
