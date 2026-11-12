@@ -5,12 +5,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import discord
+from cogs.level import level_config_setting
 from helpers.cli_parser import CLINode, CLIParseError
 
 from .helpers import resolve_channel, resolve_role
 
 if TYPE_CHECKING:
 	from core import Context
+
+
+async def _write_level_config(ctx: Context, query: str, *args: Any) -> None:
+	"""Fallback level_config write (Level cog not loaded); reported so the cached level config refreshes."""
+	assert ctx.guild is not None
+	await ctx.bot.db.execute(query, *args)
+	await level_config_setting(ctx.bot.settings).changed(ctx.guild.id)
 
 
 def setup_level_subcommands(parent_node: CLINode) -> CLINode:
@@ -32,7 +40,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		if cog:
 			await cog.enable_leveling(ctx.guild.id)
 		else:
-			await ctx.bot.db.execute(
+			await _write_level_config(
+				ctx,
 				"""
 				INSERT INTO level_config (guild_id, is_on)
 				VALUES ($1, true)
@@ -52,7 +61,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		if cog:
 			await cog.disable_leveling(ctx.guild.id)
 		else:
-			await ctx.bot.db.execute(
+			await _write_level_config(
+				ctx,
 				"""
 				INSERT INTO level_config (guild_id, is_on)
 				VALUES ($1, false)
@@ -133,7 +143,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 				ctx.guild.id, min_xp=min_val, max_xp=max_val, multiplier=mult_val, cooldown=cd_val
 			)
 		else:
-			await ctx.bot.db.execute(
+			await _write_level_config(
+				ctx,
 				"""
 				INSERT INTO level_config (guild_id, min_xp, max_xp, multiplier, cooldown)
 				VALUES ($1, COALESCE($2, 15), COALESCE($3, 25), COALESCE($4, 1.0), COALESCE($5, 60))
@@ -202,7 +213,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		if cog:
 			await cog.update_message_config(ctx.guild.id, mode=mode_clean, channel_id=ch_id, template=tmpl_text)
 		else:
-			await ctx.bot.db.execute(
+			await _write_level_config(
+				ctx,
 				"""
 				INSERT INTO level_config (guild_id, message_mode, message_channel, levelup_message)
 				VALUES ($1, COALESCE($2, 'current'), $3, $4)
@@ -319,7 +331,8 @@ def setup_level_subcommands(parent_node: CLINode) -> CLINode:
 		if cog:
 			await cog.set_stack_roles(ctx.guild.id, is_stack)
 		else:
-			await ctx.bot.db.execute(
+			await _write_level_config(
+				ctx,
 				"""
 				INSERT INTO level_config (guild_id, stack_roles)
 				VALUES ($1, $2)
