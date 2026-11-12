@@ -346,52 +346,243 @@
     }
   },
   "giveaway": {
+    "cancel": {
+      "success": {
+        "content": "The giveaway for **{giveaway.prize}** has been cancelled.",
+        "ephemeral": true
+      }
+    },
+    "dm": {
+      "won": {
+        "content": "🎉 You won **{giveaway.prize}** in **{guild.name}**!\n{giveaway.jump_url}"
+      }
+    },
     "end": {
+      "done": {
+        "content": "The giveaway for **{giveaway.prize}** has ended.",
+        "ephemeral": true
+      },
       "no_winners": {
-        "content": "No one joined the giveaway..."
+        "content": "No valid entrants for **{giveaway.prize}**, so nobody won."
       },
       "success": {
-        "content": "🎉 **Congratulations,** {winners}! You won the giveaway!"
+        "content": "🎉 **Congratulations,** {winners}! You won **{giveaway.prize}**!"
       }
+    },
+    "layout": {
+      "active": {
+        "allowed_mentions": [
+          "none"
+        ],
+        "components": [
+          {
+            "accent_color": 15844367,
+            "components": [
+              {
+                "content": "# 🎉 {giveaway.prize}",
+                "type": "text_display"
+              },
+              {
+                "content": "Hosted by {author.mention}\nEnds {giveaway.ends.relative} ({giveaway.ends})\nWinners: **{giveaway.winners}**",
+                "type": "text_display"
+              },
+              {
+                "content": "{requirements}",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "custom_id": "giveaway:{giveaway.id}",
+                "disabled": false,
+                "label": "🎉 {giveaway.entries}",
+                "style": "primary",
+                "type": "button"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "cancelled": {
+        "allowed_mentions": [
+          "none"
+        ],
+        "components": [
+          {
+            "accent_color": 15158332,
+            "components": [
+              {
+                "content": "# ~~{giveaway.prize}~~",
+                "type": "text_display"
+              },
+              {
+                "content": "Hosted by {author.mention}\nThis giveaway was cancelled.",
+                "type": "text_display"
+              },
+              {
+                "content": "{requirements}",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "custom_id": "giveaway:{giveaway.id}",
+                "disabled": true,
+                "label": "🎉 {giveaway.entries}",
+                "style": "primary",
+                "type": "button"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "ended": {
+        "allowed_mentions": [
+          "none"
+        ],
+        "components": [
+          {
+            "accent_color": 9807270,
+            "components": [
+              {
+                "content": "# 🎉 {giveaway.prize}",
+                "type": "text_display"
+              },
+              {
+                "content": "Hosted by {author.mention}\nEnded {giveaway.ends.relative} ({giveaway.ends})\nWinners: {winners}",
+                "type": "text_display"
+              },
+              {
+                "content": "{requirements}",
+                "type": "text_display"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "custom_id": "giveaway:{giveaway.id}",
+                "disabled": true,
+                "label": "🎉 {giveaway.entries}",
+                "style": "primary",
+                "type": "button"
+              }
+            ],
+            "type": "container"
+          }
+        ]
+      },
+      "no_winners": "nobody"
     },
     "message": {
       "already_joined": {
-        "content": "You've already joined this giveaway!",
+        "components": [
+          {
+            "components": [
+              {
+                "content": "You've already entered this giveaway. Do you want to leave it?",
+                "type": "text_display"
+              },
+              {
+                "custom_id": "giveaway-leave:{giveaway.id}",
+                "label": "Leave giveaway",
+                "style": "danger",
+                "type": "button"
+              }
+            ],
+            "type": "container"
+          }
+        ],
         "ephemeral": true
       },
-      "button": "🎉 {participants}",
       "ended": {
         "content": "This giveaway has already ended!",
         "ephemeral": true
       },
       "joined": {
-        "content": "You have joined the giveaway!",
+        "content": "You have entered the giveaway for **{giveaway.prize}**!",
+        "ephemeral": true
+      },
+      "joined_progress": {
+        "content": "You have entered the giveaway for **{giveaway.prize}**!\nMessages sent so far: **{count}/{required}**. You need to reach this before the giveaway ends.",
+        "ephemeral": true
+      },
+      "left": {
+        "content": "You have left the giveaway for **{giveaway.prize}**.",
+        "ephemeral": true
+      },
+      "not_joined": {
+        "content": "You haven't entered this giveaway.",
+        "ephemeral": true
+      },
+      "requirements": {
+        "level": {
+          "content": "You need to be at least level **{level}** to enter (you're level **{current}**).",
+          "ephemeral": true
+        },
+        "role": {
+          "content": "You need the {role.mention} role to enter this giveaway.",
+          "ephemeral": true
+        }
+      }
+    },
+    "not_found": {
+      "active": {
+        "content": "I couldn't find an active giveaway in this channel.",
+        "ephemeral": true
+      },
+      "ended": {
+        "content": "I couldn't find an ended giveaway in this channel.",
         "ephemeral": true
       }
     },
+    "requirements": {
+      "header": "**Requirements**",
+      "level": "- Level **{level}** or higher",
+      "messages": "- **{messages}** messages sent after the giveaway started",
+      "role": "- The {role.mention} role"
+    },
+    "reroll": {
+      "done": {
+        "content": "Rerolled the giveaway for **{giveaway.prize}**.",
+        "ephemeral": true
+      },
+      "no_winners": {
+        "content": "No valid entrants left to reroll **{giveaway.prize}**."
+      },
+      "success": {
+        "content": "🎉 **New winner(s):** {winners}! You won **{giveaway.prize}**!"
+      }
+    },
     "start": {
-      "response": {
-        "embeds": [
-          {
-            "description": "{prize}",
-            "fields": [
-              {
-                "inline": true,
-                "name": "Winners",
-                "value": "{winners}"
-              },
-              {
-                "inline": true,
-                "name": "Ends",
-                "value": "{ends}"
-              }
-            ],
-            "footer": {
-              "text": "Click the button below to enter!"
-            },
-            "title": "🎉 Giveaway!"
-          }
-        ]
+      "errors": {
+        "duration": {
+          "content": "That's not a valid duration. Try something like `10m`, `2h` or `1d12h`.",
+          "ephemeral": true
+        },
+        "duration_range": {
+          "content": "Giveaways must last between 10 seconds and 60 days.",
+          "ephemeral": true
+        },
+        "level_disabled": {
+          "content": "Leveling is disabled in this server, so you can't use a level requirement.",
+          "ephemeral": true
+        },
+        "limit": {
+          "content": "This server already has {limit} active giveaways.",
+          "ephemeral": true
+        },
+        "send_failed": {
+          "content": "I couldn't send the giveaway message in this channel.",
+          "ephemeral": true
+        }
+      },
+      "success": {
+        "content": "Giveaway started! {giveaway.jump_url}",
+        "ephemeral": true
       }
     }
   },
