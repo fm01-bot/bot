@@ -436,16 +436,7 @@ class Level(commands.Cog, name="Level"):
 			rank = None
 
 		localized_label = await self.client.custom_response.get_message("level_card.label", ctx)
-		if isinstance(localized_label, str) and localized_label != "level_card.label":
-			level_label = localized_label
-		else:
-			locale_cache = getattr(self.client, "locale_cache", None)
-			locale = (
-				locale_cache[ctx.guild.id]
-				if ctx.guild and isinstance(locale_cache, dict) and ctx.guild.id in locale_cache
-				else (ctx.guild.preferred_locale if ctx.guild else "en")
-			)
-			level_label = "szint" if str(locale).startswith("hu") else "lvl"
+		level_label = localized_label if isinstance(localized_label, str) else "lvl"
 
 		card_buffer = await create_level_card(
 			user=target,

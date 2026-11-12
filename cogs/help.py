@@ -6,7 +6,7 @@ from typing import Any
 
 import discord
 import emoji
-from core import Bot, Command, Context, slash_command_localization
+from core import Bot, Command, Context, resolve_locale, slash_command_localization
 from discord.ext import commands
 from discord.ext.localization import Localization
 from helpers import CustomResponse
@@ -105,21 +105,7 @@ class HelpCommand(commands.HelpCommand):
 		return await super().filter_commands(filtered, sort=sort, key=key)
 
 	def get_context_locale(self) -> str:
-		raw_locale = None
-		interaction = getattr(self.context, "interaction", None)
-		guild = getattr(self.context, "guild", None)
-		bot = getattr(self.context, "bot", None)
-		locale_cache = getattr(bot, "locale_cache", None)
-		if guild is not None and isinstance(locale_cache, dict) and guild.id in locale_cache:
-			raw_locale = locale_cache[guild.id]
-		elif interaction is not None and getattr(interaction, "locale", None):
-			raw_locale = interaction.locale
-		elif guild is not None and getattr(guild, "preferred_locale", None):
-			raw_locale = guild.preferred_locale
-		if not raw_locale:
-			return "en"
-		loc_str = str(raw_locale).lower().replace("-", "_")
-		return loc_str.split("_")[0]
+		return resolve_locale(self.context, getattr(self.context.bot, "locale_cache", None))
 
 	def resolve_cog(self, name: str) -> commands.Cog | None:
 		target = name.strip()
