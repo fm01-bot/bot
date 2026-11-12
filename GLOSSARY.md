@@ -28,6 +28,8 @@ The words this codebase uses for its own concepts, and the decisions that shape 
 
 **Ledger**: `Ledger` in `cogs/economy.py`, the only code that changes `economy` balances. Each operation (`credit`, `debit`, `move`, `transfer`) is one transaction over row-locked accounts. Cash never goes negative; the bank goes negative only as **debt** (admin removals), and money credited while in debt pays it off first. A **Balance** is a member's `cash` and `bank` in one guild.
 
+**List message**: a localized embed rendered with `CustomResponse.get_list`. Its first field is the **row template** (repeated per row), the remaining fields are the **empty state**, and `{page}`/`{pages}` work in the title, description and footer. Cogs pass rows, never edit rendered embeds. Optional parts of a message use a placeholder that is `None` when absent: the formatter drops that line, and a field left empty is dropped.
+
 ## Decisions
 
 **Config commands are temporary.** The `?!config` command tree (`cogs/config_subcommands/`) exists only until the web dashboard replaces it, after which the bot, backend, website and dashboard move into one monorepo. Fix bugs there and let it reuse shared modules when that costs nothing, but don't put architecture work into it (localizing its strings, restructuring, new tests).

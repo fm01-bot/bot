@@ -11,7 +11,6 @@ from args import Role, User
 from core import Bot, Context, command, group
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.localization import Localization
 from helpers import custom_response, random_helper
 
 logger = logging.getLogger(__name__)
@@ -194,32 +193,18 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			"SELECT * FROM economy WHERE guild_id = $1 ORDER BY cash+bank DESC LIMIT 10",
 			ctx.guild.id,  # user = False on this command, so ctx.guild is always available
 		)
-		message = await self.custom_response("leaderboard", ctx)
-
-		if not isinstance(message, dict):
-			raise TypeError("leaderboard response is not a dict")
-
-		embeds: list[discord.Embed] = message.get("embeds", [])
-		if not rows:
-			if embeds:
-				embeds[0].remove_field(0)
-			await ctx.send(**message)
-			return
-
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if not template:
-				await ctx.send(**message)
-				return
-			embeds[0].clear_fields()
-			for number, row in enumerate(rows, start=1):
-				cached_user = self.client.get_user(int(row["user_id"]))
-				user = User.from_user(cached_user) if cached_user else None
-				cash, bank = int(row["cash"]), int(row["bank"])
-				formatted = Localization.format_strings(template, user=user, number=number, cash=cash, bank=bank)
-				embeds[0].add_field(**formatted)
-			message["embeds"] = self.client.custom_response.convert_embeds(embeds)
-
+		leaderboard = []
+		for number, row in enumerate(rows, start=1):
+			cached_user = self.client.get_user(int(row["user_id"]))
+			leaderboard.append(
+				{
+					"user": User.from_user(cached_user) if cached_user else None,
+					"number": number,
+					"cash": int(row["cash"]),
+					"bank": int(row["bank"]),
+				}
+			)
+		(message,) = await self.custom_response.get_list("leaderboard", ctx, leaderboard)
 		await ctx.send(**message)
 
 	@command(user=False)
@@ -335,14 +320,9 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			raise commands.BadArgument
 		bal = await self.ledger.balance(ctx.guild.id, target_member.id)
 
-		message: dict = await self.custom_response("balance", ctx, member=target_member, cash=bal.cash, bank=bal.bank)
-
-		if not bal.in_debt and message.get("embeds"):  # remove the debt alert embed field
-			for index, embed in enumerate(message["embeds"]):
-				if len(embed.fields) > 2:
-					message["embeds"][index].remove_field(2)
-
-		await ctx.send(**message)
+		await ctx.send(
+			"balance", member=target_member, cash=bal.cash, bank=bal.bank, debt=-bal.bank if bal.in_debt else None
+		)
 
 	@command(user=False)
 	@commands.cooldown(1, 3600, commands.BucketType.user)
@@ -366,17 +346,8 @@ class Economy(commands.GroupCog, name="Economy", group_name="economy"):
 			await self.ledger.credit(ctx.guild.id, ctx.author.id, payout)
 			await ctx.send("slots.win", results=" ".join(results), amount=payout)
 		else:
-			in_debt = (await self.ledger.balance(ctx.guild.id, ctx.author.id)).in_debt
-			message: dict = await self.custom_response(
-				"slots.lose", ctx, convert_embeds=False, results=" ".join(results), amount=bet
-			)
-
-			if not in_debt and message.get("embeds"):
-				for index, embed in enumerate(message["embeds"]):
-					if len(embed.fields) > 2:
-						message["embeds"][index].remove_field(2)
-
-			await ctx.send(**message)
+			bal = await self.ledger.balance(ctx.guild.id, ctx.author.id)
+			await ctx.send("slots.lose", results=" ".join(results), amount=bet, debt=-bal.bank if bal.in_debt else None)
 
 	@command(user=False)
 	async def deposit(self, ctx: Context, amount: discord.app_commands.Range[int, 1] | None = None):
@@ -425,23 +396,12 @@ class Shop(commands.Cog, name="Shop"):
 			await ctx.send("shop.list.empty")
 			return
 
-		message: dict = await self.custom_response.get_message("shop.list.show", ctx)
-		embeds: list[discord.Embed] = message.get("embeds", [])
-		if message.get("embeds"):
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if not template:
-				await ctx.send(**message)
-				return
-			embeds[0].clear_fields()
-			for i in row:
-				role = ctx.guild.get_role(i["role"])
-				if not role:
-					continue
-				item = ShopItem(i["item_name"], i["item_price"], i["item_description"], role)
-				formatted = Localization.format_strings(template, item=item)
-				embeds[0].add_field(**formatted)
-			message["embeds"] = self.client.custom_response.convert_embeds(embeds)
-
+		items = [
+			{"item": ShopItem(i["item_name"], i["item_price"], i["item_description"], role)}
+			for i in row
+			if (role := ctx.guild.get_role(i["role"]))
+		]
+		(message,) = await self.custom_response.get_list("shop.list.show", ctx, items)
 		await ctx.send(**message)
 
 	@shop.command()

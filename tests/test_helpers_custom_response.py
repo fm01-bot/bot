@@ -514,3 +514,88 @@ class TestDeliveryFlags:
 		payload = await cr.get_message("msg", self.make_ctx(None))
 		assert "ephemeral" not in payload
 		assert payload["delete_after"] == 5
+
+
+class TestLocalizationOwnedLayout:
+	"""List rendering and conditional fields come from the localization, not from cogs editing embeds."""
+
+	@staticmethod
+	def ctx() -> MagicMock:
+		ctx = MagicMock(spec=commands.Context)
+		ctx.guild = MagicMock(spec=discord.Guild)
+		ctx.guild.id = 1
+		ctx.guild.preferred_locale = discord.Locale.american_english
+		ctx.interaction = None
+		return ctx
+
+	@pytest.fixture
+	def cr(self, mock_bot):
+		mock_bot.locale_cache = {}
+		cr = CustomResponse(mock_bot)
+		cr.update_localizations(
+			{
+				"en": {
+					"board": {
+						"embeds": [
+							{
+								"title": "Board",
+								"footer": {"text": "Page {page}/{pages}"},
+								"fields": [
+									{"name": "#{number} {name}", "value": "Note: {note}"},
+									{"name": "Empty", "value": "Nobody yet."},
+								],
+							}
+						]
+					}
+				}
+			}
+		)
+		return cr
+
+	@pytest.mark.asyncio
+	async def test_first_field_repeats_per_row_and_empty_state_is_dropped(self, cr):
+		(page,) = await cr.get_list(
+			"board", self.ctx(), [{"number": 1, "name": "a", "note": "x"}, {"number": 2, "name": "b", "note": "y"}]
+		)
+		embed = page["embeds"][0]
+		assert [f.name for f in embed.fields] == ["#1 a", "#2 b"]
+		assert embed.footer.text == "Page 1/1"
+
+	@pytest.mark.asyncio
+	async def test_no_rows_shows_the_empty_state(self, cr):
+		(page,) = await cr.get_list("board", self.ctx(), [])
+		assert [f.name for f in page["embeds"][0].fields] == ["Empty"]
+
+	@pytest.mark.asyncio
+	async def test_page_size_splits_rows_into_numbered_pages(self, cr):
+		rows = [{"number": n, "name": str(n), "note": "-"} for n in range(1, 8)]
+		pages = await cr.get_list("board", self.ctx(), rows, page_size=5)
+		assert [len(p["embeds"][0].fields) for p in pages] == [5, 2]
+		assert [p["embeds"][0].footer.text for p in pages] == ["Page 1/2", "Page 2/2"]
+
+	@pytest.mark.asyncio
+	async def test_externally_paged_list_uses_the_given_page_numbers(self, cr):
+		(page,) = await cr.get_list("board", self.ctx(), [{"number": 11, "name": "k", "note": "-"}], page=2, pages=3)
+		assert page["embeds"][0].footer.text == "Page 2/3"
+
+	@pytest.mark.asyncio
+	async def test_none_values_drop_their_line_in_rows(self, cr):
+		(page,) = await cr.get_list("board", self.ctx(), [{"number": 1, "name": "a", "note": None}])
+		assert page["embeds"][0].fields == []  # the only line was dropped, so the empty field is removed
+
+	@pytest.mark.asyncio
+	@pytest.mark.parametrize(("debt", "fields"), [(None, 2), (250, 3)])
+	async def test_balance_debt_field_is_shown_only_in_debt(self, mock_bot, debt, fields):
+		mock_bot.locale_cache = {}
+		cr = CustomResponse(mock_bot)
+		cr.load_localizations("./localization")
+		member = MagicMock(spec=discord.Member)
+		member.guild = self.ctx().guild
+		member.roles = []
+
+		payload = await cr.get_message("balance", self.ctx(), member=member, cash=10, bank=-(debt or 0), debt=debt)
+
+		embed = payload["embeds"][0]
+		assert len(embed.fields) == fields
+		if debt:
+			assert "250" in embed.fields[2].value

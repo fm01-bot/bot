@@ -361,49 +361,14 @@ class Cases(commands.Cog, name="Cases"):
 
 		cases = await self.cases.for_user(ctx.guild, target_user, effective_filter)
 
-		message: dict | str = await self.custom_response.get_message("mod.list.response", ctx, cases=cases)
-		if isinstance(message, str):
-			await ctx.send(content=message)
+		pages = await self.custom_response.get_list(
+			"mod.list.response", ctx, [{"case": case} for case in cases], page_size=5, cases=cases
+		)
+		if len(pages) == 1:
+			await ctx.send(**pages[0])
 			return
-
-		embeds: list[discord.Embed] = message.get("embeds", [])
-		if not cases and isinstance(message, dict):
-			if embeds:
-				embeds[0].remove_field(0)
-			await ctx.send(**message)
-			return
-
-		if not embeds:
-			await ctx.send(**message)
-			return
-
-		base_embed_dict = embeds[0].to_dict()
-		fields = base_embed_dict.get("fields", [])
-		template = fields[0] if fields else None
-		if not template:
-			await ctx.send(**message)
-			return
-
-		page_size = 5
-		total_pages = max(1, (len(cases) + page_size - 1) // page_size)
-		pages: list[discord.Embed] = []
-
-		for p in range(total_pages):
-			page_cases = cases[p * page_size : (p + 1) * page_size]
-			page_dict = deepcopy(base_embed_dict)
-			page_dict["fields"] = []
-			embed_page = discord.Embed.from_dict(page_dict)
-			for case in page_cases:
-				formatted = localization.Localization.format_strings(template, case=case)
-				embed_page.add_field(**formatted)
-			pages.append(embed_page)
-
-		if len(pages) > 1:
-			view = PaginationView(pages, author_id=ctx.author.id)
-			msg = await ctx.send(embed=pages[0], view=view)
-			view.message = msg
-		else:
-			await ctx.send(embed=pages[0])
+		view = PaginationView([page["embeds"][0] for page in pages], author_id=ctx.author.id)
+		view.message = await ctx.send(embed=pages[0]["embeds"][0], view=view)
 
 
 async def setup(client: Bot):

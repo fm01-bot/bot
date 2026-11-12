@@ -9,6 +9,8 @@ import logging
 import pathlib
 import random
 import time
+from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, overload
 
 import discord
@@ -625,5 +627,70 @@ class CustomResponse:
 			elif not (isinstance(original, commands.Context) and getattr(original, "interaction", None)):
 				payload.pop("ephemeral", None)
 		return payload
+
+	async def get_list(
+		self,
+		name: str,
+		locale: Any,
+		/,
+		rows: Sequence[Mapping[str, Any]],
+		*,
+		page_size: int | None = None,
+		page: int = 1,
+		pages: int | None = None,
+		**kwargs: Any,
+	) -> list[dict[str, Any]]:
+		"""Render a list message, one payload per page.
+
+		The localization owns the layout. In the first embed, the **first field is the row template**: it is repeated
+		once per row, formatted with that row's values. The **other fields are the empty state**, shown only when there
+		are no rows. ``{page}`` and ``{pages}`` may be used in the embed's title, description and footer.
+
+		Args:
+			name: The localization key.
+			locale: The locale, or what to derive it from (see `get_message`).
+			rows: Formatting values for each row, e.g. ``[{"case": case}, ...]``.
+			page_size: Split ``rows`` into pages of this size. ``None`` renders one page.
+			page: The page number of a single, externally paged page (used when ``page_size`` is ``None``).
+			pages: The total page count of an externally paged list.
+			**kwargs: Formatting values for the rest of the message.
+
+		Returns:
+			list[dict]: Send-ready payloads; at least one. A message without fields comes back unchanged.
+		"""
+		payload = await self.get_message(name, locale, **kwargs)
+		embeds = payload.get("embeds") if isinstance(payload, dict) else None
+		if not embeds or not isinstance(embeds[0], discord.Embed):
+			return [payload] if isinstance(payload, dict) else [{"content": payload}]
+
+		base = embeds[0].to_dict()
+		fields = base.get("fields") or []
+		if not fields:
+			return [payload]
+		template, empty_state = fields[0], fields[1:]
+
+		if page_size:
+			chunks = [list(rows[i : i + page_size]) for i in range(0, len(rows), page_size)] or [[]]
+			numbered = list(enumerate(chunks, start=1))
+			total = len(chunks)
+		else:
+			numbered = [(page, list(rows))]
+			total = pages or page
+
+		result: list[dict[str, Any]] = []
+		for number, chunk in numbered:
+			embed = deepcopy(base)
+			row_fields = [CustomLocalization.format_strings(template, **row) for row in chunk]
+			# Same rule as convert_embeds: Discord rejects empty field values.
+			embed["fields"] = (
+				[f for f in row_fields if f.get("value") not in ("None", "0", "")] if chunk else list(empty_state)
+			)
+			for key in ("title", "description"):
+				if isinstance(embed.get(key), str):
+					embed[key] = CustomLocalization.format_strings(embed[key], page=number, pages=total)
+			if isinstance(embed.get("footer"), dict):
+				embed["footer"] = CustomLocalization.format_strings(embed["footer"], page=number, pages=total)
+			result.append({**payload, "embeds": [discord.Embed.from_dict(embed), *embeds[1:]]})
+		return result
 
 	__call__ = get_message

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import io
+from functools import partial
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import discord
 import pytest
 from cogs.level import Level, LevelOverrides
 from core.settings import GuildSettings
+from helpers.custom_response import CustomResponse
 from helpers.leveling import GuildLevelConfig, LevelupMessage
 
 
@@ -28,6 +30,7 @@ def mock_bot():
 		}
 	)
 	bot.custom_response.convert_embeds = MagicMock(side_effect=lambda x: x)
+	bot.custom_response.get_list = partial(CustomResponse.get_list, bot.custom_response)
 	bot.event_bus.publish = AsyncMock()
 	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	return bot
@@ -384,6 +387,7 @@ async def test_levels_command_empty_leaderboard(level_cog):
 	embed = discord.Embed(title="Level Leaderboard")
 	embed.add_field(name="#{number} {user}", value="Level: {level}")
 	embed.add_field(name="Psst...", value="No one has earned any XP (yet).")
+	embed.set_footer(text="Page {page}/{pages}")
 	level_cog.client.custom_response.get_message.return_value = {"embeds": [embed]}
 
 	await level_cog.levels_command.callback(level_cog, ctx, page=1)

@@ -153,7 +153,7 @@
           {
             "inline": false,
             "name": "⚠️ You are in debt.",
-            "value": "Any money you earn will be used to pay off your debt."
+            "value": "You owe **${debt}**. Any money you earn pays it off first."
           }
         ],
         "title": "Balance"
@@ -1539,6 +1539,9 @@
             "value": "No one has earned any XP yet. Start chatting to gain XP!"
           }
         ],
+        "footer": {
+          "text": "Page {page}/{pages}"
+        },
         "title": "Level Leaderboard"
       }
     ]
@@ -3290,7 +3293,7 @@
             {
               "inline": false,
               "name": "⚠️ You are in debt.",
-              "value": "Any money you earn will be used to pay off your debt."
+              "value": "You owe **${debt}**. Any money you earn pays it off first."
             }
           ],
           "title": "Slots"
