@@ -478,3 +478,39 @@ class TestDiscardLinesWithNoneAndCleanup:
 		assert len(container_some.children) == 3
 		assert isinstance(container_some.children[1], discord.ui.Separator)
 		assert "Aliases" in container_some.children[2].content
+
+
+class TestDeliveryFlags:
+	"""`ephemeral` / `delete_after` from a localization key survive only where Discord can honour them."""
+
+	@staticmethod
+	def make_ctx(interaction: object | None) -> MagicMock:
+		ctx = MagicMock(spec=commands.Context)
+		guild = MagicMock(spec=discord.Guild)
+		guild.id = 1
+		guild.preferred_locale = discord.Locale.american_english
+		ctx.guild = guild
+		ctx.interaction = interaction
+		ctx.author = MagicMock(spec=discord.Member)
+		ctx.author.guild = guild
+		ctx.author.roles = []
+		return ctx
+
+	@pytest.fixture
+	def cr(self, mock_bot):
+		mock_bot.locale_cache = {}
+		cr = CustomResponse(mock_bot)
+		cr.update_localizations({"en": {"msg": {"content": "hi", "ephemeral": True, "delete_after": 5}}})
+		return cr
+
+	@pytest.mark.asyncio
+	async def test_slash_command_context_keeps_ephemeral(self, cr):
+		payload = await cr.get_message("msg", self.make_ctx(MagicMock(spec=discord.Interaction)))
+		assert payload["ephemeral"] is True
+		assert payload["delete_after"] == 5
+
+	@pytest.mark.asyncio
+	async def test_prefix_command_context_drops_ephemeral(self, cr):
+		payload = await cr.get_message("msg", self.make_ctx(None))
+		assert "ephemeral" not in payload
+		assert payload["delete_after"] == 5
