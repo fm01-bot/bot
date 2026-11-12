@@ -19,7 +19,7 @@ from helpers.leveling import GuildLevelConfig, LevelupMessage, level_from_total_
 
 if TYPE_CHECKING:
 	import asyncpg
-	from core.settings import GuildSetting
+	from core.settings import GuildSetting, GuildSettings
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,11 @@ async def _load_level_config(db: asyncpg.Pool, guild_id: int) -> GuildLevelConfi
 	)
 
 
+def level_config_setting(settings: GuildSettings) -> GuildSetting[GuildLevelConfig]:
+	"""The guild's leveling configuration, registered on ``settings`` (usable without the Level cog loaded)."""
+	return settings.add("level.config", _load_level_config)
+
+
 async def _load_role_rewards(db: asyncpg.Pool, guild_id: int) -> list[tuple[int, int]]:
 	rows = await db.fetch("SELECT level, role_id FROM level_roles WHERE guild_id = $1 ORDER BY level ASC", guild_id)
 	return [(int(r["level"]), int(r["role_id"])) for r in rows]
@@ -83,7 +88,7 @@ class Level(commands.Cog, name="Level"):
 			client: The main bot instance.
 		"""
 		self.client = client
-		self.config: GuildSetting[GuildLevelConfig] = client.settings.add("level.config", _load_level_config)
+		self.config: GuildSetting[GuildLevelConfig] = level_config_setting(client.settings)
 		self.rewards: GuildSetting[list[tuple[int, int]]] = client.settings.add("level.rewards", _load_role_rewards)
 		self.overrides: GuildSetting[LevelOverrides] = client.settings.add("level.overrides", _load_overrides)
 		self.cooldowns: dict[tuple[int, int], float] = {}
