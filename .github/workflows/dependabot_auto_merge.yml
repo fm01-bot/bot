@@ -1,0 +1,64 @@
+name: Auto-merge minor Dependabot updates
+
+on:
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: auto-merge
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Read Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide whether the update is eligible
+        id: gate
+        env:
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+          NEW_VERSION: ${{ steps.meta.outputs.new-version }}
+        run: |
+          # Pre-1.0 (0.x) minor bumps are breaking by convention, so they are never auto-merged.
+          if [ "$UPDATE_TYPE" != "version-update:semver-minor" ] && [ "$UPDATE_TYPE" != "version-update:semver-patch" ]; then
+            echo "Not auto-merging: $UPDATE_TYPE"
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+          elif [ "${NEW_VERSION%%.*}" = "0" ]; then
+            echo "Not auto-merging: pre-1.0 version $NEW_VERSION"
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Eligible: $NEW_VERSION ($UPDATE_TYPE)"
+            echo "eligible=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for the other checks, then merge
+        if: steps.gate.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          for _ in $(seq 1 60); do
+            # One state per check; this job's own check is excluded so it does not wait on itself.
+            STATES=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[] | select((.name // .context) != "auto-merge") | if .status then (if .status == "COMPLETED" then .conclusion else .status end) else .state end')
+            if [ -z "$STATES" ] || echo "$STATES" | grep -Eq '^(QUEUED|IN_PROGRESS|PENDING|WAITING|REQUESTED)$'; then
+              sleep 30
+              continue
+            fi
+            if echo "$STATES" | grep -Eqv '^(SUCCESS|NEUTRAL|SKIPPED)$'; then
+              echo "A check did not pass; leaving the PR open for review"
+              exit 1
+            fi
+            gh pr merge "$PR_URL" --squash
+            exit 0
+          done
+          echo "Timed out waiting for checks; leaving the PR open"
+          exit 1
