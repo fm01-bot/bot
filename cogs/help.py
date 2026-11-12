@@ -6,7 +6,7 @@ from typing import Any
 
 import discord
 import emoji
-from core import Bot, Command, Context, resolve_locale, slash_command_localization
+from core import Bot, Command, Context, resolve_locale, slash_localization
 from discord.ext import commands
 from discord.ext.localization import Localization
 from helpers import CustomResponse
@@ -169,10 +169,10 @@ class HelpCommand(commands.HelpCommand):
 								}:
 									return cog
 
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
@@ -221,10 +221,10 @@ class HelpCommand(commands.HelpCommand):
 				return c
 
 		user_locale = self.get_context_locale()
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
@@ -265,10 +265,10 @@ class HelpCommand(commands.HelpCommand):
 				return c
 
 		user_locale = self.get_context_locale()
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():

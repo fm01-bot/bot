@@ -131,7 +131,7 @@
     },
     "desc": "Kérj le információkat egy esettel kapcsolatban",
     "fallback": "infó",
-    "name": "infó",
+    "name": "eset",
     "usage": "case [eset_id]"
   },
   "caselist": {
@@ -240,7 +240,7 @@
       }
     },
     "desc": "Kérd le egy emoji információit",
-    "name": "info",
+    "name": "emoji",
     "usage": "info emoji [emoji]"
   },
   "emojisay": {
