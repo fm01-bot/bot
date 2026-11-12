@@ -19,6 +19,7 @@ def cog() -> Info:
 def ctx() -> MagicMock:
 	ctx = MagicMock()
 	ctx.send = AsyncMock()
+	ctx.defer = AsyncMock()
 	ctx.guild = MagicMock(spec=discord.Guild)
 	ctx.guild.fetch_member = AsyncMock()
 	return ctx
