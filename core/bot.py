@@ -46,7 +46,23 @@ from core.clustering import (
 )
 from core.config import Config
 
-__all__ = ("Bot",)
+__all__ = ("Bot", "discover_cogs")
+
+
+def discover_cogs(directory: Path) -> list[str]:
+	"""List the extension names under ``directory``: ``*.py`` modules and packages whose ``__init__.py`` defines setup.
+
+	Args:
+		directory: The cogs directory.
+
+	Returns:
+		list[str]: Extension names relative to ``directory`` (e.g. ``"basic"``, ``"mod"``), sorted.
+	"""
+	names = [path.stem for path in directory.glob("*.py") if path.stem != "__init__"]
+	for init in directory.glob("*/__init__.py"):
+		if "async def setup(" in init.read_text(encoding="utf-8"):
+			names.append(init.parent.name)
+	return sorted(names)
 
 
 class Bot(commands.AutoShardedBot):
@@ -383,13 +399,13 @@ class Bot(commands.AutoShardedBot):
 		allowed: list[str] = self.config.modules
 		self.logger.debug(f"Allowed cogs: {', '.join(allowed)}")
 
-		cogs = Path("cogs").glob("*.py")
-		for cog in cogs:
-			if cog.stem in allowed or "*" in allowed:  # if you're having issues with cogs not loading, check this list
-				await self.load_extension(f"cogs.{cog.stem}")
-				self.logger.debug(f"Loaded extension {cog.name}")
+		local_cogs = discover_cogs(Path("cogs"))
+		for name in local_cogs:
+			if name in allowed or "*" in allowed:  # if you're having issues with cogs not loading, check this list
+				await self.load_extension(f"cogs.{name}")
+				self.logger.debug(f"Loaded extension {name}")
 		for module in allowed:
-			if module != "*" and not (Path("cogs") / f"{module}.py").exists():
+			if module != "*" and module not in local_cogs:
 				await self.load_extension(module)
 				self.logger.debug(f"Loaded external extension {module}")
 		end = perf_counter() - benchmark

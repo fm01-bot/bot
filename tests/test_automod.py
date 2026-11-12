@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import discord
 import pytest
@@ -240,17 +240,37 @@ async def test_handle_violation_actions(automod_cog, mock_guild, mock_channel, m
 	msg.content = "bad link http://scam.org"
 	msg.delete = AsyncMock()
 
-	with patch("cogs.mod.Warn.create", AsyncMock()) as mock_warn_create:
-		await automod_cog.handle_violation(msg, "link", cfg)
+	from cogs.mod import CaseStore, Moderation, Warn
 
-		# Check deletion
-		msg.delete.assert_called_once()
+	store = MagicMock(spec=CaseStore)
+	automod_cog.client.get_cog = MagicMock(return_value=Moderation(automod_cog.client, store, MagicMock()))
 
-		# Check case creation
-		mock_warn_create.assert_called_once()
+	await automod_cog.handle_violation(msg, "link", cfg)
 
-		# Check temporary notification sent
-		mock_channel.send.assert_called_once_with(content="Violation notice", delete_after=5)
+	msg.delete.assert_called_once()
+	(case,) = store.open.await_args.args
+	assert isinstance(case, Warn)
+	assert case.id == msg.id
+	mock_channel.send.assert_called_once_with(content="Violation notice", delete_after=5)
+
+
+@pytest.mark.asyncio
+async def test_handle_violation_still_notifies_without_moderation_cog(
+	automod_cog, mock_guild, mock_channel, mock_member
+):
+	cfg = AutoModConfig(mock_guild.id)
+	cfg.settings["actions"]["default"] = {"delete": False, "notify": True, "notify_duration": 5, "case": "warn"}
+	msg = MagicMock(spec=discord.Message)
+	msg.id = 1
+	msg.guild = mock_guild
+	msg.channel = mock_channel
+	msg.author = mock_member
+	msg.content = "bad"
+	automod_cog.client.get_cog = MagicMock(return_value=None)
+
+	await automod_cog.handle_violation(msg, "link", cfg)
+
+	mock_channel.send.assert_called_once_with(content="Violation notice", delete_after=5)
 
 
 async def run_cli(config_cog: Config, ctx: Any, cmdline: str) -> None:

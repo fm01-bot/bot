@@ -327,48 +327,8 @@ class AutoMod(commands.Cog, name="AutoMod"):
 				logger.warning(f"Failed to delete automod violating message {message.id}: {e}")
 
 		case_type = action.get("case")
-		if case_type in ("warn", "mute") and isinstance(message.author, (discord.Member, discord.User)):
-			moderator: Any = self.client.user or guild.me
-			if not moderator:
-				return
-			reason = f"[AutoMod] {feature.title()} rule violation"
-			try:
-				if case_type == "warn":
-					from cogs.mod import Warn
-
-					warn_case = Warn(
-						_id=message.id,
-						bot=self.client,
-						guild=guild,
-						user=message.author,
-						moderator=moderator,  # type: ignore[arg-type]
-						reason=reason,
-						message=message.content[:500] if message.content else None,
-					)
-					await warn_case.create(self.client.db)
-				elif case_type == "mute":
-					from cogs.mod import Mute
-
-					raw_duration = action.get("mute_duration", "5m")
-					try:
-						duration_sec = text_to_seconds(raw_duration) if raw_duration else 300
-					except (ValueError, TypeError):
-						duration_sec = 300
-
-					expires = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=duration_sec)
-					mute_case = Mute(
-						_id=message.id,
-						bot=self.client,
-						guild=guild,
-						user=message.author,
-						moderator=moderator,  # type: ignore[arg-type]
-						expires=expires,
-						reason=reason,
-						message=message.content[:500] if message.content else None,
-					)
-					await mute_case.create(self.client.db)
-			except Exception:
-				logger.exception(f"Failed to create automod case for {message.author.id}")
+		if case_type in ("warn", "mute"):
+			await self._open_case(message, guild, feature, case_type, action)
 
 		if action.get("notify", True):
 			duration = int(action.get("notify_duration", 5))
@@ -385,6 +345,61 @@ class AutoMod(commands.Cog, name="AutoMod"):
 				pass
 			except Exception as e:  # noqa: BLE001
 				logger.warning(f"Failed to send automod notification in channel {message.channel.id}: {e}")
+
+	async def _open_case(
+		self,
+		message: discord.Message,
+		guild: discord.Guild,
+		feature: str,
+		case_type: str,
+		action: dict[str, Any],
+	) -> None:
+		"""Open a warn or mute case for the author of a violating message through the Moderation cog."""
+		if not isinstance(message.author, (discord.Member, discord.User)):
+			return
+		moderator: Any = self.client.user or guild.me
+		if not moderator:
+			return
+		reason = f"[AutoMod] {feature.title()} rule violation"
+		from cogs.mod import Moderation, Mute, Warn
+
+		mod_cog = self.client.get_cog("Moderation")
+		if not isinstance(mod_cog, Moderation):
+			logger.warning("AutoMod could not open a case: the Moderation cog is not loaded")
+			return
+		try:
+			case: Warn | Mute
+			if case_type == "warn":
+				case = Warn(
+					_id=message.id,
+					bot=self.client,
+					guild=guild,
+					user=message.author,
+					moderator=moderator,  # type: ignore[arg-type]
+					reason=reason,
+					message=message.content[:500] if message.content else None,
+				)
+			else:
+				raw_duration = action.get("mute_duration", "5m")
+				try:
+					duration_sec = text_to_seconds(raw_duration) if raw_duration else 300
+				except (ValueError, TypeError):
+					duration_sec = 300
+
+				expires = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=duration_sec)
+				case = Mute(
+					_id=message.id,
+					bot=self.client,
+					guild=guild,
+					user=message.author,
+					moderator=moderator,  # type: ignore[arg-type]
+					expires=expires,
+					reason=reason,
+					message=message.content[:500] if message.content else None,
+				)
+			await mod_cog.cases.open(case)
+		except Exception:
+			logger.exception(f"Failed to create automod case for {message.author.id}")
 
 	async def inspect_message(self, message: discord.Message, *, skip_spam: bool = False) -> None:
 		"""Inspect a message and apply active automod rules in priority sequence."""
