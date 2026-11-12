@@ -83,6 +83,7 @@ class Info(commands.Cog, name="Information"):
 
 	@info.command(user=False, l10n_key="ipinfo")
 	async def ip(self, ctx: Context, ip_addr: str):
+		await ctx.defer()  # slow: calls ipinfo.io
 		try:
 			ip_json = await self.client.request(f"https://ipinfo.io/{ip_addr}/json")
 		except RuntimeError:
@@ -124,6 +125,7 @@ class Info(commands.Cog, name="Information"):
 
 	@info.command(l10n_key="tmplteinfo")
 	async def template(self, ctx: Context, template: str):
+		await ctx.defer()  # slow: fetches the template from Discord
 		regex = DISCORD_TEMPLATE.search(template)
 		if regex:
 			template_code = regex.group(1)

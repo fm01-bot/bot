@@ -348,6 +348,7 @@ class Level(commands.Cog, name="Level"):
 	async def level_command(self, ctx: Context, member: discord.Member | None = None) -> None:
 		if not ctx.guild:
 			return
+		await ctx.defer()  # slow: renders the rank card image
 
 		target = member or (ctx.author if isinstance(ctx.author, discord.Member) else None)
 		if not target:
