@@ -349,36 +349,77 @@
     "name": "emoji",
     "usage": "say emoji [message: 1...20]"
   },
-  "endgiveaway": {
+  "giveaway": {
+    "desc": "Host and manage giveaways",
+    "name": "giveaway"
+  },
+  "giveawaycancel": {
     "args": {
       "message": {
-        "desc": "The giveaway's message ID",
-        "name": "message_id"
+        "desc": "The giveaway's message ID or link (defaults to the replied-to or latest giveaway)",
+        "name": "message"
       }
     },
-    "desc": "End a giveaway (must be in current channel)",
-    "name": "end",
-    "usage": "giveaway end [message_id]"
+    "desc": "Cancel an active giveaway in this channel without drawing winners",
+    "name": "cancel",
+    "usage": "giveaway cancel (message)"
   },
-  "giveaway": {
+  "giveawayend": {
+    "args": {
+      "message": {
+        "desc": "The giveaway's message ID or link (defaults to the replied-to or latest giveaway)",
+        "name": "message"
+      }
+    },
+    "desc": "End an active giveaway in this channel now",
+    "name": "end",
+    "usage": "giveaway end (message)"
+  },
+  "giveawayreroll": {
+    "args": {
+      "count": {
+        "desc": "How many winners to redraw (defaults to all)",
+        "name": "count"
+      },
+      "message": {
+        "desc": "The giveaway's message ID or link (defaults to the replied-to or latest giveaway)",
+        "name": "message"
+      }
+    },
+    "desc": "Redraw winners of an ended giveaway in this channel",
+    "name": "reroll",
+    "usage": "giveaway reroll (message) (count)"
+  },
+  "giveawaystart": {
     "args": {
       "duration": {
-        "desc": "The duration of the giveaway, e.x. 1d",
+        "desc": "How long the giveaway lasts, e.g. 1d12h",
         "name": "duration"
       },
+      "level": {
+        "desc": "Minimum level required to enter",
+        "name": "level"
+      },
+      "messages": {
+        "desc": "Messages entrants must send after the giveaway starts",
+        "name": "messages"
+      },
       "prize": {
-        "desc": "The giveaway prize (required)",
+        "desc": "What you're giving away",
         "name": "prize"
       },
+      "role": {
+        "desc": "Role required to enter",
+        "name": "role"
+      },
       "winners": {
-        "desc": "The number of max winners",
+        "desc": "How many winners to draw (1-50)",
         "name": "winners"
       }
     },
-    "desc": "Start a giveaway",
-    "fallback": "start",
-    "name": "giveaway",
-    "usage": "giveaway [duration] (winners) [prize]"
+    "desc": "Start a giveaway in this channel",
+    "name": "start",
+    "usage": "giveaway start [duration] [winners] [\"prize\"] (level) (role) (messages)"
   },
   "global": {
     "bank": "bank",
