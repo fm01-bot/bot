@@ -235,3 +235,18 @@ async def test_expire_closes_due_case_and_drops_cases_of_left_guilds(store, worl
 
 	assert await db.fetchval("SELECT active FROM cases WHERE case_id = 110") is False
 	assert await db.fetchval("SELECT count(*) FROM cases WHERE case_id = 111") == 0
+
+
+async def test_listing_fetches_each_uncached_user_once(store, world):
+	"""Cases whose moderator isn't cached cost one API call per distinct moderator, not one per case."""
+	absent_mod = make_user(77)
+	for case_id in range(200, 206):
+		await store.open(Warn(case_id, world["bot"], world["guild"], world["target"], absent_mod))
+	world["bot"].get_user = MagicMock(side_effect=lambda uid: world["target"] if uid == world["target"].id else None)
+	world["bot"].fetch_user = AsyncMock(return_value=absent_mod)
+
+	cases = await store.for_user(world["guild"], world["target"])
+
+	assert len(cases) == 6
+	assert all(case._moderator is absent_mod for case in cases)
+	world["bot"].fetch_user.assert_awaited_once_with(77)
