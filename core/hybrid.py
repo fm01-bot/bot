@@ -9,6 +9,7 @@ from discord.ext import commands
 from discord.utils import MISSING
 
 from core import slash_localization
+from core.slash_localization import command_key
 
 __all__ = ("HybridCommand", "HybridGroup", "command", "group")
 
@@ -96,50 +97,23 @@ def _l10n_desc(message: str | app_commands.locale_str | None, key: str) -> app_c
 	return app_commands.locale_str(_normalize_l10n_message(message, "..."), key=key)
 
 
+def _localize_params(command: app_commands.Command | commands.hybrid.HybridAppCommand, base: str) -> None:
+	for param in command._params.values():
+		param._rename = _l10n_str(param.name, command_key(base, "args", param.name, "name"))
+		param.description = _l10n_desc(param.description, command_key(base, "args", param.name, "desc"))
+
+
 def _localize_app_command_attributes(
 	command_or_group: None | app_commands.Command | app_commands.Group | commands.hybrid.HybridAppCommand, base: str
 ) -> None | app_commands.Command | app_commands.Group | commands.hybrid.HybridAppCommand:
+	"""Point a command's (or group's) name, description and parameters at its keys under ``base``."""
 	if not command_or_group:
 		return None
-
-	name_key = f"{base}-name"
-	if (
-		isinstance(command_or_group, commands.hybrid.HybridAppCommand)
-		and getattr(command_or_group.wrapped, "parent", None) is not None
-	):
-		name_key = command_or_group.name
-
-	command_or_group._locale_name = _l10n_str(command_or_group.name, name_key)
-	command_or_group._locale_description = _l10n_desc(command_or_group.description, f"{base}-desc")
-
+	command_or_group._locale_name = _l10n_str(command_or_group.name, command_key(base, "name"))
+	command_or_group._locale_description = _l10n_desc(command_or_group.description, command_key(base, "desc"))
 	if not isinstance(command_or_group, app_commands.Group):
-		for param in command_or_group._params.values():
-			param_name = param.name
-			param._rename = _l10n_str(param.name, f"{base}-args-{param_name}-name")
-			param.description = _l10n_desc(param.description, f"{base}-args-{param_name}-desc")
-
+		_localize_params(command_or_group, base)
 	return command_or_group
-
-
-def _resolve_fallback_name(base: str) -> str | None:
-	if not slash_localization.slash_command_localization:
-		return None
-
-	localizations = slash_localization.slash_command_localization.file
-	default_locale = slash_localization.slash_command_localization.default_locale or "en"
-	locale_data = localizations.get(default_locale)
-	if not isinstance(locale_data, dict):
-		return None
-
-	value: object = locale_data
-	for key in f"{base}-fallback".split("-"):
-		if not isinstance(value, dict):
-			return None
-		value = value.get(key)
-		if value is None:
-			return None
-
-	return value
 
 
 class HybridAppCommand(commands.hybrid.HybridAppCommand):
@@ -155,13 +129,10 @@ class HybridAppCommand(commands.hybrid.HybridAppCommand):
 		base = getattr(wrapped, "l10n_key", None)
 		if base:
 			if isinstance(wrapped, HybridGroup):
-				self._locale_name = _l10n_str(self.name, f"{base}-fallback")
-				self._locale_description = _l10n_desc(self.description, f"{base}-desc")
-
-				for param in self._params.values():
-					param_name = param.name
-					param._rename = _l10n_str(param.name, f"{base}-args-{param_name}-name")
-					param.description = _l10n_desc(param.description, f"{base}-args-{param_name}-desc")
+				# The group's own callback, exposed as its fallback subcommand.
+				self._locale_name = _l10n_str(self.name, command_key(base, "fallback"))
+				self._locale_description = _l10n_desc(self.description, command_key(base, "desc"))
+				_localize_params(self, base)
 			else:
 				_localize_app_command_attributes(self, base)
 
@@ -175,7 +146,53 @@ class HybridAppCommand(commands.hybrid.HybridAppCommand):
 		return await super()._transform_arguments(interaction, namespace)
 
 
-class HybridCommand(commands.HybridCommand):
+class _CommandOptions:
+	"""Options shared by `HybridCommand` and `HybridGroup`: permissions, where it runs, and its localization key."""
+
+	permissions: list[Permission] | None
+	l10n_key: str | None
+	user: bool
+	guild: bool
+	usage: str | None
+	checks: list[Any]
+	clean_params: dict[str, Any]
+	__original_kwargs__: dict[str, Any]
+
+	def _apply_options(
+		self, base: str | None, permissions: list[Permission] | None, l10n_key: str | None, user: bool, guild: bool
+	) -> None:
+		self.permissions = permissions
+		self.l10n_key = l10n_key
+		self.user = user
+		self.guild = guild
+
+		if self.usage is None and self.clean_params and base:
+			self.usage = command_key(base, "usage")
+			self.__original_kwargs__["usage"] = self.usage
+
+		if permissions:
+			self.checks.append(commands.has_permissions(**dict.fromkeys(permissions, True)).predicate)
+		if not user:
+			self.checks.append(commands.guild_only().predicate)
+		if not guild:
+			self.checks.append(commands.dm_only().predicate)
+
+	def _apply_installs(self, app_command: Any) -> None:
+		app_command.allowed_installs = app_commands.AppInstallationType(guild=self.guild, user=self.user)
+		app_command.allowed_contexts = app_commands.AppCommandContext(
+			guild=self.guild, dm_channel=self.user, private_channel=self.user
+		)
+
+	def _copy_options(self, other: Any) -> Any:
+		other.permissions = self.permissions
+		other.l10n_key = self.l10n_key
+		other.user = self.user
+		other.guild = self.guild
+		other.usage = self.usage
+		return other
+
+
+class HybridCommand(_CommandOptions, commands.HybridCommand):
 	callback: Any
 
 	def __init__(
@@ -193,42 +210,17 @@ class HybridCommand(commands.HybridCommand):
 	):
 		base = l10n_key or name or getattr(func, "__name__", None)
 		super().__init__(func, name=name, description=description, usage=usage, **kwargs)
-		self.permissions = permissions
-		self.l10n_key = l10n_key
-		self.user = user
-		self.guild = guild
-
-		if self.usage is None and bool(self.clean_params) and base:
-			self.usage = f"{base}-usage"
-			self.__original_kwargs__["usage"] = self.usage
-
-		if permissions:
-			perms_dict = {perm: True for perm in permissions}
-			self.checks.append(commands.has_permissions(**perms_dict).predicate)
-
-		if not user:
-			self.checks.append(commands.guild_only().predicate)
-		if not guild:
-			self.checks.append(commands.dm_only().predicate)
+		self._apply_options(base, permissions, l10n_key, user, guild)
 
 		if self.with_app_command:
 			self.app_command = HybridAppCommand(self)
-			self.app_command.allowed_installs = app_commands.AppInstallationType(guild=guild, user=user)
-			self.app_command.allowed_contexts = app_commands.AppCommandContext(
-				guild=guild, dm_channel=user, private_channel=user
-			)
+			self._apply_installs(self.app_command)
 
 	def _ensure_assignment_on_copy(self, other: Self) -> Self:
-		other = super()._ensure_assignment_on_copy(other)
-		other.permissions = self.permissions
-		other.l10n_key = self.l10n_key
-		other.user = self.user
-		other.guild = self.guild
-		other.usage = self.usage
-		return other
+		return self._copy_options(super()._ensure_assignment_on_copy(other))
 
 
-class HybridGroup(commands.HybridGroup):
+class HybridGroup(_CommandOptions, commands.HybridGroup):
 	callback: Any
 
 	def __init__(
@@ -245,38 +237,21 @@ class HybridGroup(commands.HybridGroup):
 		usage: str | None = None,
 		**kwargs: Any,
 	):
-		base = l10n_key or name or func.__name__  # type: ignore
+		base = _normalize_l10n_message(l10n_key or name or None, getattr(func, "__name__", ""))
 		if isinstance(fallback, str):
 			resolved_fallback = fallback
 		elif fallback:
-			resolved_fallback = _resolve_fallback_name(base)  # type: ignore
+			resolved_fallback = slash_localization.lookup(command_key(base, "fallback"))
 		else:
 			resolved_fallback = None
 
 		super().__init__(func, name=name, description=description, fallback=resolved_fallback, usage=usage, **kwargs)
-		self.permissions = permissions
-		self.l10n_key = l10n_key
-		self.user = user
-		self.guild = guild
-
-		if self.usage is None and bool(self.clean_params) and base:
-			self.usage = f"{base}-usage"
-			self.__original_kwargs__["usage"] = self.usage
-
-		if permissions:
-			perms_dict = {perm: True for perm in permissions}
-			self.checks.append(commands.has_permissions(**perms_dict).predicate)
-
-		if not user:
-			self.checks.append(commands.guild_only().predicate)
-		if not guild:
-			self.checks.append(commands.dm_only().predicate)
+		self._apply_options(base, permissions, l10n_key, user, guild)
 
 		if self.app_command:
-			self.app_command.allowed_installs = app_commands.AppInstallationType(guild=guild, user=user)
-			self.app_command.allowed_contexts = app_commands.AppCommandContext(
-				guild=guild, dm_channel=user, private_channel=user
-			)
+			# Here rather than in group(): copies made by CogMeta re-run __init__ with a fresh app_commands.Group.
+			_localize_app_command_attributes(self.app_command, base)
+			self._apply_installs(self.app_command)
 
 		if self.fallback:
 			self.app_command.remove_command(self.fallback)
@@ -284,20 +259,7 @@ class HybridGroup(commands.HybridGroup):
 			self.app_command.add_command(fallback_command)
 
 	def _ensure_assignment_on_copy(self, other: Self) -> Self:
-		other = super()._ensure_assignment_on_copy(other)
-		other.permissions = self.permissions
-		other.l10n_key = self.l10n_key
-		other.user = self.user
-		other.guild = self.guild
-		other.usage = self.usage
-		return other
-
-	def add_command(
-		self, command: commands.hybrid.HybridGroup[Any, ..., Any] | commands.hybrid.HybridCommand[Any, ..., Any], /
-	) -> None:
-		super().add_command(command)
-		if isinstance(command, commands.hybrid.HybridCommand) and command.app_command:
-			command.app_command._locale_name = _l10n_str(command.name, command.name)
+		return self._copy_options(super()._ensure_assignment_on_copy(other))
 
 	def command(  # type: ignore[override]
 		self,
@@ -326,34 +288,6 @@ class HybridGroup(commands.HybridGroup):
 
 		return decorator
 
-	# def group(
-	# 	self,
-	# 	name: str | app_commands.locale_str = MISSING,
-	# 	*args: Any,
-	# 	with_app_command: bool = True,
-	# 	user: bool = True,
-	# 	guild: bool = True,
-	# 	**kwargs: Unpack[_HybridGroupDecoratorKwargs],
-	# ) -> Callable[[CommandCallback], HybridGroup]:
-	# 	def decorator(func: CommandCallback):
-	# 		kwargs.setdefault("parent", self)
-	# 		result = group(
-	# 			name=(
-	# 				name.message
-	# 				if isinstance(name, app_commands.locale_str)
-	# 				else name or getattr(func, "__name__", None)
-	# 			),
-	# 			*args,
-	# 			user=user,
-	# 			guild=guild,
-	# 			**kwargs,
-	# 			with_app_command=with_app_command,
-	# 		)(func)
-	# 		self.add_command(result)
-	# 		return result
-
-	# 	return decorator
-
 
 def command(
 	name: str | None = None,
@@ -377,7 +311,7 @@ def command(
 
 		base = l10n_key or name or func.__name__  # type: ignore
 
-		text_description = description or f"{base}-desc"
+		text_description = description or command_key(base, "desc")
 
 		cmd = HybridCommand(
 			func,
@@ -423,7 +357,7 @@ def group(
 
 		base = l10n_key or name or func.__name__  # type: ignore
 
-		text_description = description or f"{base}-desc"
+		text_description = description or command_key(base, "desc")
 
 		result = HybridGroup(
 			func,
@@ -441,8 +375,6 @@ def group(
 			usage=usage,
 			**kwargs,
 		)
-
-		result.app_command = _localize_app_command_attributes(result.app_command, base)  # type: ignore
 
 		return result
 

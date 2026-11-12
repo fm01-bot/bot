@@ -7,6 +7,7 @@ import discord
 import wavelink
 from core import Bot, Context
 from core.hybrid import command
+from discord import app_commands
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
@@ -229,6 +230,13 @@ class Voice(commands.GroupCog, name="Voice", group_name="voice"):
 		await ctx.send("voice.shuffle.success", count=len(player.queue))
 
 	@command(user=False)
+	@app_commands.choices(
+		mode=[
+			app_commands.Choice(name="loop-args-mode-off", value="off"),
+			app_commands.Choice(name="loop-args-mode-track", value="track"),
+			app_commands.Choice(name="loop-args-mode-queue", value="queue"),
+		]
+	)
 	async def loop(self, ctx: Context, mode: Literal["off", "track", "queue"] | None = None):
 		player = await self._get_player(ctx)
 		if not player:

@@ -30,6 +30,8 @@ The words this codebase uses for its own concepts, and the decisions that shape 
 
 **List message**: a localized embed rendered with `CustomResponse.get_list`. Its first field is the **row template** (repeated per row), the remaining fields are the **empty state**, and `{page}`/`{pages}` work in the title, description and footer. Cogs pass rows, never edit rendered embeds. Optional parts of a message use a placeholder that is `None` when absent: the formatter drops that line, and a field left empty is dropped.
 
+**Command key (`l10n_key`)**: the base under which a command's slash localization lives in `slash_localization/*.l10n.json`: `<key>-name`, `<key>-desc`, `<key>-usage`, `<key>-fallback` (a group's own callback, run as a subcommand) and `<key>-args-<param>-name|desc|<choice>`. It defaults to the command's name, and every subcommand has its own key, so subcommands with the same name are translated separately. The exception is `GroupCog` group names (`admin`, `economy`, `mod`, `voice`): discord.py builds those groups, so they use a top-level string. Built by `command_key` and read with `lookup` in `core/slash_localization.py`. `tests/test_slash_keys.py` fails when a key is missing. Groups need no description, because Discord never shows it.
+
 ## Decisions
 
 **Config commands are temporary.** The `?!config` command tree (`cogs/config_subcommands/`) exists only until the web dashboard replaces it, after which the bot, backend, website and dashboard move into one monorepo. Fix bugs there and let it reuse shared modules when that costs nothing, but don't put architecture work into it (localizing its strings, restructuring, new tests).

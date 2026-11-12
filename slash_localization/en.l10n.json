@@ -10,7 +10,6 @@
     "name": "achievement",
     "usage": "say achievement [message: 1...2000]"
   },
-  "add": "add",
   "addmoney": {
     "args": {
       "account": {
@@ -94,10 +93,9 @@
     "name": "ban",
     "usage": "ban [user] (duration) (reason)"
   },
-  "bot": "bot",
   "botinfo": {
     "desc": "Information about the bot",
-    "name": "botinfo"
+    "name": "bot"
   },
   "buy": {
     "args": {
@@ -110,7 +108,6 @@
     "name": "buy",
     "usage": "shop buy [item]"
   },
-  "case": "case",
   "casedel": {
     "args": {
       "case_id": {
@@ -119,7 +116,7 @@
       }
     },
     "desc": "Delete a case",
-    "name": "casedel",
+    "name": "delete",
     "usage": "case delete [case_id]"
   },
   "caseedit": {
@@ -141,7 +138,7 @@
       }
     },
     "desc": "Edit a case",
-    "name": "caseedit",
+    "name": "edit",
     "usage": "case edit [case_id] [field] [value]"
   },
   "caseinfo": {
@@ -153,7 +150,7 @@
     },
     "desc": "Get case information",
     "fallback": "info",
-    "name": "caseinfo",
+    "name": "case",
     "usage": "case [case_id]"
   },
   "caselist": {
@@ -171,7 +168,7 @@
       }
     },
     "desc": "List all cases for a user or yourself",
-    "name": "caselist",
+    "name": "list",
     "usage": "case list (user) (filter)"
   },
   "caserem": {
@@ -182,10 +179,9 @@
       }
     },
     "desc": "Mark a case as inactive",
-    "name": "caserem",
+    "name": "remove",
     "usage": "case remove [case_id]"
   },
-  "channel": "channel",
   "channel_say": {
     "args": {
       "channel": {
@@ -209,7 +205,7 @@
       }
     },
     "desc": "Information about a channel",
-    "name": "chinfo",
+    "name": "channel",
     "usage": "info channel (channel)"
   },
   "chsay": {
@@ -253,7 +249,6 @@
     "desc": "Clear all tracks from the queue",
     "name": "clear"
   },
-  "cog": "cog",
   "config": {
     "args": {
       "flags_and_args": {
@@ -315,7 +310,6 @@
     "name": "edit",
     "usage": "say edit [message] [content: 1...2000]"
   },
-  "emoji": "emoji",
   "emoji_say": {
     "args": {
       "message": {
@@ -335,7 +329,7 @@
       }
     },
     "desc": "Information about an emoji",
-    "name": "emojiinfo",
+    "name": "emoji",
     "usage": "info emoji [emoji]"
   },
   "emojisay": {
@@ -436,7 +430,6 @@
     "name": "info",
     "usage": "info [thing]"
   },
-  "ip": "ip",
   "ipinfo": {
     "args": {
       "ip_addr": {
@@ -445,7 +438,7 @@
       }
     },
     "desc": "Information about an IP address",
-    "name": "ipinfo",
+    "name": "ip",
     "usage": "info ip [ip]"
   },
   "kick": {
@@ -504,7 +497,6 @@
     "name": "levels",
     "usage": "levels (page)"
   },
-  "list": "list",
   "load": {
     "args": {
       "cog": {
@@ -558,7 +550,10 @@
     "args": {
       "mode": {
         "desc": "Loop mode: off, track, or queue",
-        "name": "mode"
+        "name": "mode",
+        "off": "off",
+        "queue": "queue",
+        "track": "track"
       }
     },
     "desc": "Set the playback loop mode",
@@ -649,7 +644,6 @@
     "name": "pokeinfo",
     "usage": "info pokemon [pokemon]"
   },
-  "pokemon": "pokemon",
   "prefix": {
     "args": {
       "mention": {
@@ -698,7 +692,6 @@
     "name": "reload",
     "usage": "reload [cog]"
   },
-  "remove": "remove",
   "remove_item": {
     "args": {
       "item_name": {
@@ -755,7 +748,6 @@
     "name": "reverse",
     "usage": "say reverse [message: 1...2000]"
   },
-  "role": "role",
   "roleinfo": {
     "args": {
       "role": {
@@ -764,7 +756,7 @@
       }
     },
     "desc": "Information about a role",
-    "name": "roleinfo",
+    "name": "role",
     "usage": "info role (role)"
   },
   "say": {
@@ -790,10 +782,9 @@
     "name": "seek",
     "usage": "seek [seconds]"
   },
-  "server": "server",
   "serverinfo": {
     "desc": "Information about the server",
-    "name": "serverinfo"
+    "name": "server"
   },
   "set_item": {
     "args": {
@@ -842,7 +833,6 @@
     "name": "slots",
     "usage": "slots [amount]"
   },
-  "slowmode": "slowmode",
   "sm": {
     "args": {
       "channel": {
@@ -897,7 +887,6 @@
     "name": "sync",
     "usage": "sync (guilds...) (scope[~/*/^])"
   },
-  "template": "template",
   "tmplteinfo": {
     "args": {
       "template": {
@@ -906,7 +895,7 @@
       }
     },
     "desc": "Information about a template or fm01 snapshot",
-    "name": "templateinfo",
+    "name": "template",
     "usage": "info template [template|snapshot]"
   },
   "unban": {
@@ -942,7 +931,6 @@
     "name": "unmute",
     "usage": "unmute [member]"
   },
-  "user": "user",
   "userinfo": {
     "args": {
       "user": {
@@ -951,7 +939,7 @@
       }
     },
     "desc": "Information about a user or a member",
-    "name": "userinfo",
+    "name": "user",
     "usage": "info user (user|member)"
   },
   "voice": "voice",

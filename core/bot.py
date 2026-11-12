@@ -25,7 +25,7 @@ from discord.shard import Shard
 from discord.utils import MISSING
 from helpers import custom_response, seconds_to_text
 
-from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
+from core import Command, Context, SlashCommandLocalizer, slash_localization, update_slash_localizations
 from core.clustering import (
 	ClusterConfig,
 	EventBus,
@@ -402,8 +402,8 @@ class Bot(commands.AutoShardedBot):
 
 		match error:
 			case commands.MissingRequiredArgument():
-				if slash_command_localization:
-					name = slash_command_localization(error.param.name, ctx)
+				if l10n := slash_localization.slash_command_localization:
+					name = l10n(error.param.name, ctx)
 				else:
 					name = "-"
 				parameter = f"[{name if error.param.required else f'({name})'}]"

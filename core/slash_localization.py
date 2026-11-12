@@ -6,11 +6,38 @@ import discord
 from discord import app_commands
 from discord.ext import localization
 
-__all__ = ("SlashCommandLocalizer", "slash_command_localization", "update_slash_localizations")
+__all__ = ("SlashCommandLocalizer", "command_key", "lookup", "update_slash_localizations")
 
 logger = getLogger(__name__)
 
 slash_command_localization: localization.Localization | None = None
+"""The loaded slash localizations. Read it as ``slash_localization.slash_command_localization`` (module attribute):
+it is replaced by `update_slash_localizations`, so a ``from ... import`` of it would keep the stale ``None``."""
+
+SEPARATOR = "-"
+
+
+def command_key(base: str, *parts: str) -> str:
+	"""Build a slash localization key for a command, e.g. ``command_key("caserem", "args", "case_id", "name")``.
+
+	Every name, description and parameter of a command lives under its ``l10n_key`` (its ``base``): ``<base>-name``,
+	``<base>-desc``, ``<base>-usage``, ``<base>-fallback`` and ``<base>-args-<param>-name|desc``.
+	"""
+	return SEPARATOR.join((base, *parts))
+
+
+def lookup(key: str, locale: str = "en") -> str | None:
+	"""Return the string stored at ``key`` for ``locale`` (falling back to ``en``), or ``None`` if there is none."""
+	if slash_command_localization is None:
+		return None
+	files = slash_command_localization.file
+	for loc in dict.fromkeys((locale, "en")):
+		value: object = files.get(loc)
+		for part in key.split(SEPARATOR):
+			value = value.get(part) if isinstance(value, dict) else None
+		if isinstance(value, str):
+			return value
+	return None
 
 
 def update_slash_localizations():
@@ -29,7 +56,9 @@ def update_slash_localizations():
 		except json.JSONDecodeError as e:
 			logger.warning(f"Failed to load {file_path}: {e}")
 	global slash_command_localization
-	slash_command_localization = localization.Localization(slash_localizations, default_locale="en", separator="-")
+	slash_command_localization = localization.Localization(
+		slash_localizations, default_locale="en", separator=SEPARATOR
+	)
 
 
 class SlashCommandLocalizer(app_commands.Translator):
@@ -50,12 +79,5 @@ class SlashCommandLocalizer(app_commands.Translator):
 			if key == "…" or key == "...":
 				return None
 
-			localized = slash_command_localization.translate(key, str(locale))
-			if not isinstance(localized, str):
-				return None
-
-			if localized == key:
-				return None
-
-			return localized
+			return lookup(key, str(locale))
 		return None
