@@ -731,6 +731,74 @@
       ]
     },
     "channel": {
+      "category": {
+        "embeds": [
+          {
+            "author": {
+              "name": "📁 {category.name}",
+              "url": "{category.jump_url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{category.id}"
+              },
+              {
+                "inline": true,
+                "name": "Position",
+                "value": "{category.position}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{category.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "Channels",
+                "value": "{category.channels}"
+              },
+              {
+                "inline": true,
+                "name": "Text channels",
+                "value": "{category.text_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Voice channels",
+                "value": "{category.voice_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Stage channels",
+                "value": "{category.stage_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Forums",
+                "value": "{category.forums}"
+              },
+              {
+                "inline": true,
+                "name": "Created",
+                "value": "{category.created_at}"
+              },
+              {
+                "inline": true,
+                "name": "Permission overwrites",
+                "value": "{category.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Mention",
+                "value": "`{category.mention}`"
+              }
+            ],
+            "title": "Category information"
+          }
+        ]
+      },
       "forum": {
         "embeds": [
           {
