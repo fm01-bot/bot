@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from cogs.config import Config
+from core.settings import INVALIDATE_SETTING, GuildSettings
 from helpers.cli_parser import CLIParseError, CLIParser
 
 
@@ -16,6 +17,7 @@ def mock_ctx():
 	ctx.bot.db = AsyncMock()
 	ctx.bot.event_bus = MagicMock()
 	ctx.bot.event_bus.publish = AsyncMock()
+	ctx.bot.settings = GuildSettings(lambda: ctx.bot.db, ctx.bot.event_bus)
 	ctx.send = AsyncMock()
 	return ctx
 
@@ -38,9 +40,6 @@ async def test_config_mod_view_default(mock_ctx):
 @pytest.mark.asyncio
 async def test_config_mod_set_delete(mock_ctx):
 	config_cog = Config(mock_ctx.bot)
-	mock_cog = MagicMock()
-	mock_cog.set_guild_retention = MagicMock()
-	mock_ctx.bot.get_cog.return_value = mock_cog
 
 	tokens = CLIParser.split_args("mod --retention delete")
 	node, opts = config_cog.parser.parse(tokens)
@@ -53,8 +52,10 @@ async def test_config_mod_set_delete(mock_ctx):
 	assert execute_args[1] == 12345
 	assert execute_args[2] == "delete"
 
-	# Should notify moderation cog cache
-	mock_cog.set_guild_retention.assert_called_once_with(12345, "delete")
+	# Should update the cached setting and tell other instances
+	assert mock_ctx.bot.settings["mod.retention"].cache[12345] == "delete"
+	event = mock_ctx.bot.event_bus.publish.call_args.args[1]
+	assert (event["type"], event["key"], event["guild_id"]) == (INVALIDATE_SETTING, "mod.retention", 12345)
 	call_content = mock_ctx.send.call_args.kwargs.get("content", "")
 	assert "Moderation case retention set to delete" in call_content
 

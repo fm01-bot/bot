@@ -20,18 +20,13 @@ def setup_prefix_subcommands(parent_node: CLINode) -> CLINode:
 		assert ctx.guild is not None
 		new_prefix = prefix or prefix_pos
 		if not new_prefix:
-			current = ctx.bot.prefix_cache.get(ctx.guild.id, ("?!", True))
-			return await ctx.send(content=f"```ansi\nPrefix: {current[0]}\n```")
+			current, _ = await ctx.bot.prefix.get(ctx.guild.id)
+			return await ctx.send(content=f"```ansi\nPrefix: {current}\n```")
 
 		if len(new_prefix) > 10:
 			raise CLIParseError("The prefix can only be up to 10 characters long!", prefix_node)
 
-		await ctx.bot.db.execute(
-			"UPDATE guilds SET prefix = $1, mention = $2 WHERE guild_id = $3", new_prefix, mention, ctx.guild.id
-		)
-		ctx.bot.prefix_cache[ctx.guild.id] = (new_prefix, mention)
-		if hasattr(ctx.bot, "event_bus"):
-			await ctx.bot.event_bus.publish("fm01:events", {"type": "INVALIDATE_PREFIX", "guild_id": ctx.guild.id})
+		await ctx.bot.prefix.set(ctx.guild.id, (new_prefix, mention))
 		return await ctx.send(content=f"```ansi\n[+] Prefix set to {new_prefix}\n```")
 
 	prefix_node.callback = prefix

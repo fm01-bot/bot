@@ -13,12 +13,7 @@ class Setup(commands.Cog, name="Setup"):
 		if len(prefix) > 10:
 			return await ctx.send("setup.prefix.errors.long", prefix=prefix, limit=10)
 		mention_val = True if mention is None else bool(mention)
-		await self.client.db.execute(
-			"UPDATE guilds SET prefix = $1, mention = $2 WHERE guild_id = $3", prefix, mention_val, ctx.guild.id
-		)
-		self.client.prefix_cache[ctx.guild.id] = (prefix, mention_val)
-		if hasattr(self.client, "event_bus"):
-			await self.client.event_bus.publish("fm01:events", {"type": "INVALIDATE_PREFIX", "guild_id": ctx.guild.id})
+		await self.client.prefix.set(ctx.guild.id, (prefix, mention_val))
 		return await ctx.send("setup.prefix.set", prefix=prefix)
 
 

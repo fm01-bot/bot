@@ -9,7 +9,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import asyncpg
 import discord
 import pytest
-from cogs.mod import Ban, CaseStore, CaseType, Kick, Mute, RetentionCache, Warn
+from cogs.mod import Ban, CaseStore, CaseType, Kick, Mute, Warn
+from cogs.mod.cases import Retention, retention_setting
+from core.clustering import LocalEventBus
+from core.settings import GuildSetting, GuildSettings
 
 pytestmark = pytest.mark.db
 
@@ -76,12 +79,14 @@ def scheduler() -> FakeScheduler:
 
 
 @pytest.fixture
-def retention(db: asyncpg.Pool) -> RetentionCache:
-	return RetentionCache(db)
+def retention(db: asyncpg.Pool) -> GuildSetting[Retention]:
+	return retention_setting(GuildSettings(lambda: db, LocalEventBus()))
 
 
 @pytest.fixture
-def store(db: asyncpg.Pool, world: dict[str, Any], retention: RetentionCache, scheduler: FakeScheduler) -> CaseStore:
+def store(
+	db: asyncpg.Pool, world: dict[str, Any], retention: GuildSetting[Retention], scheduler: FakeScheduler
+) -> CaseStore:
 	return CaseStore(world["bot"], db, retention.get, scheduler)
 
 
@@ -140,7 +145,7 @@ async def test_close_follows_retention(store, world, db, retention):
 	assert await store.close(await store.get(world["guild"], 40)) == "deactivated"
 	assert await db.fetchval("SELECT active FROM cases WHERE case_id = 40") is False
 
-	retention.set(GUILD_ID, "delete")
+	await retention.set(GUILD_ID, "delete")
 	await store.open(warn(world, 41))
 	assert await store.close(await store.get(world["guild"], 41)) == "deleted"
 	assert await db.fetchval("SELECT count(*) FROM cases WHERE case_id = 41") == 0

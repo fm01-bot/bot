@@ -243,7 +243,7 @@ async def test_handle_violation_actions(automod_cog, mock_guild, mock_channel, m
 	from cogs.mod import CaseStore, Moderation, Warn
 
 	store = MagicMock(spec=CaseStore)
-	automod_cog.client.get_cog = MagicMock(return_value=Moderation(automod_cog.client, store, MagicMock()))
+	automod_cog.client.get_cog = MagicMock(return_value=Moderation(automod_cog.client, store))
 
 	await automod_cog.handle_violation(msg, "link", cfg)
 
