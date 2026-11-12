@@ -35,13 +35,7 @@ def setup_locale_subcommands(parent_node: CLINode) -> CLINode:
 			raise CLIParseError("This command can only be used in a server.", locale_node)
 
 		if default:
-			await ctx.bot.db.execute("DELETE FROM guild_locale_overrides WHERE guild_id = $1", ctx.guild.id)
-			if hasattr(ctx.bot, "locale_cache"):
-				ctx.bot.locale_cache.pop(ctx.guild.id, None)
-			if hasattr(ctx.bot, "event_bus"):
-				await ctx.bot.event_bus.publish(
-					"fm01:events", {"type": "INVALIDATE_LOCALE", "guild_id": ctx.guild.id, "locale": None}
-				)
+			await ctx.bot.locale_override.set(ctx.guild.id, None)
 			server_locale = str(ctx.guild.preferred_locale)
 			return await ctx.send(
 				content=f"```ansi\n[+] Locale override cleared. Using server locale ({server_locale})\n```"
@@ -49,16 +43,7 @@ def setup_locale_subcommands(parent_node: CLINode) -> CLINode:
 
 		new_locale = locale or locale_pos
 		if not new_locale:
-			override = ctx.bot.locale_cache.get(ctx.guild.id) if hasattr(ctx.bot, "locale_cache") else None
-			if override is None and hasattr(ctx.bot, "db") and ctx.bot.db:
-				row = await ctx.bot.db.fetchrow(
-					"SELECT locale FROM guild_locale_overrides WHERE guild_id = $1", ctx.guild.id
-				)
-				if row:
-					override = row["locale"]
-					if hasattr(ctx.bot, "locale_cache"):
-						ctx.bot.locale_cache[ctx.guild.id] = override
-
+			override = await ctx.bot.locale_override.get(ctx.guild.id)
 			if override:
 				return await ctx.send(
 					content=f"```ansi\nLocale: {override} (override)\nServer: {ctx.guild.preferred_locale}\n```"
@@ -71,21 +56,7 @@ def setup_locale_subcommands(parent_node: CLINode) -> CLINode:
 				"Locales use two letter country codes. (i.e. 'en-US' and 'en-GB' are both under 'en')", locale_node
 			)
 
-		await ctx.bot.db.execute(
-			"""
-			INSERT INTO guild_locale_overrides (guild_id, locale)
-			VALUES ($1, $2)
-			ON CONFLICT (guild_id) DO UPDATE SET locale = $2
-			""",
-			ctx.guild.id,
-			new_locale,
-		)
-		if hasattr(ctx.bot, "locale_cache"):
-			ctx.bot.locale_cache[ctx.guild.id] = new_locale
-		if hasattr(ctx.bot, "event_bus"):
-			await ctx.bot.event_bus.publish(
-				"fm01:events", {"type": "INVALIDATE_LOCALE", "guild_id": ctx.guild.id, "locale": new_locale}
-			)
+		await ctx.bot.locale_override.set(ctx.guild.id, new_locale)
 		return await ctx.send(content=f"```ansi\n[+] Locale set to {new_locale}\n```")
 
 	locale_node.callback = locale

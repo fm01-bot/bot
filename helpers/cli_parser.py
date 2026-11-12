@@ -82,7 +82,9 @@ class CLINode(argparse.ArgumentParser):
 		dest = clean_l.replace("-", "_")
 
 		if is_flag:
-			return super().add_argument(*flags, dest=dest, action="store_true", default=default or False, help=help)
+			# A flag that defaults to on needs an off switch: --name / --no-name.
+			action = argparse.BooleanOptionalAction if default is True else "store_true"
+			return super().add_argument(*flags, dest=dest, action=action, default=bool(default), help=help)
 
 		opt_kwargs: dict[str, Any] = {"dest": dest, "default": default, "required": required, "help": help}
 		if type is not None and type is not str:

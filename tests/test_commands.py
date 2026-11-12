@@ -327,7 +327,7 @@ class TestBanCommand:
 		from cogs.mod import CaseStore, Moderation
 
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		ctx = MagicMock()
 		ctx.interaction = None
 		ctx.me = MagicMock()
@@ -352,7 +352,7 @@ class TestBanCommand:
 		from cogs.mod import CaseStore, Moderation
 
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		ctx = MagicMock()
 		ctx.interaction = None
 		ctx.me = MagicMock()
@@ -376,7 +376,7 @@ class TestBanCommand:
 		from cogs.mod import CaseStore, Moderation
 
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		ctx = MagicMock()
 		ctx.interaction = None
 		ctx.me = MagicMock()
@@ -400,7 +400,7 @@ class TestBanCommand:
 		from cogs.mod import CaseStore, Moderation
 
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		ctx = MagicMock()
 		ctx.interaction = None
 		ctx.me = MagicMock()
@@ -425,7 +425,7 @@ class TestBanCommand:
 		from discord.ext import commands
 
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		ctx = MagicMock()
 		ctx.interaction = MagicMock()
 		target_user = MagicMock(spec=discord.User)
@@ -462,7 +462,7 @@ class TestCommandUsage:
 
 		update_slash_localizations()
 		store = MagicMock(spec=CaseStore)
-		cog = Moderation(mock_bot, store, MagicMock())
+		cog = Moderation(mock_bot, store)
 		assert cog.ban.usage == "ban-usage"
 
 		ctx = MagicMock(spec=commands.Context)

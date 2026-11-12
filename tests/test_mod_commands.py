@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import discord
 import pytest
-from cogs.mod import Cases, CaseStore, CaseType, Moderation, Mute, RetentionCache, Warn
+from cogs.mod import Cases, CaseStore, CaseType, Moderation, Mute, Warn
 from discord.ext import commands
 
 
@@ -25,7 +25,7 @@ def store():
 
 @pytest.fixture
 def mod_cog(mock_bot, store):
-	return Moderation(mock_bot, store, MagicMock(spec=RetentionCache))
+	return Moderation(mock_bot, store)
 
 
 @pytest.fixture

@@ -45,6 +45,17 @@ from core.clustering import (
 	StateStore,
 )
 from core.config import Config
+from core.settings import (
+	GuildSetting,
+	GuildSettings,
+	Prefix,
+	load_all_locale_overrides,
+	load_all_prefixes,
+	load_locale_override,
+	load_prefix,
+	save_locale_override,
+	save_prefix,
+)
 
 __all__ = ("Bot", "discover_cogs")
 
@@ -126,8 +137,15 @@ class Bot(commands.AutoShardedBot):
 
 		self.message_logging_guilds: set[int] = set()
 		self._health_task: asyncio.Task | None = None
-		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
-		self.locale_cache: dict[int, str] = {}
+		self.settings = GuildSettings(lambda: self.db, self.event_bus)
+		self.prefix: GuildSetting[Prefix] = self.settings.add(
+			"prefix", load_prefix, save_prefix, load_all=load_all_prefixes
+		)
+		self.locale_override: GuildSetting[str | None] = self.settings.add(
+			"locale", load_locale_override, save_locale_override, load_all=load_all_locale_overrides
+		)
+		self.prefix_cache = self.prefix.cache
+		self.locale_cache = self.locale_override.cache
 		self.custom_response = custom_response.CustomResponse(self)
 		self._error_webhook: discord.Webhook | None = None
 
@@ -136,22 +154,8 @@ class Bot(commands.AutoShardedBot):
 			return "?"
 		if not message.guild:
 			return "?!"
-		if message.guild.id in self.prefix_cache:
-			prefix, mention = self.prefix_cache[message.guild.id]
-		else:
-			row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
-			if row:
-				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
-			else:
-				prefix, mention = "?!", True
-			self.prefix_cache[message.guild.id] = (prefix, mention)
-		if mention:
-			if isinstance(prefix, str):
-				return commands.when_mentioned_or(prefix)(self, message)
-			else:
-				return commands.when_mentioned_or(*prefix)(self, message)
-		else:
-			return prefix
+		prefix, mention = await self.prefix.get(message.guild.id)
+		return commands.when_mentioned_or(prefix)(self, message) if mention else prefix
 
 	async def request(self, url: str) -> dict:
 		if self.session:
@@ -161,18 +165,10 @@ class Bot(commands.AutoShardedBot):
 			return {"error": 400}
 
 	async def on_guild_join(self, guild: discord.Guild):
-		row = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", guild.id)
-		if not row:
-			await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", guild.id)
-			self.prefix_cache[guild.id] = ("?!", True)
-		else:
-			self.prefix_cache[guild.id] = (row.get("prefix", "?!"), row.get("mention", True))
+		await self.prefix.get(guild.id)  # creates the guild's settings row
 
 	async def on_guild_remove(self, guild: discord.Guild):
-		if guild.id in self.prefix_cache:
-			del self.prefix_cache[guild.id]
-		if guild.id in self.locale_cache:
-			del self.locale_cache[guild.id]
+		self.settings.forget_guild(guild.id)
 
 	async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Any:
 		return await super().get_context(origin, cls=Context)
@@ -202,8 +198,7 @@ class Bot(commands.AutoShardedBot):
 			await self.coordinator.start_heartbeat()
 
 		await self.load_cogs()
-		await self.cache_prefixes()
-		await self.cache_locales()
+		await self.settings.preload()
 		await self.refresh_logging_guilds()
 		await self.tree.set_translator(SlashCommandLocalizer())
 		self.session = aiohttp.ClientSession(
@@ -223,23 +218,10 @@ class Bot(commands.AutoShardedBot):
 			self.logger.exception("Failed to load message logging guilds")
 
 	async def _on_cluster_event(self, event: dict[str, Any]) -> None:
-		event_type = event.get("type")
-		guild_id = event.get("guild_id")
-		if event_type == "INVALIDATE_PREFIX" and guild_id:
-			self.prefix_cache.pop(int(guild_id), None)
-		elif event_type == "INVALIDATE_LOCALE" and guild_id:
-			new_loc = event.get("locale")
-			if new_loc:
-				self.locale_cache[int(guild_id)] = new_loc
-			else:
-				self.locale_cache.pop(int(guild_id), None)
-		elif event_type == "INVALIDATE_LOG_CONFIG" and guild_id:
+		if await self.settings.handle_event(event):
+			return
+		if event.get("type") == "INVALIDATE_LOG_CONFIG" and event.get("guild_id"):
 			await self.refresh_logging_guilds()
-		elif event_type == "INVALIDATE_MOD_CONFIG" and guild_id:
-			mod_cog: Any = self.get_cog("Moderation")
-			if mod_cog and hasattr(mod_cog, "set_guild_retention"):
-				retention = event.get("retention", "keep")
-				mod_cog.set_guild_retention(int(guild_id), retention)
 
 	async def on_message(self, message: discord.Message) -> None:
 		if message.author.bot:
@@ -249,9 +231,11 @@ class Bot(commands.AutoShardedBot):
 			self.message_buffer.enqueue_message(message)
 
 		prefix_entry = self.prefix_cache.get(message.guild.id) if message.guild else None
-		if prefix_entry:
-			prefix, mention = prefix_entry
-			prefixes: list[str] = [prefix] if isinstance(prefix, str) else list(prefix)
+		if self.debug:
+			prefixes: list[str] = ["?"]  # fetch_prefix only accepts "?" in debug mode
+			mention = False
+		elif prefix_entry:
+			prefixes, mention = [prefix_entry[0]], prefix_entry[1]
 		else:
 			prefixes = ["?!", "?"]
 			mention = True
@@ -410,21 +394,6 @@ class Bot(commands.AutoShardedBot):
 				self.logger.debug(f"Loaded external extension {module}")
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Loaded cogs in {end:.2f}s")
-
-	async def cache_prefixes(self):
-		self.logger.info("Caching prefixes...")
-		result = await self.db.fetch("SELECT guild_id, prefix, mention FROM guilds")
-		for row in result:
-			self.prefix_cache[row["guild_id"]] = (row["prefix"], row["mention"])
-
-	async def cache_locales(self):
-		self.logger.info("Caching locale overrides...")
-		try:
-			result = await self.db.fetch("SELECT guild_id, locale FROM guild_locale_overrides")
-			for row in result:
-				self.locale_cache[int(row["guild_id"])] = row["locale"]
-		except Exception:
-			self.logger.exception("Failed to cache guild locale overrides")
 
 	async def on_ready(self):
 		if not hasattr(self, "uptime"):
@@ -604,11 +573,8 @@ class Bot(commands.AutoShardedBot):
 		await self.handle_error(await Context.from_interaction(interaction), error)
 
 	async def before_invoke(self, ctx: Context):  # type: ignore
-		if ctx.guild and ctx.guild.id not in self.prefix_cache:
-			is_set_up: bool = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", ctx.guild.id)
-			if not is_set_up:
-				await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", ctx.guild.id)
-				self.prefix_cache[ctx.guild.id] = ("?!", True)
+		if ctx.guild:
+			await self.prefix.get(ctx.guild.id)  # creates the guild's settings row on first use
 		try:
 			# Signals that the bot is still thinking / performing a task
 			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:

@@ -52,7 +52,7 @@ async def test_fast_path_prefix_gate_drops_normal_chat(mock_bot):
 	msg.guild.id = 123
 	msg.content = "hello everyone how are you doing today"
 
-	mock_bot.prefix_cache[123] = ("?!", True)
+	mock_bot.prefix.remember(123, ("?!", True))
 
 	await mock_bot.on_message(msg)
 	mock_bot.process_commands.assert_not_called()
@@ -66,7 +66,7 @@ async def test_fast_path_prefix_gate_processes_commands(mock_bot):
 	msg.guild.id = 123
 	msg.content = "?!ping"
 
-	mock_bot.prefix_cache[123] = ("?!", True)
+	mock_bot.prefix.remember(123, ("?!", True))
 
 	await mock_bot.on_message(msg)
 	mock_bot.process_commands.assert_called_once_with(msg)
@@ -80,7 +80,7 @@ async def test_fast_path_prefix_gate_enqueues_logging_guild(mock_bot):
 	msg.guild.id = 123
 	msg.content = "chat message to be logged"
 
-	mock_bot.prefix_cache[123] = ("?!", True)
+	mock_bot.prefix.remember(123, ("?!", True))
 	mock_bot.message_logging_guilds.add(123)
 
 	await mock_bot.on_message(msg)
@@ -140,3 +140,23 @@ async def test_state_sync_cog_syncs_guild():
 	assert roles_data[0]["name"] == "Member"
 
 	assert await bot.state_store.is_bot_guild(8888) is True
+
+
+@pytest.mark.asyncio
+async def test_debug_mode_prefix_gate_accepts_only_the_debug_prefix(mock_bot):
+	"""fetch_prefix only accepts "?" in debug mode, so the gate must not let the guild prefix through."""
+	mock_bot.debug = True
+	mock_bot.prefix.remember(123, ("?!", True))
+	msg = MagicMock(spec=discord.Message)
+	msg.author.bot = False
+	msg.guild = MagicMock()
+	msg.guild.id = 123
+
+	msg.content = "?ping"
+	await mock_bot.on_message(msg)
+	mock_bot.process_commands.assert_called_once_with(msg)
+
+	mock_bot.process_commands.reset_mock()
+	msg.content = "hello"
+	await mock_bot.on_message(msg)
+	mock_bot.process_commands.assert_not_called()

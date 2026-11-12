@@ -49,6 +49,8 @@ This document defines architectural standards, technical conventions, and operat
 - `slash_localization.py` (`SlashCommandLocalizer`): Subclasses `app_commands.Translator` to dynamically translate slash command names and descriptions from `slash_localization/`.
 - `argument.py` & `command.py`: Serialization helpers converting Discord contexts/commands for formatted messages.
 - `config.py` (`Config`): Runtime configuration parser loading `config.yml`.
+- `settings.py` (`GuildSettings`, `GuildSetting`): Cached per-guild settings with cross-instance invalidation. Register feature settings here instead of keeping a cog-level cache.
+- `locale.py` (`resolve_locale`): The single rule for which locale a response uses.
 - `clustering/`: Shard coordination (`ShardCoordinator`), session resumption (`SessionPersister`), distributed state (`StateStore`), event pub/sub (`EventBus`), and audit log buffers (`MessageBuffer`).
 
 #### `args/` (Safe String Formatting Wrappers)

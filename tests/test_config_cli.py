@@ -460,3 +460,14 @@ async def test_config_autocomplete_cog_integration():
 	assert any(
 		c.name == "level rewards add <level> <role>" and c.value == "level rewards add <level> <role>" for c in choices
 	)
+
+
+def test_flag_defaulting_to_true_can_be_turned_off():
+	from helpers.cli_parser import CLINode
+
+	node = CLINode("root")
+	node.add_option("mention", "m", is_flag=True, default=True)
+
+	assert node.parse_args([]).mention is True
+	assert node.parse_args(["--no-mention"]).mention is False
+	assert node.parse_args(["--mention"]).mention is True

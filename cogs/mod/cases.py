@@ -22,6 +22,7 @@ from helpers.scheduler import ExpiryScheduler
 
 if TYPE_CHECKING:
 	from core import Bot
+	from core.settings import GuildSetting, GuildSettings
 
 __all__ = (
 	"Ban",
@@ -34,8 +35,8 @@ __all__ = (
 	"Kick",
 	"Mute",
 	"Retention",
-	"RetentionCache",
 	"Warn",
+	"retention_setting",
 )
 
 logger = logging.getLogger(__name__)
@@ -314,23 +315,27 @@ class CaseScheduler(Protocol):
 	def stop(self) -> None: ...
 
 
-class RetentionCache:
-	"""Per-guild cache of the ``mod_config.case_retention`` setting."""
+async def _load_retention(db: asyncpg.Pool, guild_id: int) -> Retention:
+	row = await db.fetchrow(
+		"INSERT INTO mod_config (guild_id) VALUES ($1) "
+		"ON CONFLICT (guild_id) DO UPDATE SET guild_id = EXCLUDED.guild_id RETURNING case_retention",
+		guild_id,
+	)
+	return "delete" if row and row["case_retention"] == "delete" else "keep"
 
-	def __init__(self, db: asyncpg.Pool) -> None:
-		self._db = db
-		self._cache: dict[int, Retention] = {}
 
-	async def get(self, guild_id: int) -> Retention:
-		"""Return the guild's retention policy, defaulting to ``"keep"``."""
-		if guild_id not in self._cache:
-			row = await self._db.fetchrow("SELECT case_retention FROM mod_config WHERE guild_id = $1", guild_id)
-			self._cache[guild_id] = "delete" if row and row["case_retention"] == "delete" else "keep"
-		return self._cache[guild_id]
+async def _save_retention(db: asyncpg.Pool, guild_id: int, value: Retention) -> None:
+	await db.execute(
+		"INSERT INTO mod_config (guild_id, case_retention) VALUES ($1, $2) "
+		"ON CONFLICT (guild_id) DO UPDATE SET case_retention = EXCLUDED.case_retention",
+		guild_id,
+		value,
+	)
 
-	def set(self, guild_id: int, retention: Retention) -> None:
-		"""Update the cached policy after it changed elsewhere."""
-		self._cache[guild_id] = retention
+
+def retention_setting(settings: GuildSettings) -> GuildSetting[Retention]:
+	"""The guild's case retention policy (``mod_config.case_retention``), registered on ``settings``."""
+	return settings.add("mod.retention", _load_retention, _save_retention)
 
 
 class CaseStore:

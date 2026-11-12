@@ -17,8 +17,8 @@ from cogs.mod.cases import (
 	Kick,
 	Mute,
 	Retention,
-	RetentionCache,
 	Warn,
+	retention_setting,
 )
 from core import Bot, Context
 from core.hybrid import command, group
@@ -37,7 +37,6 @@ __all__ = (
 	"Kick",
 	"Moderation",
 	"Mute",
-	"RetentionCache",
 	"Warn",
 )
 
@@ -54,15 +53,10 @@ def _parse_case_id(case_id: str) -> int:
 @commands.guild_only()
 @app_commands.guild_only()
 class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
-	def __init__(self, client: Bot, cases: CaseStore, retention: RetentionCache):
+	def __init__(self, client: Bot, cases: CaseStore):
 		self.client = client
 		self.custom_response = custom_response.CustomResponse(client, "mod")
 		self.cases = cases
-		self.retention = retention
-
-	def set_guild_retention(self, guild_id: int, retention: Retention) -> None:
-		"""Update the cached retention policy after it changed elsewhere."""
-		self.retention.set(guild_id, retention)
 
 	async def cog_load(self):
 		self.cases.start()
@@ -413,7 +407,6 @@ class Cases(commands.Cog, name="Cases"):
 
 
 async def setup(client: Bot):
-	retention = RetentionCache(client.db)
-	cases = CaseStore(client, client.db, retention.get)
-	await client.add_cog(Moderation(client, cases, retention))
+	cases = CaseStore(client, client.db, retention_setting(client.settings).get)
+	await client.add_cog(Moderation(client, cases))
 	await client.add_cog(Cases(client, cases))

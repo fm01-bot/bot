@@ -5,6 +5,13 @@ from unittest.mock import AsyncMock, MagicMock
 import discord
 import pytest
 from cogs.config import Config
+from core.settings import (
+	INVALIDATE_SETTING,
+	GuildSettings,
+	load_all_locale_overrides,
+	load_locale_override,
+	save_locale_override,
+)
 from helpers.cli_parser import CLIParseError, CLIParser
 from helpers.custom_response import CustomResponse
 
@@ -19,7 +26,11 @@ def mock_ctx():
 	ctx.bot.db = AsyncMock()
 	ctx.bot.event_bus = MagicMock()
 	ctx.bot.event_bus.publish = AsyncMock()
-	ctx.bot.locale_cache = {}
+	ctx.bot.settings = GuildSettings(lambda: ctx.bot.db, ctx.bot.event_bus)
+	ctx.bot.locale_override = ctx.bot.settings.add(
+		"locale", load_locale_override, save_locale_override, load_all=load_all_locale_overrides
+	)
+	ctx.bot.locale_cache = ctx.bot.locale_override.cache
 	ctx.send = AsyncMock()
 	return ctx
 
@@ -27,7 +38,7 @@ def mock_ctx():
 @pytest.mark.asyncio
 async def test_config_locale_view_default_no_override(mock_ctx):
 	config_cog = Config(mock_ctx.bot)
-	mock_ctx.bot.db.fetchrow.return_value = None
+	mock_ctx.bot.db.fetchval.return_value = None
 
 	tokens = CLIParser.split_args("locale")
 	node, opts = config_cog.parser.parse(tokens)
@@ -42,7 +53,7 @@ async def test_config_locale_view_default_no_override(mock_ctx):
 @pytest.mark.asyncio
 async def test_config_locale_view_with_cached_override(mock_ctx):
 	config_cog = Config(mock_ctx.bot)
-	mock_ctx.bot.locale_cache[12345] = "hu"
+	mock_ctx.bot.locale_override.remember(12345, "hu")
 
 	tokens = CLIParser.split_args("locale")
 	node, opts = config_cog.parser.parse(tokens)
@@ -58,8 +69,7 @@ async def test_config_locale_view_with_cached_override(mock_ctx):
 @pytest.mark.asyncio
 async def test_config_locale_view_fallback_to_db(mock_ctx):
 	config_cog = Config(mock_ctx.bot)
-	mock_ctx.bot.locale_cache = {}
-	mock_ctx.bot.db.fetchrow.return_value = {"locale": "hu"}
+	mock_ctx.bot.db.fetchval.return_value = "hu"
 
 	tokens = CLIParser.split_args("locale")
 	node, opts = config_cog.parser.parse(tokens)
@@ -92,9 +102,8 @@ async def test_config_locale_set_option(mock_ctx):
 	assert mock_ctx.bot.locale_cache[12345] == "hu"
 
 	# Verify event published
-	mock_ctx.bot.event_bus.publish.assert_called_once_with(
-		"fm01:events", {"type": "INVALIDATE_LOCALE", "guild_id": 12345, "locale": "hu"}
-	)
+	event = mock_ctx.bot.event_bus.publish.call_args.args[1]
+	assert (event["type"], event["key"], event["guild_id"]) == (INVALIDATE_SETTING, "locale", 12345)
 
 	# Verify response message
 	mock_ctx.send.assert_called_once()
@@ -119,7 +128,7 @@ async def test_config_locale_set_positional(mock_ctx):
 @pytest.mark.asyncio
 async def test_config_locale_clear_default(mock_ctx):
 	config_cog = Config(mock_ctx.bot)
-	mock_ctx.bot.locale_cache[12345] = "hu"
+	mock_ctx.bot.locale_override.remember(12345, "hu")
 
 	tokens = CLIParser.split_args("locale --default")
 	node, opts = config_cog.parser.parse(tokens)
@@ -132,13 +141,11 @@ async def test_config_locale_clear_default(mock_ctx):
 	assert "DELETE FROM guild_locale_overrides WHERE guild_id = $1" in sql_args[0]
 	assert sql_args[1] == 12345
 
-	# Verify cache removed
-	assert 12345 not in mock_ctx.bot.locale_cache
+	# Verify the override is gone
+	assert mock_ctx.bot.locale_cache[12345] is None
 
-	# Verify event published
-	mock_ctx.bot.event_bus.publish.assert_called_once_with(
-		"fm01:events", {"type": "INVALIDATE_LOCALE", "guild_id": 12345, "locale": None}
-	)
+	event = mock_ctx.bot.event_bus.publish.call_args.args[1]
+	assert (event["type"], event["key"], event["guild_id"]) == (INVALIDATE_SETTING, "locale", 12345)
 
 	# Verify response message
 	call_content = mock_ctx.send.call_args.kwargs.get("content", "")
@@ -200,57 +207,3 @@ async def test_custom_response_respects_locale_cache():
 
 	res = await cr.get_message("test.greeting", ctx)
 	assert str(res) == "Szia"
-
-
-@pytest.mark.asyncio
-async def test_bot_cluster_event_invalidate_locale():
-	from core.bot import Bot
-	from core.config import Config
-
-	cfg = Config(
-		debug=False,
-		owner_ids=[123],
-		modules=["*"],
-		emojis={},
-		log_channel_id=999,
-		allowed_contexts={"guild": True, "dm_channel": True, "private_channel": True},
-		allowed_installs={"guild": True, "user": True},
-		allowed_mentions={"everyone": False, "roles": False, "users": False},
-	)
-	bot = Bot(config=cfg)
-	bot.locale_cache[12345] = "en"
-
-	# Receive event to update locale
-	await bot._on_cluster_event({"type": "INVALIDATE_LOCALE", "guild_id": 12345, "locale": "hu"})
-	assert bot.locale_cache[12345] == "hu"
-
-	# Receive event to clear locale (None)
-	await bot._on_cluster_event({"type": "INVALIDATE_LOCALE", "guild_id": 12345, "locale": None})
-	assert 12345 not in bot.locale_cache
-
-
-@pytest.mark.asyncio
-async def test_bot_cache_locales():
-	from core.bot import Bot
-	from core.config import Config
-
-	cfg = Config(
-		debug=False,
-		owner_ids=[123],
-		modules=["*"],
-		emojis={},
-		log_channel_id=999,
-		allowed_contexts={"guild": True, "dm_channel": True, "private_channel": True},
-		allowed_installs={"guild": True, "user": True},
-		allowed_mentions={"everyone": False, "roles": False, "users": False},
-	)
-	bot = Bot(config=cfg)
-	bot.db = AsyncMock()
-	bot.db.fetch.return_value = [
-		{"guild_id": 12345, "locale": "hu"},
-		{"guild_id": 67890, "locale": "en"},
-	]
-
-	await bot.cache_locales()
-	assert bot.locale_cache[12345] == "hu"
-	assert bot.locale_cache[67890] == "en"
