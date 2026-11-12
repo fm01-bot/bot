@@ -891,7 +891,9 @@ class Moderation(commands.GroupCog, name="Moderation", group_name="mod"):
 	@command(user=False, permissions=["ban_members"])
 	async def unban(self, ctx: Context, user: discord.User):
 		assert ctx.guild is not None
-		cases = await Ban.from_db(self.client.db, self.client, ctx.guild, user=user)
+		cases = await Ban.from_db(
+			self.client.db, self.client, ctx.guild, user=user, type=CaseType.BAN.value, active=True
+		)
 		if cases:
 			retention = await self.manager.get_guild_retention(ctx.guild.id)
 			for case in cases:
