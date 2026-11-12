@@ -16,7 +16,7 @@ The words this codebase uses for its own concepts, and the decisions that shape 
 
 **Case store**: `CaseStore` in `cogs/mod/cases.py`, the only code that reads or writes `cases`. Commands and AutoMod open, close, edit and look up cases through it.
 
-**Guild setting**: a per-guild configuration value (prefix, locale override, case retention, ...) behind a `GuildSetting` in `core/settings.py`. Read with `get` (or `cache` on hot synchronous paths), write with `set`. Writing persists it and announces an `INVALIDATE_SETTING` event so other bot instances reload it; callers never touch caches or the event bus. Defaults live in the database: loading a guild with no row creates one with the column defaults.
+**Guild setting**: a per-guild configuration value (prefix, locale override, case retention, ...) behind a `GuildSetting` in `core/settings.py`. Read with `get` (or `cache` on hot synchronous paths), write with `set`; code that writes with targeted SQL calls `changed` afterwards instead. Writing persists it and announces an `INVALIDATE_SETTING` event so other bot instances reload it; callers never touch caches or the event bus. Settings with a meaningful default row (prefix, retention) create it from the column defaults on first load; feature settings (log, AutoMod, join/leave, leveling) treat a missing row as "not configured".
 
 **Preloaded setting**: a guild setting whose values for every guild are loaded at startup (prefix, locale override), so synchronous code can read `cache`. Other settings load on first use.
 

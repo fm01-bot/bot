@@ -14,36 +14,34 @@ from discord.ext.localization import CustomFormatter
 from helpers.custom_response import KWARG_MAPPING
 
 if TYPE_CHECKING:
+	import asyncpg
 	from core import Bot
+	from core.settings import GuildSetting
 
 logger = logging.getLogger(__name__)
+
+
+async def _load_join_config(db: asyncpg.Pool, guild_id: int) -> dict[str, Any] | None:
+	row = await db.fetchrow("SELECT * FROM join_config WHERE guild_id = $1", guild_id)
+	return dict(row) if row else None
+
+
+async def _load_leave_config(db: asyncpg.Pool, guild_id: int) -> dict[str, Any] | None:
+	row = await db.fetchrow("SELECT * FROM leave_config WHERE guild_id = $1", guild_id)
+	return dict(row) if row else None
 
 
 class JoinLeave(commands.Cog, name="JoinLeave"):
 	def __init__(self, client: Bot):
 		self.client = client
-		self._join_cache: dict[int, dict[str, Any] | None] = {}
-		self._leave_cache: dict[int, dict[str, Any] | None] = {}
-
-	def invalidate_cache(self, guild_id: int):
-		self._join_cache.pop(guild_id, None)
-		self._leave_cache.pop(guild_id, None)
+		self.join: GuildSetting[dict[str, Any] | None] = client.settings.add("join", _load_join_config)
+		self.leave: GuildSetting[dict[str, Any] | None] = client.settings.add("leave", _load_leave_config)
 
 	async def get_join_config(self, guild_id: int) -> dict[str, Any] | None:
-		if guild_id in self._join_cache:
-			return self._join_cache[guild_id]
-		row = await self.client.db.fetchrow("SELECT * FROM join_config WHERE guild_id = $1", guild_id)
-		cfg = dict(row) if row else None
-		self._join_cache[guild_id] = cfg
-		return cfg
+		return await self.join.get(guild_id)
 
 	async def get_leave_config(self, guild_id: int) -> dict[str, Any] | None:
-		if guild_id in self._leave_cache:
-			return self._leave_cache[guild_id]
-		row = await self.client.db.fetchrow("SELECT * FROM leave_config WHERE guild_id = $1", guild_id)
-		cfg = dict(row) if row else None
-		self._leave_cache[guild_id] = cfg
-		return cfg
+		return await self.leave.get(guild_id)
 
 	async def set_join(self, guild_id: int, channel_id: int | None, message: str | None = None) -> None:
 		if message:
@@ -69,7 +67,7 @@ class JoinLeave(commands.Cog, name="JoinLeave"):
 				guild_id,
 				channel_id,
 			)
-		self._join_cache.pop(guild_id, None)
+		await self.join.changed(guild_id)
 
 	async def set_leave(self, guild_id: int, channel_id: int | None, message: str | None = None) -> None:
 		if message:
@@ -95,15 +93,15 @@ class JoinLeave(commands.Cog, name="JoinLeave"):
 				guild_id,
 				channel_id,
 			)
-		self._leave_cache.pop(guild_id, None)
+		await self.leave.changed(guild_id)
 
 	async def disable_join(self, guild_id: int) -> None:
 		await self.client.db.execute("UPDATE join_config SET is_on = false WHERE guild_id = $1", guild_id)
-		self._join_cache.pop(guild_id, None)
+		await self.join.changed(guild_id)
 
 	async def disable_leave(self, guild_id: int) -> None:
 		await self.client.db.execute("UPDATE leave_config SET is_on = false WHERE guild_id = $1", guild_id)
-		self._leave_cache.pop(guild_id, None)
+		await self.leave.changed(guild_id)
 
 	async def set_join_message(self, guild_id: int, channel_id: int, message: str) -> None:
 		await self.client.db.execute(
@@ -116,7 +114,7 @@ class JoinLeave(commands.Cog, name="JoinLeave"):
 			channel_id,
 			message,
 		)
-		self._join_cache.pop(guild_id, None)
+		await self.join.changed(guild_id)
 
 	async def set_leave_message(self, guild_id: int, channel_id: int, message: str) -> None:
 		await self.client.db.execute(
@@ -129,7 +127,7 @@ class JoinLeave(commands.Cog, name="JoinLeave"):
 			channel_id,
 			message,
 		)
-		self._leave_cache.pop(guild_id, None)
+		await self.leave.changed(guild_id)
 
 	def format_message(
 		self, template: str, member: discord.Member, channel: discord.abc.Messageable | None = None, **extra: Any

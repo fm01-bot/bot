@@ -47,7 +47,7 @@ class GuildSetting[T]:
 		registry: GuildSettings,
 		key: str,
 		load: Loader[T],
-		save: Saver[T],
+		save: Saver[T] | None,
 		load_all: BulkLoader[T] | None,
 		on_change: ChangeHook[T] | None,
 	) -> None:
@@ -74,8 +74,15 @@ class GuildSetting[T]:
 
 	async def set(self, guild_id: int, value: T) -> None:
 		"""Persist the guild's value and tell the other instances to reload it."""
+		if self._save is None:
+			raise TypeError(f"Guild setting {self.key!r} is written with targeted SQL; call changed() after writing")
 		await self._save(self._registry.db, guild_id, value)
 		self._store(guild_id, value)
+		await self._registry.announce(self.key, guild_id)
+
+	async def changed(self, guild_id: int) -> None:
+		"""Report that the guild's stored value was changed directly (targeted SQL), here and on other instances."""
+		await self.refresh(guild_id)
 		await self._registry.announce(self.key, guild_id)
 
 	def remember(self, guild_id: int, value: T) -> None:
@@ -136,7 +143,7 @@ class GuildSettings:
 		self,
 		key: str,
 		load: Loader[T],
-		save: Saver[T],
+		save: Saver[T] | None = None,
 		*,
 		load_all: BulkLoader[T] | None = None,
 		on_change: ChangeHook[T] | None = None,
@@ -146,7 +153,8 @@ class GuildSettings:
 		Args:
 			key: Unique name, used in invalidation events.
 			load: Reads one guild's value. It decides the default for guilds without a row.
-			save: Writes one guild's value.
+			save: Writes one guild's value. Omit it for settings written with targeted SQL; those writers call
+				`GuildSetting.changed` afterwards instead of `GuildSetting.set`.
 			load_all: Reads every guild's value; makes the setting preloaded.
 			on_change: Called when a cached value changes or is dropped (see `GuildSetting`).
 

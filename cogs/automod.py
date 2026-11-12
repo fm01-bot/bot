@@ -17,7 +17,9 @@ from helpers.convert import text_to_seconds
 from helpers.regex import DISCORD_INVITE, URL_REGEX
 
 if TYPE_CHECKING:
+	import asyncpg
 	from core import Bot
+	from core.settings import GuildSetting
 
 logger = logging.getLogger(__name__)
 
@@ -94,46 +96,40 @@ class AutoModConfig:
 		return default_action
 
 
+async def _load_automod(db: asyncpg.Pool, guild_id: int) -> AutoModConfig:
+	row = await db.fetchrow("SELECT guild_id, is_on, settings FROM automod_config WHERE guild_id = $1", guild_id)
+	return AutoModConfig.from_row(dict(row) if row else None, guild_id)
+
+
+async def _save_automod(db: asyncpg.Pool, guild_id: int, config: AutoModConfig) -> None:
+	await db.execute(
+		"""
+		INSERT INTO automod_config (guild_id, is_on, settings)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (guild_id) DO UPDATE SET is_on = EXCLUDED.is_on, settings = EXCLUDED.settings
+		""",
+		guild_id,
+		config.is_on,
+		config.settings,
+	)
+
+
 class AutoMod(commands.Cog, name="AutoMod"):
 	"""Auto-moderation system managing filters, spam detection, and bypasses."""
 
 	def __init__(self, client: Bot) -> None:
 		self.client = client
-		self._config_cache: dict[int, AutoModConfig] = {}
+		self.config: GuildSetting[AutoModConfig] = client.settings.add("automod", _load_automod, _save_automod)
 		self._spam_tracker: dict[tuple[int, int], collections.deque[float]] = {}
 		self._last_prune: float = time.monotonic()
 
-	def invalidate_cache(self, guild_id: int) -> None:
-		"""Clear the config cache for a given guild."""
-		self._config_cache.pop(guild_id, None)
-
 	async def get_config(self, guild_id: int) -> AutoModConfig:
-		"""Fetch configuration for a guild, reading from cache or database."""
-		if guild_id in self._config_cache:
-			return self._config_cache[guild_id]
-
-		row = await self.client.db.fetchrow(
-			"SELECT guild_id, is_on, settings FROM automod_config WHERE guild_id = $1", guild_id
-		)
-		cfg = AutoModConfig.from_row(dict(row) if row else None, guild_id)
-		self._config_cache[guild_id] = cfg
-		return cfg
+		"""The guild's AutoMod configuration (disabled defaults if it has none)."""
+		return await self.config.get(guild_id)
 
 	async def save_config(self, config: AutoModConfig) -> None:
-		"""Persist configuration to the database and update cache."""
-		self._config_cache[config.guild_id] = config
-		await self.client.db.execute(
-			"""
-			INSERT INTO automod_config (guild_id, is_on, settings)
-			VALUES ($1, $2, $3::jsonb)
-			ON CONFLICT (guild_id) DO UPDATE SET
-				is_on = $2,
-				settings = $3::jsonb
-			""",
-			config.guild_id,
-			config.is_on,
-			json.dumps(config.settings),
-		)
+		"""Persist the configuration and tell other instances about it."""
+		await self.config.set(config.guild_id, config)
 
 	def is_bypassed(
 		self,
