@@ -18,7 +18,6 @@ class ClusterConfig:
 	redis_msg_url: str = "redis://localhost:6379/1"
 	discord_proxy_url: str | None = None
 	gateway_url: str | None = None
-	shard_count_configured: bool = False
 	lease_ttl: int = 30
 	heartbeat_interval: int = 10
 
@@ -33,8 +32,7 @@ class ClusterConfig:
 	@classmethod
 	def from_env(cls) -> ClusterConfig:
 		mode = os.getenv("BOT_MODE", "standalone").strip().lower()
-		raw_shard_count = (os.getenv("SHARD_COUNT") or "").strip()
-		shard_count = int(raw_shard_count) if raw_shard_count else 64
+		shard_count = int(os.getenv("SHARD_COUNT", "64"))
 		shards_per_cluster = int(os.getenv("SHARDS_PER_CLUSTER", "16"))
 		raw_cluster_id = (os.getenv("CLUSTER_ID") or "").strip()
 		if raw_cluster_id:
@@ -69,7 +67,6 @@ class ClusterConfig:
 			redis_msg_url=redis_msg_url,
 			discord_proxy_url=discord_proxy_url,
 			gateway_url=gateway_url,
-			shard_count_configured=bool(raw_shard_count),
 			lease_ttl=lease_ttl,
 			heartbeat_interval=heartbeat_interval,
 		)
