@@ -1,3 +1,6 @@
+# Archival notice
+This repository is now under [fm01-bot/bot](https://github.com/fm01-bot/bot) for the sake of easier orchestration and project management.
+
 # fm01
 
 [![Crowdin](https://badges.crowdin.net/project-lumin/localized.svg)](https://crowdin.com/project/project-lumin)
