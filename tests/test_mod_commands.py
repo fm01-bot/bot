@@ -1,10 +1,13 @@
+"""Moderation and Cases commands, with the Case module replaced by a double (it has its own database tests)."""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import discord
 import pytest
-from cogs.mod import Case, Cases, Moderation, Warn
+from cogs.mod import Cases, CaseStore, CaseType, Moderation, Mute, Warn
 from discord.ext import commands
 
 
@@ -12,16 +15,22 @@ from discord.ext import commands
 def mock_bot():
 	bot = MagicMock()
 	bot.db = AsyncMock()
-	bot.wait_until_ready = AsyncMock()
-	bot.shard_count = 1
-	bot.shard_ids = [0]
-	bot.shards = {0: MagicMock()}
-
-	custom_resp = MagicMock()
-	custom_resp.get_message = AsyncMock()
-	bot.custom_response = custom_resp
-
 	return bot
+
+
+@pytest.fixture
+def store():
+	return MagicMock(spec=CaseStore)
+
+
+@pytest.fixture
+def mod_cog(mock_bot, store):
+	return Moderation(mock_bot, store)
+
+
+@pytest.fixture
+def cases_cog(mock_bot, store):
+	return Cases(mock_bot, store)
 
 
 @pytest.fixture
@@ -29,7 +38,7 @@ def mock_ctx(mock_bot):
 	ctx = MagicMock()
 	ctx.guild = MagicMock()
 	ctx.guild.id = 12345
-	ctx.guild.members = []
+	ctx.guild.unban = AsyncMock()
 	ctx.author = MagicMock(spec=discord.Member)
 	ctx.author.id = 999
 	ctx.author.guild_permissions.moderate_members = True
@@ -38,120 +47,74 @@ def mock_ctx(mock_bot):
 	return ctx
 
 
-@pytest.mark.asyncio
-async def test_case_delete(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mod_cog = Moderation(mock_bot)
-	mock_bot.get_cog.return_value = mod_cog
-
-	# Mock Case.from_id
-	fake_case = Warn(
-		_id=123,
-		bot=mock_bot,
-		guild=mock_ctx.guild,
-		user=mock_ctx.author,
-		moderator=mock_ctx.author,
-		reason="Rule violation",
-	)
-	fake_case.delete = AsyncMock()
-
-	with (
-		patch.object(Case, "from_id", AsyncMock(return_value=fake_case)),
-		patch.object(Warn, "from_id", AsyncMock(return_value=fake_case)),
-	):
-		await cases_cog.delete.callback(cases_cog, mock_ctx, "123")
-
-	fake_case.delete.assert_called_once_with(mock_bot.db)
-	mock_ctx.send.assert_called_once_with("mod.delete.response", case=fake_case)
+def make_warn(mock_bot, mock_ctx, case_id: int = 123, **kwargs) -> Warn:
+	return Warn(case_id, mock_bot, mock_ctx.guild, mock_ctx.author, mock_ctx.author, **kwargs)
 
 
-@pytest.mark.asyncio
-async def test_case_remove_keep_retention(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mod_cog = Moderation(mock_bot)
-	mod_cog.manager.get_guild_retention = AsyncMock(return_value="keep")
-	mock_bot.get_cog.return_value = mod_cog
-
-	fake_case = Warn(
-		_id=123,
-		bot=mock_bot,
-		guild=mock_ctx.guild,
-		user=mock_ctx.author,
-		moderator=mock_ctx.author,
-		reason="Rule violation",
-	)
-	fake_case.deactivate = AsyncMock()
-	fake_case.delete = AsyncMock()
-
-	with (
-		patch.object(Case, "from_id", AsyncMock(return_value=fake_case)),
-		patch.object(Warn, "from_id", AsyncMock(return_value=fake_case)),
-	):
-		await cases_cog.remove.callback(cases_cog, mock_ctx, "123")
-
-	fake_case.deactivate.assert_called_once_with(mock_bot.db)
-	fake_case.delete.assert_not_called()
-	mock_ctx.send.assert_called_once_with("mod.remove.response", case=fake_case)
+def make_member(timed_out: bool) -> MagicMock:
+	member = MagicMock(spec=discord.Member)
+	member.id = 42
+	member.edit = AsyncMock()
+	member.timed_out_until = datetime.datetime.now(tz=datetime.UTC) if timed_out else None
+	return member
 
 
-@pytest.mark.asyncio
-async def test_case_remove_delete_retention(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mod_cog = Moderation(mock_bot)
-	mod_cog.manager.get_guild_retention = AsyncMock(return_value="delete")
-	mock_bot.get_cog.return_value = mod_cog
+async def test_case_delete(cases_cog, store, mock_bot, mock_ctx):
+	case = make_warn(mock_bot, mock_ctx)
+	store.get.return_value = case
 
-	fake_case = Warn(
-		_id=123,
-		bot=mock_bot,
-		guild=mock_ctx.guild,
-		user=mock_ctx.author,
-		moderator=mock_ctx.author,
-		reason="Rule violation",
-	)
-	fake_case.deactivate = AsyncMock()
-	fake_case.delete = AsyncMock()
+	await cases_cog.delete.callback(cases_cog, mock_ctx, "123")
 
-	with (
-		patch.object(Case, "from_id", AsyncMock(return_value=fake_case)),
-		patch.object(Warn, "from_id", AsyncMock(return_value=fake_case)),
-	):
-		await cases_cog.remove.callback(cases_cog, mock_ctx, "123")
-
-	fake_case.delete.assert_called_once_with(mock_bot.db)
-	fake_case.deactivate.assert_not_called()
-	mock_ctx.send.assert_called_once_with("mod.delete.response", case=fake_case)
+	store.delete.assert_awaited_once_with(case)
+	mock_ctx.send.assert_awaited_once_with("mod.delete.response", case=case)
 
 
-@pytest.mark.asyncio
-async def test_case_edit_expires(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mod_cog = Moderation(mock_bot)
-	mod_cog.manager.reschedule = MagicMock()
-	mock_bot.get_cog.return_value = mod_cog
+@pytest.mark.parametrize(
+	("outcome", "key"), [("deactivated", "mod.remove.response"), ("deleted", "mod.delete.response")]
+)
+async def test_case_remove_reports_the_retention_outcome(cases_cog, store, mock_bot, mock_ctx, outcome, key):
+	case = make_warn(mock_bot, mock_ctx)
+	store.get.return_value = case
+	store.close.return_value = outcome
 
-	fake_case = Warn(
-		_id=123,
-		bot=mock_bot,
-		guild=mock_ctx.guild,
-		user=mock_ctx.author,
-		moderator=mock_ctx.author,
-		reason="Initial",
-	)
-	fake_case.edit = AsyncMock()
+	await cases_cog.remove.callback(cases_cog, mock_ctx, "123")
 
-	with patch.object(Case, "from_id", AsyncMock(return_value=fake_case)):
-		await cases_cog.edit.callback(cases_cog, mock_ctx, "123", "expires", new_value="1h")
-
-	fake_case.edit.assert_called_once()
-	mock_ctx.send.assert_called_once_with("mod.edit.response", case=fake_case)
+	store.close.assert_awaited_once_with(case)
+	mock_ctx.send.assert_awaited_once_with(key, case=case)
 
 
-@pytest.mark.asyncio
-async def test_case_list_permissions(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
+async def test_case_remove_unknown_case(cases_cog, store, mock_ctx):
+	store.get.return_value = None
 
-	# User viewing someone else without moderate_members permission
+	await cases_cog.remove.callback(cases_cog, mock_ctx, "123")
+
+	store.close.assert_not_awaited()
+	mock_ctx.send.assert_awaited_once_with("mod.remove.errors.not_found", case_id=123)
+
+
+async def test_case_edit_expires(cases_cog, store, mock_bot, mock_ctx):
+	case = make_warn(mock_bot, mock_ctx, reason="Initial")
+	store.get.return_value = case
+
+	await cases_cog.edit.callback(cases_cog, mock_ctx, "123", "expires", new_value="1h")
+
+	(edited,), kwargs = store.edit.await_args
+	assert edited is case
+	assert set(kwargs) == {"expires"}
+	assert kwargs["expires"] > datetime.datetime.now(tz=datetime.UTC)
+	mock_ctx.send.assert_awaited_once_with("mod.edit.response", case=case)
+
+
+async def test_case_edit_rejects_invalid_time(cases_cog, store, mock_bot, mock_ctx):
+	store.get.return_value = make_warn(mock_bot, mock_ctx)
+
+	await cases_cog.edit.callback(cases_cog, mock_ctx, "123", "expires", new_value="soon")
+
+	store.edit.assert_not_awaited()
+	mock_ctx.send.assert_awaited_once_with("mod.edit.errors.invalid_time", case_id=123)
+
+
+async def test_case_list_permissions(cases_cog, mock_ctx):
 	mock_ctx.author.id = 111
 	mock_ctx.author.guild_permissions.moderate_members = False
 	target_user = MagicMock(spec=discord.Member)
@@ -161,78 +124,74 @@ async def test_case_list_permissions(mock_bot, mock_ctx):
 		await cases_cog.list.callback(cases_cog, mock_ctx, user=target_user)
 
 
-@pytest.mark.asyncio
-async def test_case_list_default_filter(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mock_response = {
-		"embeds": [
-			discord.Embed.from_dict(
-				{
-					"title": "Case list",
-					"color": 6656243,
-					"fields": [
-						{"name": "{case.id}", "value": "{case.reason}"},
-						{"name": "No cases", "value": "No cases found."},
-					],
-				}
-			)
-		]
-	}
-	cases_cog.custom_response.get_message = AsyncMock(return_value=mock_response)
+@pytest.mark.parametrize(("is_moderator", "status"), [(True, "all"), (False, "active")])
+async def test_case_list_default_filter(cases_cog, store, mock_ctx, is_moderator, status):
+	cases_cog.custom_response.get_message = AsyncMock(
+		return_value={"embeds": [discord.Embed.from_dict({"fields": [{"name": "{case.id}", "value": "x"}]})]}
+	)
+	store.for_user.return_value = []
+	mock_ctx.author.guild_permissions.moderate_members = is_moderator
 
-	# 1. Moderator viewing self -> defaults to 'all'
-	mock_ctx.author.id = 123
-	mock_ctx.author.guild_permissions.moderate_members = True
-	with patch.object(Case, "from_user", AsyncMock(return_value=[])) as mock_from_user:
-		await cases_cog.list.callback(cases_cog, mock_ctx)
-		mock_from_user.assert_called_once_with(
-			mock_bot.db, mock_ctx.author, mock_bot, mock_ctx.guild, get_type=True, status_filter="all"
-		)
+	await cases_cog.list.callback(cases_cog, mock_ctx)
 
-	# 2. Regular user viewing self -> defaults to 'active'
-	mock_ctx.author.guild_permissions.moderate_members = False
-	with patch.object(Case, "from_user", AsyncMock(return_value=[])) as mock_from_user:
-		await cases_cog.list.callback(cases_cog, mock_ctx)
-		mock_from_user.assert_called_once_with(
-			mock_bot.db, mock_ctx.author, mock_bot, mock_ctx.guild, get_type=True, status_filter="active"
-		)
+	store.for_user.assert_awaited_once_with(mock_ctx.guild, mock_ctx.author, status)
 
 
-@pytest.mark.asyncio
-async def test_case_list_pagination_components_v2(mock_bot, mock_ctx):
-	cases_cog = Cases(mock_bot)
-	mock_response = {
-		"embeds": [
-			discord.Embed.from_dict(
-				{
-					"title": "Case list",
-					"color": 6656243,
-					"fields": [
-						{"name": "{case.id}", "value": "{case.reason}"},
-					],
-				}
-			)
-		]
-	}
-	cases_cog.custom_response.get_message = AsyncMock(return_value=mock_response)
+async def test_case_list_paginates(cases_cog, store, mock_bot, mock_ctx):
+	cases_cog.custom_response.get_message = AsyncMock(
+		return_value={
+			"embeds": [discord.Embed.from_dict({"fields": [{"name": "{case.id}", "value": "{case.reason}"}]})]
+		}
+	)
+	store.for_user.return_value = [make_warn(mock_bot, mock_ctx, i, reason=f"Reason {i}") for i in range(1, 8)]
 
-	# 7 cases -> should create 2 pages (5 on page 1, 2 on page 2)
-	fake_cases = [
-		Warn(
-			_id=i,
-			bot=mock_bot,
-			guild=mock_ctx.guild,
-			user=mock_ctx.author,
-			moderator=mock_ctx.author,
-			reason=f"Reason {i}",
-		)
-		for i in range(1, 8)
-	]
+	await cases_cog.list.callback(cases_cog, mock_ctx)
 
-	with patch.object(Case, "from_user", AsyncMock(return_value=fake_cases)):
-		await cases_cog.list.callback(cases_cog, mock_ctx)
-
-	# Should send with PaginationView
 	send_kwargs = mock_ctx.send.call_args.kwargs
-	assert "view" in send_kwargs
 	assert len(send_kwargs["view"].pages) == 2
+
+
+async def test_unban_closes_active_bans(mod_cog, store, mock_bot, mock_ctx):
+	user = MagicMock(spec=discord.User)
+	ban_case = MagicMock()
+	store.active.return_value = [ban_case]
+
+	await mod_cog.unban.callback(mod_cog, mock_ctx, user)
+
+	store.active.assert_awaited_once_with(mock_ctx.guild, user, CaseType.BAN)
+	store.close.assert_awaited_once_with(ban_case)
+	mock_ctx.guild.unban.assert_not_awaited()
+	mock_ctx.send.assert_awaited_once_with("mod.unban.response", user=user)
+
+
+async def test_unban_without_case_unbans_directly(mod_cog, store, mock_ctx):
+	user = MagicMock(spec=discord.User)
+	store.active.return_value = []
+
+	await mod_cog.unban.callback(mod_cog, mock_ctx, user)
+
+	mock_ctx.guild.unban.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+	("has_case", "timed_out", "key"),
+	[
+		(True, True, "mod.unmute.response"),
+		(True, False, "mod.unmute.timeout_already_removed"),
+		(False, True, "mod.unmute.no_case"),
+		(False, False, "mod.unmute.errors.not_muted"),
+	],
+)
+async def test_unmute(mod_cog, store, mock_ctx, has_case, timed_out, key):
+	member = make_member(timed_out)
+	mute_case = MagicMock(spec=Mute)
+	store.active.return_value = [mute_case] if has_case else []
+
+	await mod_cog.unmute.callback(mod_cog, mock_ctx, member)
+
+	store.active.assert_awaited_once_with(mock_ctx.guild, member, CaseType.MUTE)
+	if has_case:
+		store.close.assert_awaited_once_with(mute_case)
+	# Without a case the command lifts the timeout itself; with one, Mute.before_deletion does it.
+	assert member.edit.await_count == (1 if timed_out and not has_case else 0)
+	mock_ctx.send.assert_awaited_once_with(key, member=member, user=member)

@@ -16,6 +16,7 @@ from typing import Any, Literal
 
 import discord
 from args import Giveaway as GiveawayArg
+from cogs.level import level_config_setting
 from core import Bot, Context, group
 from core.context import VALID_SEND_KWARGS
 from discord.ext import commands, tasks
@@ -390,8 +391,7 @@ class Giveaway(commands.Cog, name="Giveaway"):
 		)
 
 	async def _level_enabled(self, guild_id: int) -> bool:
-		is_on = await self.bot.db.fetchval("SELECT is_on FROM level_config WHERE guild_id = $1", guild_id)
-		return True if is_on is None else bool(is_on)
+		return (await level_config_setting(self.bot.settings).get(guild_id)).is_on
 
 	async def _levels(self, guild_id: int, user_ids: Sequence[int]) -> dict[int, int]:
 		rows = await self.bot.db.fetch(

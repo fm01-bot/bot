@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import io
 import logging
 import re
@@ -11,9 +10,22 @@ import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
+	import asyncpg
 	from core import Bot
+	from core.settings import GuildSetting, GuildSettings
 
 logger = logging.getLogger(__name__)
+
+
+async def _load_ticket_config(db: asyncpg.Pool, guild_id: int) -> dict[str, Any] | None:
+	row = await db.fetchrow("SELECT * FROM ticket_config WHERE guild_id = $1", guild_id)
+	return dict(row) if row else None
+
+
+def ticket_config_setting(settings: GuildSettings) -> GuildSetting[dict[str, Any] | None]:
+	"""The guild's ticket configuration (a ``ticket_config`` row, or ``None``). Writers call ``changed()`` after."""
+	return settings.add("ticket", _load_ticket_config)
+
 
 TICKET_OPEN_ID = "ticket:open"
 TICKET_ARCHIVE_ID = "ticket:archive"
@@ -191,6 +203,7 @@ class ArchivedTicketControlsView(discord.ui.View):
 class Ticket(commands.Cog, name="Ticket"):
 	def __init__(self, bot: Bot):
 		self.bot = bot
+		self.config = ticket_config_setting(bot.settings)
 
 	async def cog_load(self):
 		self.bot.add_view(TicketLauncherView())
@@ -280,17 +293,12 @@ class Ticket(commands.Cog, name="Ticket"):
 			return await msg_any.send(**send_kwargs)
 		return None
 
+	async def _string(self, key: str, guild: discord.Guild, **kwargs: Any) -> str:
+		text = await self.bot.custom_response.get_message(f"ticket.strings.{key}", guild, **kwargs)
+		return text if isinstance(text, str) else key
+
 	async def get_ticket_config(self, guild_id: int) -> dict | None:
-		if not self.bot.db:
-			return None
-		res = self.bot.db.fetchrow("SELECT * FROM ticket_config WHERE guild_id = $1", guild_id)
-		row = await res if inspect.isawaitable(res) else res
-		if not row:
-			return None
-		try:
-			return dict(row)
-		except (TypeError, ValueError):
-			return None
+		return await self.config.get(guild_id)
 
 	async def get_ticket(self, channel_id: int) -> dict | None:
 		if not self.bot.db:
@@ -428,7 +436,8 @@ class Ticket(commands.Cog, name="Ticket"):
 				category = cat
 
 		if not category:
-			category = discord.utils.get(interaction.guild.categories, name="Tickets")
+			category_name = await self._string("category_name", interaction.guild)
+			category = discord.utils.get(interaction.guild.categories, name=category_name)
 			if not category and interaction.guild.me:
 				try:
 					cat_overwrites: dict[
@@ -446,7 +455,9 @@ class Ticket(commands.Cog, name="Ticket"):
 						),
 					}
 					category = await interaction.guild.create_category(
-						name="Tickets", overwrites=cat_overwrites, reason="Ticket system category"
+						name=category_name,
+						overwrites=cat_overwrites,
+						reason=await self._string("category_reason", interaction.guild),
 					)
 				except discord.Forbidden:
 					return await self.send_response("ticket.errors.bot_perms", interaction, ephemeral=True)
@@ -493,7 +504,7 @@ class Ticket(commands.Cog, name="Ticket"):
 				name=channel_name,
 				category=category,
 				overwrites=ch_overwrites,
-				reason=f"Ticket opened by {interaction.user} ({interaction.user.id})",
+				reason=await self._string("open_reason", interaction.guild, user=interaction.user),
 			)
 		except discord.Forbidden:
 			return await self.send_response("ticket.errors.bot_perms", interaction, ephemeral=True)
@@ -808,7 +819,9 @@ class Ticket(commands.Cog, name="Ticket"):
 
 		if isinstance(interaction.channel, discord.abc.GuildChannel):
 			try:
-				await interaction.channel.delete(reason=f"Ticket closed by {interaction.user} ({interaction.user.id})")
+				await interaction.channel.delete(
+					reason=await self._string("close_reason", interaction.guild, user=interaction.user)
+				)
 			except discord.HTTPException as e:
 				logger.warning(f"Failed to delete ticket channel: {e}")
 

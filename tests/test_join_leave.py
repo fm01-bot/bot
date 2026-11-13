@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import discord
 import pytest
 from cogs.join_leave import JoinLeave
+from core.settings import GuildSettings
 
 
 def create_mock_member(
@@ -153,6 +154,8 @@ def test_format_message_with_channel_and_server_and_extra_kwargs():
 async def test_on_member_join_listener():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	cog = JoinLeave(bot)
 
 	member = create_mock_member()
@@ -175,6 +178,8 @@ async def test_on_member_join_listener():
 async def test_on_member_join_disabled_or_no_message():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	cog = JoinLeave(bot)
 
 	member = create_mock_member()
@@ -209,6 +214,8 @@ async def test_on_member_join_disabled_or_no_message():
 async def test_on_member_remove_listener():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	cog = JoinLeave(bot)
 
 	member = create_mock_member()

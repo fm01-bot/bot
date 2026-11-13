@@ -5,17 +5,75 @@ from __future__ import annotations
 import logging
 import random
 import time
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 import discord
 from args import User
 from core import Bot, Context, command
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.localization import Localization
 from helpers.level_card import create_level_card
 from helpers.leveling import GuildLevelConfig, LevelupMessage, level_from_total_xp
 
+if TYPE_CHECKING:
+	import asyncpg
+	from core.settings import GuildSetting, GuildSettings
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class LevelOverrides:
+	"""A guild's per-channel and per-role XP overrides: ID -> (multiplier, is_ignored)."""
+
+	channels: Mapping[int, tuple[float, bool]] = field(default_factory=dict)
+	roles: Mapping[int, tuple[float, bool]] = field(default_factory=dict)
+
+
+async def _load_level_config(db: asyncpg.Pool, guild_id: int) -> GuildLevelConfig:
+	row = await db.fetchrow("SELECT * FROM level_config WHERE guild_id = $1", guild_id)
+	if not row:
+		return GuildLevelConfig(guild_id=guild_id)
+	raw_mode = row["message_mode"]
+	return GuildLevelConfig(
+		guild_id=guild_id,
+		is_on=bool(row["is_on"]),
+		multiplier=float(row["multiplier"]),
+		min_xp=int(row["min_xp"]),
+		max_xp=int(row["max_xp"]),
+		cooldown=int(row["cooldown"]),
+		message_mode=LevelupMessage(raw_mode)
+		if raw_mode in LevelupMessage._value2member_map_
+		else LevelupMessage.CURRENT,
+		message_channel=int(row["message_channel"]) if row["message_channel"] else None,
+		levelup_message=str(row["levelup_message"]) if row["levelup_message"] else None,
+		stack_roles=bool(row["stack_roles"]),
+	)
+
+
+def level_config_setting(settings: GuildSettings) -> GuildSetting[GuildLevelConfig]:
+	"""The guild's leveling configuration, registered on ``settings`` (usable without the Level cog loaded)."""
+	return settings.add("level.config", _load_level_config)
+
+
+async def _load_role_rewards(db: asyncpg.Pool, guild_id: int) -> list[tuple[int, int]]:
+	rows = await db.fetch("SELECT level, role_id FROM level_roles WHERE guild_id = $1 ORDER BY level ASC", guild_id)
+	return [(int(r["level"]), int(r["role_id"])) for r in rows]
+
+
+async def _load_overrides(db: asyncpg.Pool, guild_id: int) -> LevelOverrides:
+	channel_rows = await db.fetch(
+		"SELECT channel_id, multiplier, is_ignored FROM level_channel_overrides WHERE guild_id = $1", guild_id
+	)
+	role_rows = await db.fetch(
+		"SELECT role_id, multiplier, is_ignored FROM level_role_overrides WHERE guild_id = $1", guild_id
+	)
+	return LevelOverrides(
+		channels={int(r["channel_id"]): (float(r["multiplier"]), bool(r["is_ignored"])) for r in channel_rows},
+		roles={int(r["role_id"]): (float(r["multiplier"]), bool(r["is_ignored"])) for r in role_rows},
+	)
 
 
 @app_commands.guild_only()
@@ -30,130 +88,26 @@ class Level(commands.Cog, name="Level"):
 			client: The main bot instance.
 		"""
 		self.client = client
-		self.guild_configs: dict[int, GuildLevelConfig] = {}
-		self.role_rewards: dict[int, list[tuple[int, int]]] = {}
-		self.channel_overrides: dict[tuple[int, int], tuple[float, bool]] = {}
-		self.guild_role_overrides: dict[int, dict[int, tuple[float, bool]]] = {}
-		self.role_overrides: dict[tuple[int, int], tuple[float, bool]] = {}
+		self.config: GuildSetting[GuildLevelConfig] = level_config_setting(client.settings)
+		self.rewards: GuildSetting[list[tuple[int, int]]] = client.settings.add("level.rewards", _load_role_rewards)
+		self.overrides: GuildSetting[LevelOverrides] = client.settings.add("level.overrides", _load_overrides)
 		self.cooldowns: dict[tuple[int, int], float] = {}
 
-	def invalidate_cache(self, guild_id: int) -> None:
-		"""Invalidate cached leveling configuration and overrides for a guild.
-
-		Args:
-			guild_id: Discord guild ID.
-		"""
-		self.guild_configs.pop(guild_id, None)
-		self.role_rewards.pop(guild_id, None)
-		self.guild_role_overrides.pop(guild_id, None)
-		keys_to_remove = [k for k in self.channel_overrides if k[0] == guild_id]
-		for k in keys_to_remove:
-			self.channel_overrides.pop(k, None)
-		keys_to_remove = [k for k in self.role_overrides if k[0] == guild_id]
-		for k in keys_to_remove:
-			self.role_overrides.pop(k, None)
-
 	async def get_guild_config(self, guild_id: int) -> GuildLevelConfig:
-		"""Retrieve or load cached leveling configuration for a guild.
-
-		Args:
-			guild_id: Discord guild ID.
-
-		Returns:
-			GuildLevelConfig: Configuration dataclass for the guild.
-		"""
-		if guild_id in self.guild_configs:
-			return self.guild_configs[guild_id]
-
-		row = await self.client.db.fetchrow("SELECT * FROM level_config WHERE guild_id = $1", guild_id)
-		if row:
-			raw_mode = row["message_mode"]
-			mode = LevelupMessage(raw_mode) if raw_mode in LevelupMessage._value2member_map_ else LevelupMessage.CURRENT
-			config = GuildLevelConfig(
-				guild_id=guild_id,
-				is_on=bool(row["is_on"]),
-				multiplier=float(row["multiplier"]),
-				min_xp=int(row["min_xp"]),
-				max_xp=int(row["max_xp"]),
-				cooldown=int(row["cooldown"]),
-				message_mode=mode,
-				message_channel=int(row["message_channel"]) if row["message_channel"] else None,
-				levelup_message=str(row["levelup_message"]) if row["levelup_message"] else None,
-				stack_roles=bool(row["stack_roles"]),
-			)
-		else:
-			config = GuildLevelConfig(guild_id=guild_id)
-
-		self.guild_configs[guild_id] = config
-		return config
+		"""The guild's leveling configuration (defaults if it has none)."""
+		return await self.config.get(guild_id)
 
 	async def get_role_rewards(self, guild_id: int) -> list[tuple[int, int]]:
-		"""Retrieve role rewards ordered by level ascending.
-
-		Args:
-			guild_id: Discord guild ID.
-
-		Returns:
-			list[tuple[int, int]]: List of (level, role_id) reward pairs.
-		"""
-		if guild_id in self.role_rewards:
-			return self.role_rewards[guild_id]
-
-		rows = await self.client.db.fetch(
-			"SELECT level, role_id FROM level_roles WHERE guild_id = $1 ORDER BY level ASC", guild_id
-		)
-		rewards = [(int(r["level"]), int(r["role_id"])) for r in rows]
-		self.role_rewards[guild_id] = rewards
-		return rewards
+		"""The guild's (level, role_id) rewards, lowest level first."""
+		return await self.rewards.get(guild_id)
 
 	async def get_channel_override(self, guild_id: int, channel_id: int) -> tuple[float, bool] | None:
-		"""Retrieve (multiplier, is_ignored) override for a channel.
+		"""The (multiplier, is_ignored) override for a channel, if any."""
+		return (await self.overrides.get(guild_id)).channels.get(channel_id)
 
-		Args:
-			guild_id: Discord guild ID.
-			channel_id: Discord channel ID.
-
-		Returns:
-			tuple[float, bool] | None: Tuple of multiplier and is_ignored flag, or None if no override.
-		"""
-		key = (guild_id, channel_id)
-		if key in self.channel_overrides:
-			return self.channel_overrides[key]
-
-		row = await self.client.db.fetchrow(
-			"SELECT multiplier, is_ignored FROM level_channel_overrides WHERE guild_id = $1 AND channel_id = $2",
-			guild_id,
-			channel_id,
-		)
-		if row:
-			res = (float(row["multiplier"]), bool(row["is_ignored"]))
-			self.channel_overrides[key] = res
-			return res
-		return None
-
-	async def get_role_overrides(self, guild_id: int) -> dict[int, tuple[float, bool]]:
-		"""Retrieve mapping of role_id -> (multiplier, is_ignored) for a guild.
-
-		Args:
-			guild_id: Discord guild ID.
-
-		Returns:
-			dict[int, tuple[float, bool]]: Mapping of role ID to multiplier and is_ignored flag.
-		"""
-		if guild_id in self.guild_role_overrides:
-			return self.guild_role_overrides[guild_id]
-
-		rows = await self.client.db.fetch(
-			"SELECT role_id, multiplier, is_ignored FROM level_role_overrides WHERE guild_id = $1", guild_id
-		)
-		res: dict[int, tuple[float, bool]] = {}
-		for r in rows:
-			rid = int(r["role_id"])
-			val = (float(r["multiplier"]), bool(r["is_ignored"]))
-			res[rid] = val
-			self.role_overrides[(guild_id, rid)] = val
-		self.guild_role_overrides[guild_id] = res
-		return res
+	async def get_role_overrides(self, guild_id: int) -> Mapping[int, tuple[float, bool]]:
+		"""The guild's role_id -> (multiplier, is_ignored) overrides."""
+		return (await self.overrides.get(guild_id)).roles
 
 	async def enable_leveling(self, guild_id: int) -> None:
 		"""Enable leveling in the given guild.
@@ -169,8 +123,7 @@ class Level(commands.Cog, name="Level"):
 			""",
 			guild_id,
 		)
-		cfg = await self.get_guild_config(guild_id)
-		cfg.is_on = True
+		await self.config.changed(guild_id)
 
 	async def disable_leveling(self, guild_id: int) -> None:
 		"""Disable leveling in the given guild.
@@ -186,8 +139,7 @@ class Level(commands.Cog, name="Level"):
 			""",
 			guild_id,
 		)
-		cfg = await self.get_guild_config(guild_id)
-		cfg.is_on = False
+		await self.config.changed(guild_id)
 
 	async def update_xp_config(
 		self,
@@ -229,10 +181,7 @@ class Level(commands.Cog, name="Level"):
 			new_mult,
 			new_cd,
 		)
-		cfg.min_xp = new_min
-		cfg.max_xp = new_max
-		cfg.multiplier = new_mult
-		cfg.cooldown = new_cd
+		await self.config.changed(guild_id)
 
 	async def update_message_config(
 		self, guild_id: int, *, mode: str | None = None, channel_id: int | None = None, template: str | None = None
@@ -264,11 +213,7 @@ class Level(commands.Cog, name="Level"):
 			new_ch,
 			new_tmpl,
 		)
-		cfg.message_mode = (
-			LevelupMessage(new_mode) if new_mode in LevelupMessage._value2member_map_ else LevelupMessage.CURRENT
-		)
-		cfg.message_channel = new_ch
-		cfg.levelup_message = new_tmpl
+		await self.config.changed(guild_id)
 
 	async def add_role_reward(self, guild_id: int, level: int, role_id: int) -> None:
 		"""Add a role reward unlocked upon reaching a level.
@@ -288,7 +233,7 @@ class Level(commands.Cog, name="Level"):
 			level,
 			role_id,
 		)
-		self.role_rewards.pop(guild_id, None)
+		await self.rewards.changed(guild_id)
 
 	async def remove_role_reward(self, guild_id: int, level: int, role_id: int | None = None) -> None:
 		"""Remove role reward(s) associated with a level.
@@ -304,7 +249,7 @@ class Level(commands.Cog, name="Level"):
 			)
 		else:
 			await self.client.db.execute("DELETE FROM level_roles WHERE guild_id = $1 AND level = $2", guild_id, level)
-		self.role_rewards.pop(guild_id, None)
+		await self.rewards.changed(guild_id)
 
 	async def set_stack_roles(self, guild_id: int, stack: bool) -> None:
 		"""Configure whether role rewards stack or replace previous tiers.
@@ -322,8 +267,7 @@ class Level(commands.Cog, name="Level"):
 			guild_id,
 			stack,
 		)
-		cfg = await self.get_guild_config(guild_id)
-		cfg.stack_roles = stack
+		await self.config.changed(guild_id)
 
 	async def set_channel_ignored(self, guild_id: int, channel_id: int, is_ignored: bool) -> None:
 		"""Set whether a channel is excluded from XP gain.
@@ -343,8 +287,7 @@ class Level(commands.Cog, name="Level"):
 			channel_id,
 			is_ignored,
 		)
-		mult = self.channel_overrides.get((guild_id, channel_id), (1.0, False))[0]
-		self.channel_overrides[(guild_id, channel_id)] = (mult, is_ignored)
+		await self.overrides.changed(guild_id)
 
 	async def set_channel_multiplier(self, guild_id: int, channel_id: int, multiplier: float) -> None:
 		"""Set custom XP multiplier for a channel.
@@ -364,8 +307,7 @@ class Level(commands.Cog, name="Level"):
 			channel_id,
 			multiplier,
 		)
-		ignored = self.channel_overrides.get((guild_id, channel_id), (1.0, False))[1]
-		self.channel_overrides[(guild_id, channel_id)] = (multiplier, ignored)
+		await self.overrides.changed(guild_id)
 
 	async def set_role_ignored(self, guild_id: int, role_id: int, is_ignored: bool) -> None:
 		"""Set whether members with a role are excluded from XP gain.
@@ -385,9 +327,7 @@ class Level(commands.Cog, name="Level"):
 			role_id,
 			is_ignored,
 		)
-		mult = self.role_overrides.get((guild_id, role_id), (1.0, False))[0]
-		self.role_overrides[(guild_id, role_id)] = (mult, is_ignored)
-		self.guild_role_overrides.pop(guild_id, None)
+		await self.overrides.changed(guild_id)
 
 	async def set_role_multiplier(self, guild_id: int, role_id: int, multiplier: float) -> None:
 		"""Set custom XP multiplier for a role.
@@ -407,14 +347,13 @@ class Level(commands.Cog, name="Level"):
 			role_id,
 			multiplier,
 		)
-		ignored = self.role_overrides.get((guild_id, role_id), (1.0, False))[1]
-		self.role_overrides[(guild_id, role_id)] = (multiplier, ignored)
-		self.guild_role_overrides.pop(guild_id, None)
+		await self.overrides.changed(guild_id)
 
 	@command(name="level", aliases=["rank"], user=False)
 	async def level_command(self, ctx: Context, member: discord.Member | None = None) -> None:
 		if not ctx.guild:
 			return
+		await ctx.defer()  # slow: renders the rank card image
 
 		target = member or (ctx.author if isinstance(ctx.author, discord.Member) else None)
 		if not target:
@@ -436,16 +375,7 @@ class Level(commands.Cog, name="Level"):
 			rank = None
 
 		localized_label = await self.client.custom_response.get_message("level_card.label", ctx)
-		if isinstance(localized_label, str) and localized_label != "level_card.label":
-			level_label = localized_label
-		else:
-			locale_cache = getattr(self.client, "locale_cache", None)
-			locale = (
-				locale_cache[ctx.guild.id]
-				if ctx.guild and isinstance(locale_cache, dict) and ctx.guild.id in locale_cache
-				else (ctx.guild.preferred_locale if ctx.guild else "en")
-			)
-			level_label = "szint" if str(locale).startswith("hu") else "lvl"
+		level_label = localized_label if isinstance(localized_label, str) else "lvl"
 
 		card_buffer = await create_level_card(
 			user=target,
@@ -485,40 +415,28 @@ class Level(commands.Cog, name="Level"):
 			offset,
 		)
 
-		message = await self.client.custom_response.get_message("levels_leaderboard", ctx)
-		if not isinstance(message, dict):
-			raise TypeError("levels_leaderboard response is not a dict")
-
-		embeds: list[discord.Embed] = message.get("embeds", [])
-		if not rows:
-			if embeds and len(embeds[0].fields) > 1:
-				embeds[0].remove_field(0)
-				embeds[0].set_footer(text=f"Page {page}/{total_pages}")
-			await ctx.send(**message)
-			return
-
-		if embeds:
-			template = embeds[0].to_dict().get("fields", [None])[0]
-			if template:
-				embeds[0].clear_fields()
-				for idx, row in enumerate(rows):
-					rank_num = offset + idx + 1
-					user_id = int(row["user_id"])
-					cached_user = self.client.get_user(user_id)
-					user_arg = User.from_user(cached_user) if cached_user else None
-					user_name_str = f"@{cached_user.name}" if cached_user else f"User {user_id}"
-					formatted = Localization.format_strings(
-						template,
-						number=rank_num,
-						user=user_arg or user_name_str,
-						level=row["level"],
-						xp=f"{int(row['xp']):,}",
-					)
-					embeds[0].add_field(**formatted)
-				embeds[0].set_footer(text=f"Page {page}/{total_pages}")
-				message["embeds"] = self.client.custom_response.convert_embeds(embeds)
-
+		entries = []
+		for idx, row in enumerate(rows):
+			user_id = int(row["user_id"])
+			cached_user = self.client.get_user(user_id)
+			entries.append(
+				{
+					"number": offset + idx + 1,
+					"user": User.from_user(cached_user)
+					if cached_user
+					else await self.client.custom_response.get_message("level_unknown_user", ctx, user_id=user_id),
+					"level": row["level"],
+					"xp": f"{int(row['xp']):,}",
+				}
+			)
+		(message,) = await self.client.custom_response.get_list(
+			"levels_leaderboard", ctx, entries, page=page, pages=total_pages
+		)
 		await ctx.send(**message)
+
+	async def _reward_reason(self, member: discord.Member, key: str, **kwargs: Any) -> str | None:
+		text = await self.client.custom_response.get_message(f"level_reward.{key}", member.guild, **kwargs)
+		return text if isinstance(text, str) else None
 
 	async def handle_role_rewards(
 		self, member: discord.Member, old_level: int, new_level: int, stack_roles: bool
@@ -541,7 +459,7 @@ class Level(commands.Cog, name="Level"):
 					role = member.guild.get_role(r_id)
 					if role and role not in member.roles:
 						try:
-							await member.add_roles(role, reason=f"Level {lvl} reward")
+							await member.add_roles(role, reason=await self._reward_reason(member, "reason", level=lvl))
 						except (discord.Forbidden, discord.HTTPException):
 							logger.warning(f"Failed to add role {role.name} to {member.name} in {member.guild.name}")
 		else:
@@ -559,13 +477,17 @@ class Level(commands.Cog, name="Level"):
 				]
 				if roles_to_remove:
 					try:
-						await member.remove_roles(*roles_to_remove, reason="Replacing lower level role reward")
+						await member.remove_roles(
+							*roles_to_remove, reason=await self._reward_reason(member, "replace_reason")
+						)
 					except (discord.Forbidden, discord.HTTPException):
 						pass
 
 				if highest_role and highest_role not in member.roles:
 					try:
-						await member.add_roles(highest_role, reason=f"Level {highest_lvl} reward")
+						await member.add_roles(
+							highest_role, reason=await self._reward_reason(member, "reason", level=highest_lvl)
+						)
 					except (discord.Forbidden, discord.HTTPException):
 						logger.warning(
 							f"Failed to add highest role {highest_role.name} to {member.name} in {member.guild.name}"

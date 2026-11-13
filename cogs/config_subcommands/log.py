@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import discord
+from cogs.log import LOG_MODULES, LogSettings
 from helpers.cli_parser import CLINode, CLIParseError
 
 from .helpers import resolve_channel
@@ -28,8 +29,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 			if not target_channel or not isinstance(target_channel, discord.abc.Messageable):
 				raise CLIParseError(f"Channel `{ch_raw}` was not found or is not a valid text channel.", enable_node)
 		else:
-			logging_cog: Any = ctx.bot.get_cog("Logging")
-			existing_cfg = logging_cog.get_config(ctx.guild.id) if logging_cog else None
+			existing_cfg = await LogSettings(ctx.bot).get(ctx.guild.id)
 			if existing_cfg and existing_cfg.channel_id:
 				target_channel = ctx.guild.get_channel(existing_cfg.channel_id)
 			if not target_channel and isinstance(ctx.channel, (discord.abc.GuildChannel, discord.Thread)):
@@ -37,20 +37,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 		channel_id = target_channel.id if target_channel else None
 
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		if logging_cog:
-			await logging_cog.enable_log(ctx.guild.id, channel_id)
-		else:
-			await ctx.bot.db.execute(
-				"""
-				INSERT INTO log (guild_id, is_on, channel, modules, channels)
-				VALUES ($1, true, $2, ARRAY['*'], '{}'::jsonb)
-				ON CONFLICT (guild_id) DO UPDATE
-				SET is_on = true, channel = COALESCE($2, log.channel)
-				""",
-				ctx.guild.id,
-				channel_id,
-			)
+		await LogSettings(ctx.bot).enable(ctx.guild.id, channel_id)
 
 		ch_name = getattr(target_channel, "name", str(channel_id))
 		return await ctx.send(content=f"```ansi\n[+] Logging enabled in #{ch_name}\n```")
@@ -61,11 +48,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def log_disable(ctx: Context, **kwargs: Any):
 		assert ctx.guild is not None
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		if logging_cog:
-			await logging_cog.disable_log(ctx.guild.id)
-		else:
-			await ctx.bot.db.execute("UPDATE log SET is_on = false WHERE guild_id = $1", ctx.guild.id)
+		await LogSettings(ctx.bot).disable(ctx.guild.id)
 		return await ctx.send(content="```ansi\n[-] Logging disabled\n```")
 
 	disable_node.callback = log_disable
@@ -83,19 +66,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 		if not target_channel or not isinstance(target_channel, discord.abc.Messageable):
 			raise CLIParseError(f"Channel `{ch_raw}` was not found or is not a valid text channel.", channel_node)
 
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		if logging_cog:
-			await logging_cog.set_default_channel(ctx.guild.id, target_channel.id)
-		else:
-			await ctx.bot.db.execute(
-				"""
-				INSERT INTO log (guild_id, is_on, channel, modules, channels)
-				VALUES ($1, true, $2, ARRAY['*'], '{}'::jsonb)
-				ON CONFLICT (guild_id) DO UPDATE SET channel = $2
-				""",
-				ctx.guild.id,
-				target_channel.id,
-			)
+		await LogSettings(ctx.bot).set_default_channel(ctx.guild.id, target_channel.id)
 		ch_name = getattr(target_channel, "name", str(target_channel.id))
 		return await ctx.send(content=f"```ansi\n[+] Default log channel set to #{ch_name}\n```")
 
@@ -108,9 +79,6 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def modules_enable(ctx: Context, modules: list[str], **kwargs: Any):
 		assert ctx.guild is not None
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		from cogs.log import LOG_MODULES
-
 		valid_mods: list[str] = [m for m in modules if m in LOG_MODULES]
 		invalid_mods: list[str] = [m for m in modules if m not in LOG_MODULES]
 
@@ -122,18 +90,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 				mod_enable_node,
 			)
 
-		for m in valid_mods:
-			if logging_cog:
-				await logging_cog.add_module(ctx.guild.id, m)
-			else:
-				await ctx.bot.db.execute(
-					"""
-					UPDATE log SET modules = array_append(array_remove(modules, $1), $1)
-					WHERE guild_id = $2
-					""",
-					m,
-					ctx.guild.id,
-				)
+		await LogSettings(ctx.bot).add_modules(ctx.guild.id, valid_mods)
 
 		lines = [f"Enabled modules: {', '.join(valid_mods)}"]
 		if invalid_mods:
@@ -147,14 +104,7 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def modules_disable(ctx: Context, modules: list[str], **kwargs: Any):
 		assert ctx.guild is not None
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		for m in modules:
-			if logging_cog:
-				await logging_cog.remove_module(ctx.guild.id, m)
-			else:
-				await ctx.bot.db.execute(
-					"UPDATE log SET modules = array_remove(modules, $1) WHERE guild_id = $2", m, ctx.guild.id
-				)
+		await LogSettings(ctx.bot).remove_modules(ctx.guild.id, modules)
 		return await ctx.send(content=f"```ansi\nDisabled modules: {', '.join(modules)}\n```")
 
 	mod_disable_node.callback = modules_disable
@@ -163,15 +113,12 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def modules_list(ctx: Context, **kwargs: Any):
 		assert ctx.guild is not None
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		from cogs.log import LOG_MODULES
-
-		cfg = await logging_cog._ensure_config(ctx.guild.id) if logging_cog else None
-		enabled = cfg.modules if cfg else set()
+		cfg = await LogSettings(ctx.bot).get(ctx.guild.id)
+		enabled = cfg.enabled_modules if cfg else frozenset()
 
 		lines = [f"Logging Modules ({ctx.guild.name})\n"]
 		for mod_name in sorted(LOG_MODULES):
-			status = "[+]" if (mod_name in enabled or "*" in enabled) else "[-]"
+			status = "[+]" if mod_name in enabled else "[-]"
 			lines.append(f"{status} {mod_name}")
 
 		return await ctx.send(content="```ansi\n" + "\n".join(lines) + "\n```")
@@ -182,15 +129,14 @@ def setup_log_subcommands(parent_node: CLINode) -> CLINode:
 
 	async def log_status(ctx: Context, **kwargs: Any):
 		assert ctx.guild is not None
-		logging_cog: Any = ctx.bot.get_cog("Logging")
-		cfg = await logging_cog._ensure_config(ctx.guild.id) if logging_cog else None
+		cfg = await LogSettings(ctx.bot).get(ctx.guild.id)
 
 		if not cfg or not cfg.is_on:
 			return await ctx.send(content="```ansi\nStatus: Disabled\n```")
 
 		channel = ctx.guild.get_channel(cfg.channel_id) if cfg.channel_id else None
 		ch_name = f"#{channel.name}" if channel else "None"
-		active_count = len(cfg.modules)
+		active_count = len(cfg.enabled_modules)
 		content = (
 			f"```ansi\n"
 			f"Logging Configuration ({ctx.guild.name})\n\n"

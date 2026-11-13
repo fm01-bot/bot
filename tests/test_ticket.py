@@ -9,6 +9,7 @@ from cogs.ticket import (
 	Ticket,
 	TicketLauncherView,
 )
+from core.settings import GuildSettings
 from helpers.cli_parser import CLIParseError, CLIParser
 
 
@@ -140,6 +141,8 @@ def test_config_ticket_desc_parse():
 async def test_config_ticket_execution_flow():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.get_cog.return_value = None
 	bot.custom_response.get_message = AsyncMock(return_value="Open Ticket")
 
@@ -298,6 +301,8 @@ async def test_config_ticket_execution_flow():
 async def test_config_ticket_limit_invalid():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	ctx = MagicMock()
 	ctx.guild = MagicMock()
 	config_cog = Config(bot)
@@ -313,6 +318,8 @@ async def test_config_ticket_limit_invalid():
 async def test_config_ticket_length_validation():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	ctx = MagicMock()
 	ctx.guild = MagicMock()
 	ctx.bot = bot
@@ -351,6 +358,8 @@ async def test_config_ticket_length_validation():
 async def test_ticket_modal_configured_lengths():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.db.fetchrow.return_value = {
 		"topic_min_length": 8,
 		"topic_max_length": 64,
@@ -375,6 +384,8 @@ async def test_ticket_modal_configured_lengths():
 async def test_ticket_permissions():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	cog = Ticket(bot)
 
 	guild = MagicMock()
@@ -413,6 +424,7 @@ async def test_ticket_permissions():
 	support_role.id = 300
 	member.roles = [support_role]
 	bot.db.fetchrow.return_value = {"support_role_id": 300}
+	await cog.config.changed(guild.id)  # the support role was just configured
 	assert await cog.can_manage_ticket(interaction, ticket_row) is True
 
 
@@ -420,6 +432,8 @@ async def test_ticket_permissions():
 async def test_ticket_create_flow():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.custom_response.get_message = AsyncMock(return_value="Your ticket has been created: #ticket-alice")
 	cog = Ticket(bot)
 
@@ -473,6 +487,8 @@ async def test_ticket_create_flow():
 async def test_ticket_create_limit_exceeded():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.custom_response.get_message = AsyncMock(
 		return_value="You already have 1 open ticket(s). The maximum allowed is 1."
 	)
@@ -507,6 +523,10 @@ async def test_ticket_create_limit_exceeded():
 @pytest.mark.asyncio
 async def test_ticket_modal_localization():
 	bot = MagicMock()
+	bot.db = AsyncMock()
+	bot.db.fetchrow.return_value = None
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.custom_response.get_message = AsyncMock(side_effect=lambda key, *args, **kwargs: f"loc_{key.split('.')[-1]}")
 	cog = Ticket(bot)
 
@@ -562,6 +582,8 @@ async def test_ticket_controls_view_localization():
 async def test_ticket_archive_and_reopen():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.custom_response.get_message = AsyncMock(side_effect=lambda key, *args, **kwargs: key)
 	cog = Ticket(bot)
 
@@ -615,6 +637,8 @@ async def test_ticket_archive_and_reopen():
 async def test_ticket_save_and_close():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	bot.custom_response.get_message = AsyncMock(return_value="Success")
 	cog = Ticket(bot)
 
@@ -669,6 +693,8 @@ async def test_ticket_save_and_close():
 async def test_on_guild_channel_delete():
 	bot = MagicMock()
 	bot.db = AsyncMock()
+	bot.event_bus.publish = AsyncMock()
+	bot.settings = GuildSettings(lambda: bot.db, bot.event_bus)
 	cog = Ticket(bot)
 
 	ch = MagicMock(spec=discord.TextChannel)

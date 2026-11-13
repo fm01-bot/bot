@@ -6,7 +6,7 @@ from typing import Any
 
 import discord
 import emoji
-from core import Bot, Command, Context, slash_command_localization
+from core import Bot, Command, Context, resolve_locale, slash_localization
 from discord.ext import commands
 from discord.ext.localization import Localization
 from helpers import CustomResponse
@@ -105,21 +105,7 @@ class HelpCommand(commands.HelpCommand):
 		return await super().filter_commands(filtered, sort=sort, key=key)
 
 	def get_context_locale(self) -> str:
-		raw_locale = None
-		interaction = getattr(self.context, "interaction", None)
-		guild = getattr(self.context, "guild", None)
-		bot = getattr(self.context, "bot", None)
-		locale_cache = getattr(bot, "locale_cache", None)
-		if guild is not None and isinstance(locale_cache, dict) and guild.id in locale_cache:
-			raw_locale = locale_cache[guild.id]
-		elif interaction is not None and getattr(interaction, "locale", None):
-			raw_locale = interaction.locale
-		elif guild is not None and getattr(guild, "preferred_locale", None):
-			raw_locale = guild.preferred_locale
-		if not raw_locale:
-			return "en"
-		loc_str = str(raw_locale).lower().replace("-", "_")
-		return loc_str.split("_")[0]
+		return resolve_locale(self.context, getattr(self.context.bot, "locale_cache", None))
 
 	def resolve_cog(self, name: str) -> commands.Cog | None:
 		target = name.strip()
@@ -183,10 +169,10 @@ class HelpCommand(commands.HelpCommand):
 								}:
 									return cog
 
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
@@ -235,10 +221,10 @@ class HelpCommand(commands.HelpCommand):
 				return c
 
 		user_locale = self.get_context_locale()
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():
@@ -279,10 +265,10 @@ class HelpCommand(commands.HelpCommand):
 				return c
 
 		user_locale = self.get_context_locale()
-		if slash_command_localization and slash_command_localization.file:
-			loc_data = slash_command_localization.file.get(user_locale)
+		if (l10n := slash_localization.slash_command_localization) and l10n.file:
+			loc_data = l10n.file.get(user_locale)
 			if loc_data is None and user_locale != "en":
-				loc_data = slash_command_localization.file.get("en")
+				loc_data = l10n.file.get("en")
 
 			if isinstance(loc_data, dict):
 				for k, v in loc_data.items():

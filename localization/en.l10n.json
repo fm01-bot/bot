@@ -153,7 +153,7 @@
           {
             "inline": false,
             "name": "⚠️ You are in debt.",
-            "value": "Any money you earn will be used to pay off your debt."
+            "value": "You owe **${debt}**. Any money you earn pays it off first."
           }
         ],
         "title": "Balance"
@@ -731,6 +731,74 @@
       ]
     },
     "channel": {
+      "category": {
+        "embeds": [
+          {
+            "author": {
+              "name": "📁 {category.name}",
+              "url": "{category.jump_url}"
+            },
+            "fields": [
+              {
+                "inline": true,
+                "name": "ID",
+                "value": "{category.id}"
+              },
+              {
+                "inline": true,
+                "name": "Position",
+                "value": "{category.position}"
+              },
+              {
+                "inline": true,
+                "name": "NSFW?",
+                "value": "{category.nsfw}"
+              },
+              {
+                "inline": true,
+                "name": "Channels",
+                "value": "{category.channels}"
+              },
+              {
+                "inline": true,
+                "name": "Text channels",
+                "value": "{category.text_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Voice channels",
+                "value": "{category.voice_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Stage channels",
+                "value": "{category.stage_channels}"
+              },
+              {
+                "inline": true,
+                "name": "Forums",
+                "value": "{category.forums}"
+              },
+              {
+                "inline": true,
+                "name": "Created",
+                "value": "{category.created_at}"
+              },
+              {
+                "inline": true,
+                "name": "Permission overwrites",
+                "value": "{category.overwrites}"
+              },
+              {
+                "inline": true,
+                "name": "Mention",
+                "value": "`{category.mention}`"
+              }
+            ],
+            "title": "Category information"
+          }
+        ]
+      },
       "forum": {
         "embeds": [
           {
@@ -1524,6 +1592,11 @@
   "level_card": {
     "label": "lvl"
   },
+  "level_reward": {
+    "reason": "Level {level} reward",
+    "replace_reason": "Replacing lower level role reward"
+  },
+  "level_unknown_user": "User {user_id}",
   "levels_leaderboard": {
     "embeds": [
       {
@@ -1539,6 +1612,9 @@
             "value": "No one has earned any XP yet. Start chatting to gain XP!"
           }
         ],
+        "footer": {
+          "text": "Page {page}/{pages}"
+        },
         "title": "Level Leaderboard"
       }
     ]
@@ -2657,6 +2733,7 @@
           }
         ]
       },
+      "reason": "Banned by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -2786,6 +2863,7 @@
           }
         ]
       },
+      "reason": "Kicked by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -2921,9 +2999,11 @@
       }
     },
     "unban": {
+      "case_reason": "Ban case {case.id} closed",
       "notify": {
         "content": "You have been unbanned from **{guild}**."
       },
+      "reason": "Ban removed by {moderator.name}",
       "response": {
         "embeds": [
           {
@@ -2937,15 +3017,35 @@
       "errors": {
         "hierarchy": {
           "content": "You can't unmute a user with a higher role than you."
+        },
+        "not_muted": {
+          "content": "{user.mention} isn't muted and has no active mute case."
         }
+      },
+      "no_case": {
+        "embeds": [
+          {
+            "description": "Removed {user.mention}'s timeout. There was no mute case on record.",
+            "title": "Unmute"
+          }
+        ]
       },
       "notify": {
         "content": "You have been unmuted in **{guild}**."
       },
+      "reason": "Unmuted by {moderator.name}",
       "response": {
         "embeds": [
           {
             "description": "Unmuted {user.mention}.",
+            "title": "Unmute"
+          }
+        ]
+      },
+      "timeout_already_removed": {
+        "embeds": [
+          {
+            "description": "Closed {user.mention}'s mute case. Their timeout had already been removed.",
             "title": "Unmute"
           }
         ]
@@ -3026,6 +3126,9 @@
       },
       "positive": {
         "content": "You can't transfer a negative amount!"
+      },
+      "self": {
+        "content": "You can't pay yourself!"
       }
     },
     "success": {
@@ -3185,6 +3288,9 @@
         "not_found": {
           "content": "This item doesn't exist!"
         },
+        "role_failed": {
+          "content": "I couldn't give you the **{item.role.name}** role, so you weren't charged."
+        },
         "role_not_found": {
           "content": "The role for this item doesn't exist! Ask an admin to remove it."
         }
@@ -3265,7 +3371,7 @@
             {
               "inline": false,
               "name": "⚠️ You are in debt.",
-              "value": "Any money you earn will be used to pay off your debt."
+              "value": "You owe **${debt}**. Any money you earn pays it off first."
             }
           ],
           "title": "Slots"
@@ -3324,6 +3430,9 @@
           "title": "Snapshot load alert"
         }
       ]
+    },
+    "restore_failed": {
+      "content": "⚠️ An error occurred while restoring snapshot `{code}`: {error}. You can restore the previous state with the backup code `{backup}`."
     },
     "strings": {
       "save_load_reason": "Lumin save load - {author.name}",
@@ -3579,6 +3688,12 @@
           "type": "container"
         }
       ]
+    },
+    "strings": {
+      "category_name": "Tickets",
+      "category_reason": "Ticket system category",
+      "close_reason": "Ticket closed by {user.name} ({user.id})",
+      "open_reason": "Ticket opened by {user.name} ({user.id})"
     }
   },
   "voice": {

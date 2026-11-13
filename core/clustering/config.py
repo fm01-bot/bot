@@ -17,18 +17,24 @@ class ClusterConfig:
 	redis_url: str = "redis://localhost:6379/0"
 	redis_msg_url: str = "redis://localhost:6379/1"
 	discord_proxy_url: str | None = None
+	gateway_url: str | None = None
+	shard_count_configured: bool = False
 	lease_ttl: int = 30
 	heartbeat_interval: int = 10
-	max_concurrency: int = 1
 
 	@property
 	def is_clustered(self) -> bool:
 		return self.mode.lower() == "clustered"
 
+	@property
+	def uses_gateway_proxy(self) -> bool:
+		return bool(self.gateway_url)
+
 	@classmethod
 	def from_env(cls) -> ClusterConfig:
 		mode = os.getenv("BOT_MODE", "standalone").strip().lower()
-		shard_count = int(os.getenv("SHARD_COUNT", "64"))
+		raw_shard_count = (os.getenv("SHARD_COUNT") or "").strip()
+		shard_count = int(raw_shard_count) if raw_shard_count else 64
 		shards_per_cluster = int(os.getenv("SHARDS_PER_CLUSTER", "16"))
 		raw_cluster_id = (os.getenv("CLUSTER_ID") or "").strip()
 		if raw_cluster_id:
@@ -48,10 +54,10 @@ class ClusterConfig:
 		redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 		redis_msg_url = os.getenv("REDIS_MSG_URL", "redis://localhost:6379/1")
 		discord_proxy_url = os.getenv("DISCORD_PROXY_URL") or os.getenv("DISCORD_API_PROXY_URL")
+		gateway_url = (os.getenv("DISCORD_GATEWAY_URL") or "").strip() or None
 
 		lease_ttl = int(os.getenv("LEASE_TTL", "30"))
 		heartbeat_interval = int(os.getenv("HEARTBEAT_INTERVAL", "10"))
-		max_concurrency = int(os.getenv("MAX_CONCURRENCY", "1"))
 
 		return cls(
 			mode=mode,
@@ -62,7 +68,8 @@ class ClusterConfig:
 			redis_url=redis_url,
 			redis_msg_url=redis_msg_url,
 			discord_proxy_url=discord_proxy_url,
+			gateway_url=gateway_url,
+			shard_count_configured=bool(raw_shard_count),
 			lease_ttl=lease_ttl,
 			heartbeat_interval=heartbeat_interval,
-			max_concurrency=max_concurrency,
 		)

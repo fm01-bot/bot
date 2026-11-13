@@ -6,6 +6,7 @@ in main.py. It's mostly used for type hints (especially Bot and Context).
 """
 # ruff: noqa F403
 
+from core.locale import *
 from core.argument import *
 from core.command import *
 from core.slash_localization import *

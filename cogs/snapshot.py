@@ -314,6 +314,7 @@ class Snapshot(commands.Cog, name="Snapshots"):
 	@group(permissions=["administrator"], user=False)
 	async def snapshot(self, ctx: Context):
 		assert ctx.guild is not None
+		await ctx.defer()  # slow: reads every role and channel
 		code = await self.create_snapshot(ctx)
 
 		await ctx.send("snapshot.create", code=code)
@@ -321,6 +322,7 @@ class Snapshot(commands.Cog, name="Snapshots"):
 	@snapshot.command(l10n_key="ss_load", permissions=["administrator"])
 	async def load(self, ctx: Context, code: str):
 		assert ctx.guild is not None
+		await ctx.defer()  # slow: recreates roles and channels
 		payload = await self.get_snapshot(code)
 		if not payload:
 			await ctx.send("snapshot.not_found")
@@ -358,9 +360,11 @@ class Snapshot(commands.Cog, name="Snapshots"):
 			self.client.logger.exception("Snapshot loading encountered an error")
 			if ctx.guild.owner:
 				try:
-					await ctx.guild.owner.send(
-						content=f"⚠️ An error occurred while restoring snapshot `{code}`: {e}. You can restore using the pre-snapshot backup code `{old}`."
+					payload = await self.custom_response.get_message(
+						"snapshot.restore_failed", ctx.guild, code=code, error=str(e), backup=old
 					)
+					if isinstance(payload, dict):
+						await ctx.guild.owner.send(**payload)
 				except (discord.Forbidden, discord.HTTPException):
 					pass
 			return

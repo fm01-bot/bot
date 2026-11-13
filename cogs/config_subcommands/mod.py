@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from cogs.mod.cases import retention_setting
 from helpers.cli_parser import CLINode, CLIParseError
 
 if TYPE_CHECKING:
@@ -23,36 +24,16 @@ def setup_mod_subcommands(parent_node: CLINode) -> CLINode:
 		assert ctx.guild is not None
 		raw_val = retention or retention_pos
 
+		setting = retention_setting(ctx.bot.settings)
 		if not raw_val:
-			row = await ctx.bot.db.fetchrow("SELECT case_retention FROM mod_config WHERE guild_id = $1", ctx.guild.id)
-			current = row["case_retention"] if row else "keep"
+			current = await setting.get(ctx.guild.id)
 			return await ctx.send(content=f"```ansi\nModeration case retention: {current}\n```")
 
 		normalized = raw_val.strip().lower()
 		if normalized not in ("keep", "delete"):
 			raise CLIParseError("`--retention` must be either 'keep' or 'delete'.", mod_node)
 
-		await ctx.bot.db.execute(
-			"""
-			INSERT INTO mod_config (guild_id, case_retention)
-			VALUES ($1, $2)
-			ON CONFLICT (guild_id) DO UPDATE
-			SET case_retention = $2
-			""",
-			ctx.guild.id,
-			normalized,
-		)
-
-		# Notify Moderation cog cache if loaded
-		mod_cog: Any = ctx.bot.get_cog("Moderation")
-		if mod_cog and hasattr(mod_cog, "set_guild_retention"):
-			mod_cog.set_guild_retention(ctx.guild.id, normalized)
-
-		if hasattr(ctx.bot, "event_bus"):
-			await ctx.bot.event_bus.publish(
-				"fm01:events",
-				{"type": "INVALIDATE_MOD_CONFIG", "guild_id": ctx.guild.id, "retention": normalized},
-			)
+		await setting.set(ctx.guild.id, normalized)
 
 		return await ctx.send(content=f"```ansi\n[+] Moderation case retention set to {normalized}\n```")
 

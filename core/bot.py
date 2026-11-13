@@ -10,22 +10,19 @@ from io import StringIO
 from logging import getLogger
 from pathlib import Path
 from time import perf_counter
-from typing import Any, cast
+from typing import Any
 
 import aiohttp
 import asyncpg
 import discord
 import discord.http
 import wavelink
-import yarl
 from discord import app_commands
 from discord.ext import commands, localization
-from discord.gateway import DiscordWebSocket
-from discord.shard import Shard
 from discord.utils import MISSING
 from helpers import custom_response, seconds_to_text
 
-from core import Command, Context, SlashCommandLocalizer, slash_command_localization, update_slash_localizations
+from core import Command, Context, SlashCommandLocalizer, slash_localization, update_slash_localizations
 from core.clustering import (
 	ClusterConfig,
 	EventBus,
@@ -33,20 +30,46 @@ from core.clustering import (
 	InMemoryStateStore,
 	LocalEventBus,
 	MessageBuffer,
-	NullSessionPersister,
 	RedisMessageBuffer,
 	RedisPubSubBus,
-	RedisSessionPersister,
 	RedisShardCoordinator,
 	RedisStateStore,
-	SessionPersister,
 	ShardCoordinator,
 	StandaloneCoordinator,
 	StateStore,
+	configure_gateway_proxy,
+	fetch_proxy_shard_count,
 )
 from core.config import Config
+from core.settings import (
+	GuildSetting,
+	GuildSettings,
+	Prefix,
+	load_all_locale_overrides,
+	load_all_prefixes,
+	load_locale_override,
+	load_prefix,
+	save_locale_override,
+	save_prefix,
+)
 
-__all__ = ("Bot",)
+__all__ = ("Bot", "discover_cogs")
+
+
+def discover_cogs(directory: Path) -> list[str]:
+	"""List the extension names under ``directory``: ``*.py`` modules and packages whose ``__init__.py`` defines setup.
+
+	Args:
+		directory: The cogs directory.
+
+	Returns:
+		list[str]: Extension names relative to ``directory`` (e.g. ``"basic"``, ``"mod"``), sorted.
+	"""
+	names = [path.stem for path in directory.glob("*.py") if path.stem != "__init__"]
+	for init in directory.glob("*/__init__.py"):
+		if "async def setup(" in init.read_text(encoding="utf-8"):
+			names.append(init.parent.name)
+	return sorted(names)
 
 
 class Bot(commands.AutoShardedBot):
@@ -58,6 +81,11 @@ class Bot(commands.AutoShardedBot):
 			proxy_url = self.cluster_config.discord_proxy_url.rstrip("/")
 			discord.http.Route.BASE = proxy_url
 
+		if self.cluster_config.gateway_url:
+			if not self.cluster_config.shard_count_configured:
+				raise ValueError("SHARD_COUNT must be set when DISCORD_GATEWAY_URL is set")
+			configure_gateway_proxy(self.cluster_config.gateway_url)
+
 		update_slash_localizations()
 		self._sentry_enabled = False
 		self.debug: bool = config.debug
@@ -68,7 +96,8 @@ class Bot(commands.AutoShardedBot):
 		self.db: asyncpg.Pool | MISSING = None
 		self.session: aiohttp.ClientSession | None = None
 
-		shard_count = self.cluster_config.shard_count if self.cluster_config.is_clustered else None
+		uses_fixed_shard_count = self.cluster_config.is_clustered or self.cluster_config.uses_gateway_proxy
+		shard_count = self.cluster_config.shard_count if uses_fixed_shard_count else None
 
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
@@ -98,20 +127,24 @@ class Bot(commands.AutoShardedBot):
 				heartbeat_interval=self.cluster_config.heartbeat_interval,
 				explicit_shard_ids=self.cluster_config.shard_ids,
 			)
-			self.session_persister: SessionPersister = RedisSessionPersister.from_url(
-				self.cluster_config.redis_url, session_ttl=self.cluster_config.lease_ttl * 3
-			)
 		else:
 			self.state_store = InMemoryStateStore()
 			self.event_bus = LocalEventBus()
 			self.message_buffer = InMemoryMessageBuffer()
 			self.coordinator = StandaloneCoordinator()
-			self.session_persister = NullSessionPersister()
 
 		self.message_logging_guilds: set[int] = set()
+		"""Guilds whose messages are buffered for deletion/edit logging; maintained by the log setting."""
 		self._health_task: asyncio.Task | None = None
-		self.prefix_cache: dict[int, tuple[str | list[str], bool]] = {}
-		self.locale_cache: dict[int, str] = {}
+		self.settings = GuildSettings(lambda: self.db, self.event_bus)
+		self.prefix: GuildSetting[Prefix] = self.settings.add(
+			"prefix", load_prefix, save_prefix, load_all=load_all_prefixes
+		)
+		self.locale_override: GuildSetting[str | None] = self.settings.add(
+			"locale", load_locale_override, save_locale_override, load_all=load_all_locale_overrides
+		)
+		self.prefix_cache = self.prefix.cache
+		self.locale_cache = self.locale_override.cache
 		self.custom_response = custom_response.CustomResponse(self)
 		self._error_webhook: discord.Webhook | None = None
 
@@ -120,22 +153,8 @@ class Bot(commands.AutoShardedBot):
 			return "?"
 		if not message.guild:
 			return "?!"
-		if message.guild.id in self.prefix_cache:
-			prefix, mention = self.prefix_cache[message.guild.id]
-		else:
-			row = await self.db.fetchrow("SELECT prefix, mention FROM guilds WHERE guild_id = $1", message.guild.id)
-			if row:
-				prefix, mention = row.get("prefix", "?!"), row.get("mention", True)
-			else:
-				prefix, mention = "?!", True
-			self.prefix_cache[message.guild.id] = (prefix, mention)
-		if mention:
-			if isinstance(prefix, str):
-				return commands.when_mentioned_or(prefix)(self, message)
-			else:
-				return commands.when_mentioned_or(*prefix)(self, message)
-		else:
-			return prefix
+		prefix, mention = await self.prefix.get(message.guild.id)
+		return commands.when_mentioned_or(prefix)(self, message) if mention else prefix
 
 	async def request(self, url: str) -> dict:
 		if self.session:
@@ -145,18 +164,10 @@ class Bot(commands.AutoShardedBot):
 			return {"error": 400}
 
 	async def on_guild_join(self, guild: discord.Guild):
-		row = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", guild.id)
-		if not row:
-			await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", guild.id)
-			self.prefix_cache[guild.id] = ("?!", True)
-		else:
-			self.prefix_cache[guild.id] = (row.get("prefix", "?!"), row.get("mention", True))
+		await self.prefix.get(guild.id)  # creates the guild's settings row
 
 	async def on_guild_remove(self, guild: discord.Guild):
-		if guild.id in self.prefix_cache:
-			del self.prefix_cache[guild.id]
-		if guild.id in self.locale_cache:
-			del self.locale_cache[guild.id]
+		self.settings.forget_guild(guild.id)
 
 	async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Any:
 		return await super().get_context(origin, cls=Context)
@@ -170,6 +181,9 @@ class Bot(commands.AutoShardedBot):
 		except asyncpg.InvalidAuthorizationSpecificationError:
 			self.logger.exception("Failed to connect to database")
 			sys.exit()
+
+		if self.cluster_config.gateway_url:
+			await self.verify_gateway_proxy_shard_count(self.cluster_config.gateway_url)
 
 		await self.message_buffer.start()
 		await self.event_bus.start()
@@ -186,9 +200,7 @@ class Bot(commands.AutoShardedBot):
 			await self.coordinator.start_heartbeat()
 
 		await self.load_cogs()
-		await self.cache_prefixes()
-		await self.cache_locales()
-		await self.refresh_logging_guilds()
+		await self.settings.preload()
 		await self.tree.set_translator(SlashCommandLocalizer())
 		self.session = aiohttp.ClientSession(
 			connector=aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver(), family=socket.AF_INET)
@@ -196,34 +208,8 @@ class Bot(commands.AutoShardedBot):
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Initial setup hook complete in {end:.2f}s")
 
-	async def refresh_logging_guilds(self) -> None:
-		try:
-			rows = await self.db.fetch(
-				"SELECT guild_id FROM log WHERE is_on = true AND ('on_message_delete' = ANY(modules) OR 'on_message_edit' = ANY(modules))"
-			)
-			self.message_logging_guilds = {int(r["guild_id"]) for r in rows}
-			self.logger.debug(f"Cached {len(self.message_logging_guilds)} active message logging guilds")
-		except Exception:
-			self.logger.exception("Failed to load message logging guilds")
-
 	async def _on_cluster_event(self, event: dict[str, Any]) -> None:
-		event_type = event.get("type")
-		guild_id = event.get("guild_id")
-		if event_type == "INVALIDATE_PREFIX" and guild_id:
-			self.prefix_cache.pop(int(guild_id), None)
-		elif event_type == "INVALIDATE_LOCALE" and guild_id:
-			new_loc = event.get("locale")
-			if new_loc:
-				self.locale_cache[int(guild_id)] = new_loc
-			else:
-				self.locale_cache.pop(int(guild_id), None)
-		elif event_type == "INVALIDATE_LOG_CONFIG" and guild_id:
-			await self.refresh_logging_guilds()
-		elif event_type == "INVALIDATE_MOD_CONFIG" and guild_id:
-			mod_cog: Any = self.get_cog("Moderation")
-			if mod_cog and hasattr(mod_cog, "set_guild_retention"):
-				retention = event.get("retention", "keep")
-				mod_cog.set_guild_retention(int(guild_id), retention)
+		await self.settings.handle_event(event)
 
 	async def on_message(self, message: discord.Message) -> None:
 		if message.author.bot:
@@ -233,9 +219,11 @@ class Bot(commands.AutoShardedBot):
 			self.message_buffer.enqueue_message(message)
 
 		prefix_entry = self.prefix_cache.get(message.guild.id) if message.guild else None
-		if prefix_entry:
-			prefix, mention = prefix_entry
-			prefixes: list[str] = [prefix] if isinstance(prefix, str) else list(prefix)
+		if self.debug:
+			prefixes: list[str] = ["?"]  # fetch_prefix only accepts "?" in debug mode
+			mention = False
+		elif prefix_entry:
+			prefixes, mention = [prefix_entry[0]], prefix_entry[1]
 		else:
 			prefixes = ["?!", "?"]
 			mention = True
@@ -260,40 +248,31 @@ class Bot(commands.AutoShardedBot):
 
 		await self.process_commands(message)
 
-	async def launch_shard(self, gateway: yarl.URL, shard_id: int, *, initial: bool = False) -> None:
-		session = await self.session_persister.get_session(shard_id)
-		if session and session.get("session_id") and session.get("sequence") is not None:
-			resume_gateway = yarl.URL(session["gateway"]) if session.get("gateway") else gateway
-			try:
-				coro = DiscordWebSocket.from_client(
-					self,
-					initial=False,
-					gateway=resume_gateway,
-					shard_id=shard_id,
-					session=session["session_id"],
-					sequence=session["sequence"],
-					resume=True,
-				)
-				ws = await asyncio.wait_for(coro, timeout=self.shard_connect_timeout)
-				self._AutoShardedClient__shards[shard_id] = ret = Shard(  # type: ignore
-					ws,
-					self,
-					self._AutoShardedClient__queue.put_nowait,  # type: ignore
-				)
-				ret.launch()
-				self.logger.info(f"Shard {shard_id} successfully RESUMED gateway session {session.get('session_id')}")
-				return
-			except (discord.DiscordException, aiohttp.ClientError, TimeoutError, OSError) as e:
-				self.logger.warning(
-					f"Failed to resume session for shard {shard_id}: {e}. Falling back to cold identify..."
-				)
-				await self.session_persister.clear_session(shard_id)
+	async def verify_gateway_proxy_shard_count(self, gateway_url: str) -> None:
+		"""Refuse to start when ``SHARD_COUNT`` differs from the gateway proxy's shard count.
 
-		await super().launch_shard(gateway, shard_id, initial=initial)
+		The proxy disconnects every client whose IDENTIFY carries a different shard count, so a mismatch would leave
+		the bot reconnecting forever instead of failing.
+
+		Args:
+			gateway_url: The proxy's WebSocket URL.
+
+		Raises:
+			RuntimeError: The counts differ.
+		"""
+		async with aiohttp.ClientSession() as session:
+			proxy_shard_count = await fetch_proxy_shard_count(session, gateway_url)
+		if proxy_shard_count != self.cluster_config.shard_count:
+			raise RuntimeError(
+				f"SHARD_COUNT is {self.cluster_config.shard_count}, but the gateway proxy at {gateway_url} "
+				f"runs {proxy_shard_count} shards; set SHARD_COUNT={proxy_shard_count}"
+			)
+		self.logger.info(f"Connecting to the gateway proxy at {gateway_url} with {proxy_shard_count} shards")
 
 	async def before_identify_hook(self, shard_id: int | None, *, initial: bool = False) -> None:
-		if shard_id is not None and self.cluster_config.is_clustered:
-			await self.session_persister.acquire_identify_lock(shard_id, self.cluster_config.max_concurrency)
+		# The proxy answers IDENTIFY itself and holds the real sessions, so Discord's 5-second spacing doesn't apply.
+		if self.cluster_config.uses_gateway_proxy:
+			return
 		await super().before_identify_hook(shard_id, initial=initial)
 
 	async def _health_reporting_loop(self) -> None:
@@ -318,31 +297,11 @@ class Bot(commands.AutoShardedBot):
 			with contextlib.suppress(asyncio.CancelledError):
 				await self._health_task
 
-		if self.cluster_config.is_clustered:
-			sessions: dict[int, dict[str, Any]] = {}
-			for shard_id, shard in self.shards.items():
-				ws = getattr(shard, "ws", None)
-				if ws and getattr(ws, "session_id", None) and getattr(ws, "sequence", None) is not None:
-					sessions[shard_id] = {
-						"session_id": ws.session_id,
-						"sequence": ws.sequence,
-						"gateway": str(getattr(ws, "gateway", "")),
-					}
-			if sessions:
-				await self.session_persister.save_sessions(sessions)
-
-			for shard in self.shards.values():
-				ws = getattr(shard, "ws", None)
-				if ws and hasattr(ws, "socket") and ws.socket and not ws.socket.closed:
-					with contextlib.suppress(Exception):
-						await ws.socket.close(code=4000)
-
 		await self.coordinator.release_shards()
 		await self.coordinator.close()
 		await self.message_buffer.close()
 		await self.event_bus.close()
 		await self.state_store.close()
-		await self.session_persister.close()
 
 		if self.session and not self.session.closed:
 			self.logger.debug("Closing aiohttp session...")
@@ -383,32 +342,17 @@ class Bot(commands.AutoShardedBot):
 		allowed: list[str] = self.config.modules
 		self.logger.debug(f"Allowed cogs: {', '.join(allowed)}")
 
-		cogs = Path("cogs").glob("*.py")
-		for cog in cogs:
-			if cog.stem in allowed or "*" in allowed:  # if you're having issues with cogs not loading, check this list
-				await self.load_extension(f"cogs.{cog.stem}")
-				self.logger.debug(f"Loaded extension {cog.name}")
+		local_cogs = discover_cogs(Path("cogs"))
+		for name in local_cogs:
+			if name in allowed or "*" in allowed:  # if you're having issues with cogs not loading, check this list
+				await self.load_extension(f"cogs.{name}")
+				self.logger.debug(f"Loaded extension {name}")
 		for module in allowed:
-			if module != "*" and not (Path("cogs") / f"{module}.py").exists():
+			if module != "*" and module not in local_cogs:
 				await self.load_extension(module)
 				self.logger.debug(f"Loaded external extension {module}")
 		end = perf_counter() - benchmark
 		self.logger.debug(f"Loaded cogs in {end:.2f}s")
-
-	async def cache_prefixes(self):
-		self.logger.info("Caching prefixes...")
-		result = await self.db.fetch("SELECT guild_id, prefix, mention FROM guilds")
-		for row in result:
-			self.prefix_cache[row["guild_id"]] = (row["prefix"], row["mention"])
-
-	async def cache_locales(self):
-		self.logger.info("Caching locale overrides...")
-		try:
-			result = await self.db.fetch("SELECT guild_id, locale FROM guild_locale_overrides")
-			for row in result:
-				self.locale_cache[int(row["guild_id"])] = row["locale"]
-		except Exception:
-			self.logger.exception("Failed to cache guild locale overrides")
 
 	async def on_ready(self):
 		if not hasattr(self, "uptime"):
@@ -430,8 +374,8 @@ class Bot(commands.AutoShardedBot):
 
 		match error:
 			case commands.MissingRequiredArgument():
-				if slash_command_localization:
-					name = slash_command_localization(error.param.name, ctx)
+				if l10n := slash_localization.slash_command_localization:
+					name = l10n(error.param.name, ctx)
 				else:
 					name = "-"
 				parameter = f"[{name if error.param.required else f'({name})'}]"
@@ -586,28 +530,3 @@ class Bot(commands.AutoShardedBot):
 
 	async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
 		await self.handle_error(await Context.from_interaction(interaction), error)
-
-	async def before_invoke(self, ctx: Context):  # type: ignore
-		if ctx.guild and ctx.guild.id not in self.prefix_cache:
-			is_set_up: bool = await self.db.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", ctx.guild.id)
-			if not is_set_up:
-				await self.db.execute("INSERT INTO guilds (guild_id) VALUES ($1)", ctx.guild.id)
-				self.prefix_cache[ctx.guild.id] = ("?!", True)
-		try:
-			# Signals that the bot is still thinking / performing a task
-			if ctx.interaction and ctx.interaction.type == discord.InteractionType.application_command:
-				await ctx.interaction.response.defer(thinking=True)
-			else:
-				await ctx.message.add_reaction(self.config.emojis.get("loading", ""))
-		except discord.HTTPException:
-			pass
-
-	async def after_invoke(self, ctx: Context):  # type: ignore
-		if ctx.interaction:
-			return
-		try:
-			await ctx.message.remove_reaction(
-				self.config.emojis.get("loading", ""), cast(discord.abc.Snowflake, ctx.me)
-			)
-		except discord.HTTPException:
-			pass
