@@ -1,0 +1,22 @@
+{
+  "backpressure": 100,
+  "cache": {
+    "channels": true,
+    "current_member": true,
+    "emojis": true,
+    "members": true,
+    "presences": false,
+    "roles": true,
+    "scheduled_events": true,
+    "stage_instances": true,
+    "stickers": true,
+    "users": true,
+    "voice_states": true
+  },
+  "externally_accessible_url": "ws://gateway-proxy:7878",
+  "intents": 53608447,
+  "log_level": "info",
+  "port": 7878,
+  "status": "idle",
+  "validate_token": true
+}

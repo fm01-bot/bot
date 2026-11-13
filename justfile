@@ -35,14 +35,21 @@ restart *ARGS:
 logs *ARGS:
   docker compose logs -f {{ARGS}}
 
+# Restarts only the bot; the gateway proxy keeps the shards connected. Services are listed so the proxy is never touched.
 deploy:
   git fetch --all
   git reset --hard origin/main
   uv sync
   just up db
   just migrate
-  docker compose build
-  just up -d --remove-orphans
+  docker compose build bot
+  just up --remove-orphans db lavalink redis bot
+
+# Recreates the gateway proxy, which reconnects every shard to Discord. Only for proxy upgrades and SHARD_COUNT changes.
+deploy-proxy:
+  docker compose --profile gateway-proxy pull gateway-proxy
+  docker compose --profile gateway-proxy up -d --force-recreate gateway-proxy
+  just up bot
 
 [windows]
 debug:

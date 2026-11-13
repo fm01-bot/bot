@@ -10,7 +10,6 @@ from core.clustering import (
 	InMemoryMessageBuffer,
 	InMemoryStateStore,
 	LocalEventBus,
-	NullSessionPersister,
 	StandaloneCoordinator,
 )
 from core.clustering.message_buffer import serialize_message
@@ -154,17 +153,10 @@ def test_cluster_config_hostname_fallback(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_standalone_coordinator_and_persister():
+async def test_standalone_coordinator():
 	coordinator = StandaloneCoordinator()
 	assert await coordinator.acquire_shards(64, 16) is None
 	await coordinator.start_heartbeat()
 	await coordinator.update_health(0, 0.05, 100, "ready")
 	await coordinator.release_shards()
 	await coordinator.close()
-
-	persister = NullSessionPersister()
-	await persister.save_sessions({0: {"session_id": "abc", "sequence": 1, "gateway": "wss://gateway"}})
-	assert await persister.get_session(0) is None
-	assert await persister.acquire_identify_lock(0) is True
-	await persister.release_identify_lock(0)
-	await persister.close()

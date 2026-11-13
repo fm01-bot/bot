@@ -63,7 +63,7 @@ Then edit it:
 docker compose up -d --build
 ```
 
-Database migrations are applied automatically on every bot start.
+Database migrations are applied automatically on every bot start (unless `MIGRATE_ON_START=false`).
 
 Check that it's running:
 
@@ -83,6 +83,32 @@ docker compose logs -f bot
 
 > [!WARNING]
 > `docker compose down -v` / `just destroy` permanently deletes the database volume. Only use it in debug environments!
+
+### Gateway proxy (production)
+
+Production runs a [gateway proxy](https://github.com/Gelbpunkt/gateway-proxy) that holds the shard connections to
+Discord. The bot connects to the proxy instead, so restarting it replays the guild state from the proxy's cache instead
+of identifying every shard again (Discord allows one IDENTIFY per 5 seconds). Self-hosters don't need it: leave
+`DISCORD_GATEWAY_URL` unset and the bot connects to Discord directly.
+
+To enable it, set in `.env`:
+
+```bash
+COMPOSE_PROFILES=gateway-proxy
+DISCORD_GATEWAY_URL=ws://gateway-proxy:7878
+SHARD_COUNT=32          # must match the proxy; the bot refuses to start otherwise
+MIGRATE_ON_START=false  # `just deploy` runs migrations itself
+```
+
+The proxy's shard count comes from Discord's recommendation; `curl localhost:7878/shard-count` prints it. Its intents
+in `gateway-proxy.json` must match the bot's (`discord.Intents.all()`), since the bot's own IDENTIFY never reaches
+Discord.
+
+- `just deploy` rebuilds and restarts only the bot; the proxy keeps the shards connected.
+- `just deploy-proxy` recreates the proxy, which reconnects every shard. Use it for proxy upgrades and shard count
+  changes only, and update `SHARD_COUNT` first when the count changes.
+
+Voice sessions don't survive a bot restart: players that were playing stop and have to be started again.
 
 ### Debug mode
 
