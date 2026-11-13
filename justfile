@@ -35,10 +35,15 @@ restart *ARGS:
 logs *ARGS:
   docker compose logs -f {{ARGS}}
 
-# Restarts the bot without disconnecting from Discord
-deploy:
-  git fetch --all
-  git reset --hard origin/main
+# Restarts the bot without disconnecting from Discord, on the latest release or the given tag or branch
+[unix]
+deploy ref="":
+  git fetch --force --tags origin
+  ref="{{ref}}"; \
+  if [ -z "$ref" ]; then ref="$(git tag --list 'v*' --sort=-v:refname | grep -v -- - | head -n 1)"; \
+  elif git rev-parse --quiet --verify "origin/$ref" >/dev/null; then ref="origin/$ref"; fi; \
+  echo "Deploying $ref"; \
+  git checkout --force --detach "$ref"
   uv sync
   just up db
   just migrate

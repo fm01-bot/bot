@@ -64,6 +64,7 @@ def test_cluster_config_reads_gateway_url(monkeypatch):
 	assert cfg.uses_gateway_proxy is True
 	assert cfg.gateway_url == PROXY_URL
 	assert cfg.shard_count == 32
+	assert cfg.shard_count_configured is True
 
 
 def test_cluster_config_without_gateway_url(monkeypatch):
@@ -72,6 +73,14 @@ def test_cluster_config_without_gateway_url(monkeypatch):
 	cfg = ClusterConfig.from_env()
 	assert cfg.uses_gateway_proxy is False
 	assert cfg.shard_count == 64
+	assert cfg.shard_count_configured is False
+
+
+def test_bot_requires_shard_count_behind_proxy(monkeypatch, config):
+	monkeypatch.setenv("DISCORD_GATEWAY_URL", PROXY_URL)
+	monkeypatch.delenv("SHARD_COUNT", raising=False)
+	with pytest.raises(ValueError, match="SHARD_COUNT"):
+		make_bot(config)
 
 
 def test_bot_connects_directly_without_proxy(monkeypatch, config):

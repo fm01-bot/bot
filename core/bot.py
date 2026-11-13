@@ -82,6 +82,8 @@ class Bot(commands.AutoShardedBot):
 			discord.http.Route.BASE = proxy_url
 
 		if self.cluster_config.gateway_url:
+			if not self.cluster_config.shard_count_configured:
+				raise ValueError("SHARD_COUNT must be set when DISCORD_GATEWAY_URL is set")
 			configure_gateway_proxy(self.cluster_config.gateway_url)
 
 		update_slash_localizations()

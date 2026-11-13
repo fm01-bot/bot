@@ -104,7 +104,8 @@ The proxy's shard count comes from Discord's recommendation; `curl localhost:787
 in `gateway-proxy.json` must match the bot's (`discord.Intents.all()`), since the bot's own IDENTIFY never reaches
 Discord.
 
-- `just deploy` rebuilds and restarts only the bot; the proxy keeps the shards connected.
+- `just deploy` checks out the latest release, then rebuilds and restarts only the bot; the proxy keeps the shards
+  connected. `just deploy v0.9.0` deploys (or rolls back to) a given release, and `just deploy main` the testing branch.
 - `just deploy-proxy` recreates the proxy, which reconnects every shard. Use it for proxy upgrades and shard count
   changes only, and update `SHARD_COUNT` first when the count changes.
 
