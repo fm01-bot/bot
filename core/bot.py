@@ -17,11 +17,8 @@ import asyncpg
 import discord
 import discord.http
 import wavelink
-import yarl
 from discord import app_commands
 from discord.ext import commands, localization
-from discord.gateway import DiscordWebSocket
-from discord.shard import Shard
 from discord.utils import MISSING
 from helpers import custom_response, seconds_to_text
 
@@ -33,16 +30,15 @@ from core.clustering import (
 	InMemoryStateStore,
 	LocalEventBus,
 	MessageBuffer,
-	NullSessionPersister,
 	RedisMessageBuffer,
 	RedisPubSubBus,
-	RedisSessionPersister,
 	RedisShardCoordinator,
 	RedisStateStore,
-	SessionPersister,
 	ShardCoordinator,
 	StandaloneCoordinator,
 	StateStore,
+	configure_gateway_proxy,
+	fetch_proxy_shard_count,
 )
 from core.config import Config
 from core.settings import (
@@ -85,6 +81,11 @@ class Bot(commands.AutoShardedBot):
 			proxy_url = self.cluster_config.discord_proxy_url.rstrip("/")
 			discord.http.Route.BASE = proxy_url
 
+		if self.cluster_config.gateway_url:
+			if not self.cluster_config.shard_count_configured:
+				raise ValueError("SHARD_COUNT must be set when DISCORD_GATEWAY_URL is set")
+			configure_gateway_proxy(self.cluster_config.gateway_url)
+
 		update_slash_localizations()
 		self._sentry_enabled = False
 		self.debug: bool = config.debug
@@ -95,7 +96,8 @@ class Bot(commands.AutoShardedBot):
 		self.db: asyncpg.Pool | MISSING = None
 		self.session: aiohttp.ClientSession | None = None
 
-		shard_count = self.cluster_config.shard_count if self.cluster_config.is_clustered else None
+		uses_fixed_shard_count = self.cluster_config.is_clustered or self.cluster_config.uses_gateway_proxy
+		shard_count = self.cluster_config.shard_count if uses_fixed_shard_count else None
 
 		super().__init__(
 			command_prefix=Bot.fetch_prefix,
@@ -125,15 +127,11 @@ class Bot(commands.AutoShardedBot):
 				heartbeat_interval=self.cluster_config.heartbeat_interval,
 				explicit_shard_ids=self.cluster_config.shard_ids,
 			)
-			self.session_persister: SessionPersister = RedisSessionPersister.from_url(
-				self.cluster_config.redis_url, session_ttl=self.cluster_config.lease_ttl * 3
-			)
 		else:
 			self.state_store = InMemoryStateStore()
 			self.event_bus = LocalEventBus()
 			self.message_buffer = InMemoryMessageBuffer()
 			self.coordinator = StandaloneCoordinator()
-			self.session_persister = NullSessionPersister()
 
 		self.message_logging_guilds: set[int] = set()
 		"""Guilds whose messages are buffered for deletion/edit logging; maintained by the log setting."""
@@ -183,6 +181,9 @@ class Bot(commands.AutoShardedBot):
 		except asyncpg.InvalidAuthorizationSpecificationError:
 			self.logger.exception("Failed to connect to database")
 			sys.exit()
+
+		if self.cluster_config.gateway_url:
+			await self.verify_gateway_proxy_shard_count(self.cluster_config.gateway_url)
 
 		await self.message_buffer.start()
 		await self.event_bus.start()
@@ -247,40 +248,31 @@ class Bot(commands.AutoShardedBot):
 
 		await self.process_commands(message)
 
-	async def launch_shard(self, gateway: yarl.URL, shard_id: int, *, initial: bool = False) -> None:
-		session = await self.session_persister.get_session(shard_id)
-		if session and session.get("session_id") and session.get("sequence") is not None:
-			resume_gateway = yarl.URL(session["gateway"]) if session.get("gateway") else gateway
-			try:
-				coro = DiscordWebSocket.from_client(
-					self,
-					initial=False,
-					gateway=resume_gateway,
-					shard_id=shard_id,
-					session=session["session_id"],
-					sequence=session["sequence"],
-					resume=True,
-				)
-				ws = await asyncio.wait_for(coro, timeout=self.shard_connect_timeout)
-				self._AutoShardedClient__shards[shard_id] = ret = Shard(  # type: ignore
-					ws,
-					self,
-					self._AutoShardedClient__queue.put_nowait,  # type: ignore
-				)
-				ret.launch()
-				self.logger.info(f"Shard {shard_id} successfully RESUMED gateway session {session.get('session_id')}")
-				return
-			except (discord.DiscordException, aiohttp.ClientError, TimeoutError, OSError) as e:
-				self.logger.warning(
-					f"Failed to resume session for shard {shard_id}: {e}. Falling back to cold identify..."
-				)
-				await self.session_persister.clear_session(shard_id)
+	async def verify_gateway_proxy_shard_count(self, gateway_url: str) -> None:
+		"""Refuse to start when ``SHARD_COUNT`` differs from the gateway proxy's shard count.
 
-		await super().launch_shard(gateway, shard_id, initial=initial)
+		The proxy disconnects every client whose IDENTIFY carries a different shard count, so a mismatch would leave
+		the bot reconnecting forever instead of failing.
+
+		Args:
+			gateway_url: The proxy's WebSocket URL.
+
+		Raises:
+			RuntimeError: The counts differ.
+		"""
+		async with aiohttp.ClientSession() as session:
+			proxy_shard_count = await fetch_proxy_shard_count(session, gateway_url)
+		if proxy_shard_count != self.cluster_config.shard_count:
+			raise RuntimeError(
+				f"SHARD_COUNT is {self.cluster_config.shard_count}, but the gateway proxy at {gateway_url} "
+				f"runs {proxy_shard_count} shards; set SHARD_COUNT={proxy_shard_count}"
+			)
+		self.logger.info(f"Connecting to the gateway proxy at {gateway_url} with {proxy_shard_count} shards")
 
 	async def before_identify_hook(self, shard_id: int | None, *, initial: bool = False) -> None:
-		if shard_id is not None and self.cluster_config.is_clustered:
-			await self.session_persister.acquire_identify_lock(shard_id, self.cluster_config.max_concurrency)
+		# The proxy answers IDENTIFY itself and holds the real sessions, so Discord's 5-second spacing doesn't apply.
+		if self.cluster_config.uses_gateway_proxy:
+			return
 		await super().before_identify_hook(shard_id, initial=initial)
 
 	async def _health_reporting_loop(self) -> None:
@@ -305,31 +297,11 @@ class Bot(commands.AutoShardedBot):
 			with contextlib.suppress(asyncio.CancelledError):
 				await self._health_task
 
-		if self.cluster_config.is_clustered:
-			sessions: dict[int, dict[str, Any]] = {}
-			for shard_id, shard in self.shards.items():
-				ws = getattr(shard, "ws", None)
-				if ws and getattr(ws, "session_id", None) and getattr(ws, "sequence", None) is not None:
-					sessions[shard_id] = {
-						"session_id": ws.session_id,
-						"sequence": ws.sequence,
-						"gateway": str(getattr(ws, "gateway", "")),
-					}
-			if sessions:
-				await self.session_persister.save_sessions(sessions)
-
-			for shard in self.shards.values():
-				ws = getattr(shard, "ws", None)
-				if ws and hasattr(ws, "socket") and ws.socket and not ws.socket.closed:
-					with contextlib.suppress(Exception):
-						await ws.socket.close(code=4000)
-
 		await self.coordinator.release_shards()
 		await self.coordinator.close()
 		await self.message_buffer.close()
 		await self.event_bus.close()
 		await self.state_store.close()
-		await self.session_persister.close()
 
 		if self.session and not self.session.closed:
 			self.logger.debug("Closing aiohttp session...")

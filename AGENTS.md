@@ -51,7 +51,7 @@ This document defines architectural standards, technical conventions, and operat
 - `config.py` (`Config`): Runtime configuration parser loading `config.yml`.
 - `settings.py` (`GuildSettings`, `GuildSetting`): Cached per-guild settings with cross-instance invalidation. Register feature settings here instead of keeping a cog-level cache.
 - `locale.py` (`resolve_locale`): The single rule for which locale a response uses.
-- `clustering/`: Shard coordination (`ShardCoordinator`), session resumption (`SessionPersister`), distributed state (`StateStore`), event pub/sub (`EventBus`), and audit log buffers (`MessageBuffer`).
+- `clustering/`: Shard coordination (`ShardCoordinator`), gateway proxy connection (`gateway_proxy.py`), distributed state (`StateStore`), event pub/sub (`EventBus`), and audit log buffers (`MessageBuffer`).
 
 #### `args/` (Safe String Formatting Wrappers)
 
